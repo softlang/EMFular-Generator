@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { TreeEditorComponent } from 'ngx-emfular-integration';
-import { {{modelServiceName}} } from '{{modelServiceImportPath}}';
+import { %%modelName%%Service } from './%%modelFileName%%/edit/%%modelFileName%%.service';
 
 @Component({
   selector: 'app-root',
@@ -11,9 +11,9 @@ import { {{modelServiceName}} } from '{{modelServiceImportPath}}';
   styleUrl: './app.component.scss'
 })
 export class AppComponent {
-  title = '{{projectName}}';
+  title = '%%projectName%%';
 
   constructor(
-    protected modelService: {{modelServiceName}},
+    protected modelService: %%modelName%%Service,
 ) {}
 }
