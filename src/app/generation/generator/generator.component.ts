@@ -1,5 +1,7 @@
 import {Component} from '@angular/core';
 import {NgIf} from '@angular/common';
+import {GenerationService} from '../generation.service';
+import {ZipService} from '../../utils/zip.service';
 
 @Component({
   selector: 'emfular-generator',
@@ -12,14 +14,19 @@ import {NgIf} from '@angular/common';
 })
 export class GeneratorComponent {
   fileName: string | null = null;
-  fileContent: string | null = null;
+
+  constructor(
+    private generationService: GenerationService,
+    private zipService: ZipService
+    ) {
+  }
 
   onFileSelected(event: Event) {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     if (!file) return;
 
-    this.readFile(file);
+    this.processFile(file);
   }
 
   onDrop(event: DragEvent) {
@@ -27,21 +34,16 @@ export class GeneratorComponent {
     const file = event.dataTransfer?.files?.[0];
     if (!file) return;
 
-    this.readFile(file);
+    this.processFile(file);
   }
 
   onDragOver(event: DragEvent) {
     event.preventDefault();
   }
 
-  private readFile(file: File) {
-    this.fileName = file.name;
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      this.fileContent = reader.result as string;
-      // TODO: parse Ecore here
-    };
-    reader.readAsText(file);
+  private async processFile(file: File, projectName: string = "emfular-project") {
+    await this.generationService.processEcoreFile(file, projectName);
+    await this.zipService.downloadZip(projectName);
   }
+
 }
