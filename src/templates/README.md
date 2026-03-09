@@ -99,15 +99,20 @@ src/app/{{modelFileName}}/core/
 
 The generator replaces the following placeholders in template files:
 
-| Placeholder | Meaning |
-|------------|---------|
-| `{{projectName}}` | Name of the generated Angular project |
-| `{{modelName}}` | Root EClass name (e.g., `Family`) |
-| `{{modelFileName}}` | Lowercase file name (e.g., `family`) |
-| `{{modelImportPath}}` | Path to the root model class |
-| `{{allModelImports}}` | Multi-line block importing all model classes |
-| `{{antiExtinctionProperties}}` | Multi-line block instantiating all model classes |
+| Placeholder | Meaning                                                                 |
+|------------|-------------------------------------------------------------------------|
+| `{{projectName}}` | Name of the generated Angular project                                   |
+| `{{modelName}}` | Root EClass name (e.g., `Family`)                                       |
+| `{{modelFileName}}` | Lowercase file name (e.g., `family`)                                    |
+| `{{modelImportPath}}` | Path to the root model class                                            |
+| `{{allModelImports}}` | Multi-line block importing all model classes                            |
+| `{{antiExtinctionProperties}}` | Multi-line block instantiating all model classes                        |
+| `{{emfular-version}}` | Version of the EMFular runtime to install (e.g., `^9.1.0` or `^10.0.0`) |
 
+### Notes on `{{emfular-version}}`
+
+This placeholder is used inside `package.json.template.json` to pin the chosen EMFular version.
+Default is currently "^10.0.0" but it is planned that users can later generate a 9.1.0 as well.
 ---
 
 ## Generated Project Structure (for reference)

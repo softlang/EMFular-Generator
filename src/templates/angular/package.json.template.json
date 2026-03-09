@@ -18,7 +18,7 @@
     "@angular/platform-browser-dynamic": "^19.2.0",
     "@angular/router": "^19.2.0",
 
-    "emfular": "^9.1.0",
+    "emfular": "{{emfular-version}}",
     "ngx-emfular-helper": "^1.0.0",
     "ngx-emfular-integration": "^0.2.0",
     "ngx-svg-graphics": "^3.0.0",
