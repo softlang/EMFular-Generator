@@ -3,7 +3,7 @@ export interface FolderMapping {
   targetFolder: string;
 }
 
-export const FOLDER_MAPPINGS: FolderMapping[] = [
+export const PROJECT_FOLDER_MAPPINGS: FolderMapping[] = [
   // Angular workspace files
   { srcFolder: 'angular',  targetFolder: '' },
 
@@ -15,7 +15,9 @@ export const FOLDER_MAPPINGS: FolderMapping[] = [
 
   // Generated services (edit layer)
   { srcFolder: 'services', targetFolder: 'src/app/%%modelFileName%%/edit' },
+];
 
+export const MODEL_FOLDER_MAPPINGS: FolderMapping[] = [
   // Generated model classes (core layer)
   { srcFolder: 'model',    targetFolder: 'src/app/%%modelFileName%%/core' }
-];
+]
