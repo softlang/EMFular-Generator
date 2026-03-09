@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import {SingleFileGeneratorService} from '../utils/single-file-generator.service';
+import {FolderMapping} from './folder-mapping';
 
 @Injectable({ providedIn: 'root' })
 export class ProjectGenerationService {
@@ -8,15 +9,22 @@ export class ProjectGenerationService {
     private single: SingleFileGeneratorService
   ) {}
 
-  async generateFromFolders(
-    folders: string[],
+  async generateFromFolderMapping(
+    mapping: FolderMapping[],
     params: Record<string, string>
   ): Promise<void> {
 
-    for (const folder of folders) {
-      const filePaths = await this.scanFolder(folder);
-      for (const filePath of filePaths) {
-        await this.single.processFile(filePath, params);
+    for (const { srcFolder, targetFolder } of mapping) {
+      const fileNames = await this.scanFolder(srcFolder);
+
+      for (const fileName of fileNames) {
+
+        await this.single.processFile(
+          srcFolder,
+          fileName,
+          targetFolder,
+          params,
+        );
       }
     }
   }

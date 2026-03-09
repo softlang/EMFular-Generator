@@ -16,22 +16,25 @@ export class SingleFileGeneratorService {
   ) {}
 
   async processFile(
-    filePath: string,
-    params: Record<string, string>
+    srcFolder: string,
+    srcFileName: string,
+    targetFolder: string,
+    params: Record<string, string>,
   ): Promise<void> {
-    const content = await this.loader.loadTemplate(filePath);
+    const content = await this.loader.loadTemplate(`${srcFolder}/${srcFileName}`);
 
-    const templateIndex = filePath.indexOf('.template.');
+    const templateIndex = srcFileName.indexOf('.template.');
     const isTemplate = templateIndex !== -1;
 
-    const outputPath = isTemplate
-      ? filePath.substring(0, templateIndex)
-      : filePath;
+    const outputFileName = isTemplate
+      ? srcFileName.substring(0, templateIndex)
+      : srcFileName;
 
     const processed = isTemplate
       ? this.replacer.applyPlaceholders(content, params)
       : content;
 
-    this.zip.addFile(outputPath, processed);
+    this.zip.addFile(`${targetFolder}/${outputFileName}`, processed);
   }
+
 }
