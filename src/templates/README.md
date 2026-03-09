@@ -1,87 +1,103 @@
-# EMFular Angular Project Templates
+# EMFular Angular Generator Templates
 This directory contains all template files used by the EMFular Angular project generator.  
 The generator produces a ready‑to‑use Angular 19 application based on an uploaded `.ecore` model.
 
-The templates follow strict assumptions to ensure:
+The templates are organized by purpose and follow strict conventions to ensure:
 - reproducible builds
-- predictable folder structure
+- deterministic folder structure
 - compatibility with Angular 19
 - compatibility with EMFular 9 and 10
 - minimal and explicit code generation
 
 ---
 
-## Folder Structure Assumptions
-
-The generated Angular project uses the following structure:
+## Template Folder Structure
 
 ```
-src/
-  app/
-    app.component.ts
-    app.component.html
-    app.component.scss
-    app.config.ts
-    app.routes.ts
-    app.ts
-    <modelFileName>/
-      core/
-        <modelFileName>.ts
-        ...other model classes...
-      edit/
-        <modelFileName>-history.service.ts
-        <modelFileName>.service.ts
-  assets/
-    templates/   (this folder)
-  index.html
-  main.ts
-  styles.scss
+templates/
+  README.md
+  angular/      → angular.json, package.json, tsconfig templates
+  src/          → index.html, main.ts, styles, root app files
+  app/          → app.component, app.config, app.routes templates
+  services/     → model.service + model-history.service templates
+  model/        → model class templates (EMFular 9/10)
 ```
 
-### Key points:
-- All model classes live under `app/<model>/core/`.
-- Both generated services live under `app/<model>/edit/`.
-- The root component (`AppComponent`) embeds the EMFular tree editor directly.
-- Routing exists only to satisfy Angular’s standalone bootstrap requirements.
+### Purpose of each folder
+
+### **angular/**
+Contains all workspace‑level configuration templates:
+- angular.json.template.json
+- package.json.template.json
+- tsconfig.app.json.template.json
+- tsconfig.json (static)
+
+These files define the Angular workspace and are processed before any app code is generated.
 
 ---
 
-## Template File Types
+### **src/**
+Contains root‑level Angular files:
+- index.html.template.html
+- main.ts (static)
+- styles.scss (static)
 
-### 1. Static files (copied as-is)
-These contain no placeholders:
+Only `index.html` is templated (for the project title).
+
+---
+
+### **app/**
+Contains templates for the root Angular application:
+- app.component.ts.template
+- app.component.html.template
+- app.component.scss (static)
+- app.config.ts.template
+- app.routes.ts.template
+- app.ts.template
+
+These files form the minimal Angular shell that hosts the EMFular editor.
+
+---
+
+### **services/**
+Contains templates for the two generated services:
+
+#### `model-history.service.ts.template.ts`
+- Extends `HistoryService<JsonOf<Model>>`
+- Deterministic import path: `../core/{{modelFileName}}`
+- Deterministic service name: `{{modelName}}HistoryService`
+
+#### `model.service.ts.template.ts`
+- Extends `ModelService<Model>`
+- Imports **all** model classes to prevent tree‑shaking
+- Instantiates each model class once in dummy properties
+- Deterministic import path for history service:  
+  `./{{modelFileName}}-history.service`
+
+Both services are placed in the generated project under:
 
 ```
-main.ts
-styles.scss
-favicon.ico
-tsconfig.json
+src/app/{{modelFileName}}/edit/
 ```
 
-### 2. Template files (`*.template.*`)
-These contain placeholders such as `{{projectName}}` or `{{modelName}}`:
+---
+
+### **model/**
+Contains templates for generating model classes from the `.ecore` file.
+
+These templates differ between EMFular 9 and 10 only in class structure, not in naming or folder layout.
+
+Generated model classes are placed under:
 
 ```
-index.html.template.html
-angular.json.template.json
-package.json.template.json
-tsconfig.app.json.template.json
-
-app.component.ts.template
-app.component.html.template
-app.config.ts.template
-app.routes.ts.template
-
-model-history.service.ts.template.ts
-model.service.ts.template.ts
-model.ts.template.ts
+src/app/{{modelFileName}}/core/
 ```
 
 ---
 
 ## Placeholder Conventions
 
-The generator replaces the following placeholders:
+The generator replaces the following placeholders in template files:
 
 | Placeholder | Meaning |
 |------------|---------|
@@ -92,47 +108,31 @@ The generator replaces the following placeholders:
 | `{{allModelImports}}` | Multi-line block importing all model classes |
 | `{{antiExtinctionProperties}}` | Multi-line block instantiating all model classes |
 
-These placeholders ensure:
-- Angular’s tree-shaking does not remove unused model classes
-- All services import the correct model types
-- The generated project compiles without modification
-
 ---
 
-## Service Generation Assumptions
+## Generated Project Structure (for reference)
 
-### History Service
-- Extends `HistoryService<JsonOf<Model>>`
-- Uses deterministic import path:  
-  `../core/{{modelFileName}}`
-- Uses deterministic service name:  
-  `{{modelName}}HistoryService`
-- Lives in:  
-  `app/{{modelFileName}}/edit/`
-
-### Model Service
-- Extends `ModelService<Model>`
-- Imports **all** model classes to prevent tree-shaking
-- Instantiates each model class once in dummy properties
-- Lives next to the history service in `edit/`
-- Uses deterministic import paths:
-  - `../core/...` for model classes
-  - `./{{modelFileName}}-history.service` for the history service
-
----
-
-## Model Generation Assumptions
-
-Model generation is handled last because:
-- EMFular 9 and 10 differ only in model class structure
-- All other templates are version-stable
-- The generator can produce model classes with guaranteed default constructors
-
-Generated model classes live under:
+The generator produces:
 
 ```
-app/{{modelFileName}}/core/
+src/
+  app/
+    app.component.*
+    app.config.ts
+    app.routes.ts
+    app.ts
+    {{modelFileName}}/
+      core/
+        model classes...
+      edit/
+        {{modelFileName}}-history.service.ts
+        {{modelFileName}}.service.ts
+  index.html
+  main.ts
+  styles.scss
 ```
+
+This structure is deterministic and based solely on the model name.
 
 ---
 
@@ -151,7 +151,7 @@ These templates are compatible with:
 
 - No spec files are generated in version 1.
 - The generated app is intentionally minimal.
-- The tree editor is embedded directly in `AppComponent` for immediate usability.
-- Routing is included only because Angular standalone bootstrap requires it.
+- The EMFular tree editor is embedded directly in `AppComponent`.
+- Routing exists only because Angular standalone bootstrap requires it.
 - All import paths are deterministic and based on the model name.
 
