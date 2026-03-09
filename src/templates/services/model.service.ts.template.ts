@@ -2,23 +2,23 @@ import { Injectable } from '@angular/core';
 import { ModelService } from 'ngx-emfular-integration';
 import { IoService } from 'ngx-emfular-helper';
 
-import { {{modelName}} } from '../core/{{modelFileName}}';
-import { {{modelName}}HistoryService } from './{{modelFileName}}-history.service';
+import { %%modelName%% } from '../core/%%modelFileName%%';
+import { %%modelName%%HistoryService } from './%%modelFileName%%-history.service';
 
-{{allModelImports}}
+%%allModelImports%%
 
 @Injectable({
   providedIn: 'root'
 })
-export class {{modelName}}Service extends ModelService<{{modelName}}> {
+export class %%modelName%%Service extends ModelService<%%modelName%%> {
 
   // explicitly use modeling classes to avoid tree-shaking them away:
-  {{antiExtinctionProperties}}
+  %%antiExtinctionProperties%%
 
   constructor(
-    historyService: {{modelName}}HistoryService,
+    historyService: %%modelName%%HistoryService,
     ioService: IoService,
 ) {
-    super(historyService, ioService, {{modelName}});
+    super(historyService, ioService, %%modelName%%);
   }
 }
