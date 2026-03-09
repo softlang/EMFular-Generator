@@ -1,0 +1,27 @@
+.page {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.intro {
+  margin-bottom: 2rem;
+  line-height: 1.5;
+}
+
+.upload-area {
+  border: 2px dashed #999;
+  border-radius: 8px;
+  padding: 3rem 1rem;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.upload-area:hover {
+  border-color: #555;
+}
+
+.file-info {
+  margin-top: 1rem;
+}

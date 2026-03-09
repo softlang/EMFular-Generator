@@ -1,0 +1,29 @@
+<div class="page">
+  <h1>Generate a graphical app for your Ecore file</h1>
+
+  <p class="intro">
+    Upload your <strong>.ecore</strong> model and generate a ready-to-use Angular project based on EMFular.
+    Everything runs locally in your browser.
+  </p>
+
+  <div
+    class="upload-area"
+    (drop)="onDrop($event)"
+    (dragover)="onDragOver($event)"
+    (click)="fileInput.click()"
+  >
+    <p>Drop your .ecore file here or click to select</p>
+    <input
+      #fileInput
+      type="file"
+      accept=".ecore,.xml"
+      (change)="onFileSelected($event)"
+      hidden
+    />
+  </div>
+
+  <div *ngIf="fileName" class="file-info">
+    <strong>Selected file:</strong> {{ fileName }}
+  </div>
+</div>
+
