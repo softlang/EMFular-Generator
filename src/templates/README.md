@@ -20,24 +20,26 @@ templates/
   src/          → index.html, main.ts, styles, root app files
   app/          → app.component, app.config, app.routes templates
   services/     → model.service + model-history.service templates
-  model/        → model class templates (EMFular 9/10)
+  model/        → model class templates (version-specific: v9/v10)
 ```
 
-### Purpose of each folder
+---
+
+## Purpose of Each Folder
 
 ### **angular/**
-Contains all workspace‑level configuration templates:
+Workspace‑level configuration templates:
 - angular.json.template.json
 - package.json.template.json
 - tsconfig.app.json.template.json
 - tsconfig.json (static)
 
-These files define the Angular workspace and are processed before any app code is generated.
+These files define the Angular workspace and are processed before any application code is generated.
 
 ---
 
 ### **src/**
-Contains root‑level Angular files:
+Root‑level Angular files:
 - index.html.template.html
 - main.ts (static)
 - styles.scss (static)
@@ -47,7 +49,7 @@ Only `index.html` is templated (for the project title).
 ---
 
 ### **app/**
-Contains templates for the root Angular application:
+Templates for the root Angular application:
 - app.component.ts.template
 - app.component.html.template
 - app.component.scss (static)
@@ -60,37 +62,37 @@ These files form the minimal Angular shell that hosts the EMFular editor.
 ---
 
 ### **services/**
-Contains templates for the two generated services:
+Templates for the two generated services:
 
 #### `model-history.service.ts.template.ts`
 - Extends `HistoryService<JsonOf<Model>>`
-- Deterministic import path: `../core/{{modelFileName}}`
-- Deterministic service name: `{{modelName}}HistoryService`
+- Deterministic import path: `../core/%%modelFileName%%`
+- Deterministic service name: `%%modelName%%HistoryService`
 
 #### `model.service.ts.template.ts`
 - Extends `ModelService<Model>`
 - Imports **all** model classes to prevent tree‑shaking
 - Instantiates each model class once in dummy properties
 - Deterministic import path for history service:  
-  `./{{modelFileName}}-history.service`
+  `./%%modelFileName%%-history.service`
 
 Both services are placed in the generated project under:
 
 ```
-src/app/{{modelFileName}}/edit/
+src/app/%%modelFileName%%/edit/
 ```
 
 ---
 
 ### **model/**
-Contains templates for generating model classes from the `.ecore` file.
+Templates for generating model classes from the `.ecore` file.
 
 These templates differ between EMFular 9 and 10 only in class structure, not in naming or folder layout.
 
 Generated model classes are placed under:
 
 ```
-src/app/{{modelFileName}}/core/
+src/app/%%modelFileName%%/core/
 ```
 
 ---
@@ -99,20 +101,20 @@ src/app/{{modelFileName}}/core/
 
 The generator replaces the following placeholders in template files:
 
-| Placeholder | Meaning                                                                 |
-|------------|-------------------------------------------------------------------------|
-| `{{projectName}}` | Name of the generated Angular project                                   |
-| `{{modelName}}` | Root EClass name (e.g., `Family`)                                       |
-| `{{modelFileName}}` | Lowercase file name (e.g., `family`)                                    |
-| `{{modelImportPath}}` | Path to the root model class                                            |
-| `{{allModelImports}}` | Multi-line block importing all model classes                            |
-| `{{antiExtinctionProperties}}` | Multi-line block instantiating all model classes                        |
-| `{{emfular-version}}` | Version of the EMFular runtime to install (e.g., `^9.1.0` or `^10.0.0`) |
+| Placeholder | Meaning |
+|------------|---------|
+| `%%projectName%%` | Name of the generated Angular project |
+| `%%modelName%%` | Root EClass name (e.g., `Family`) |
+| `%%modelFileName%%` | Lowercase file name (e.g., `family`) |
+| `%%modelImportPath%%` | Path to the root model class |
+| `%%allModelImports%%` | Multi-line block importing all model classes |
+| `%%antiExtinctionProperties%%` | Multi-line block instantiating all model classes |
+| `%%emfular-version%%` | Version of the EMFular runtime to install (e.g., `^9.1.0` or `^10.0.0`) |
 
-### Notes on `{{emfular-version}}`
+### Notes on `%%emfular-version%%`
+This placeholder is used inside `package.json.template.json` to pin the chosen EMFular version.  
+The template provides the JSON quotes; the placeholder provides only the version string.
 
-This placeholder is used inside `package.json.template.json` to pin the chosen EMFular version.
-Default is currently "^10.0.0" but it is planned that users can later generate a 9.1.0 as well.
 ---
 
 ## Generated Project Structure (for reference)
@@ -126,12 +128,12 @@ src/
     app.config.ts
     app.routes.ts
     app.ts
-    {{modelFileName}}/
+    %%modelFileName%%/
       core/
         model classes...
       edit/
-        {{modelFileName}}-history.service.ts
-        {{modelFileName}}.service.ts
+        %%modelFileName%%-history.service.ts
+        %%modelFileName%%.service.ts
   index.html
   main.ts
   styles.scss
