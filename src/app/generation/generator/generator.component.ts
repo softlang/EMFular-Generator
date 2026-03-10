@@ -41,9 +41,9 @@ export class GeneratorComponent {
     event.preventDefault();
   }
 
-  private async processFile(file: File, projectName: string = "emfular-project") {
-    await this.generationService.processEcoreFile(file, projectName);
-    await this.zipService.downloadZip(projectName);
+  private async processFile(file: File, projectName?: string) {
+    const finalProjectName = await this.generationService.processEcoreFile(file, projectName);
+    await this.zipService.downloadZip(finalProjectName);
   }
 
 }

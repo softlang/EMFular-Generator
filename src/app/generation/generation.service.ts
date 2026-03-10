@@ -9,7 +9,7 @@ export class GenerationService {
     private projectGen: ProjectGenerationService
   ) {}
 
-  async processEcoreFile(file: File, projectName: string): Promise<void> {
+  async processEcoreFile(file: File, projectName?: string): Promise<string> {
     const xml = await this.readFile(file);
     const dom = this.parseXml(xml);
 
@@ -21,7 +21,7 @@ export class GenerationService {
     const modelFileName = this.toFileName(modelName);
 
     const params: GenerationParams = {
-      projectName,
+      projectName : projectName ? projectName : modelName+"-graphical-editor",
       modelName,
       modelFileName,
       emfularVersion: '10.0.0',
@@ -36,6 +36,7 @@ export class GenerationService {
 
     // TODO: call ModelGenerationService once implemented
     // await this.modelGen.generateModel(params);
+    return params.projectName
   }
 
   private readFile(file: File): Promise<string> {
