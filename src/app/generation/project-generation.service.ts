@@ -12,9 +12,8 @@ export class ProjectGenerationService {
 
   async generateProjectFiles(params: GenerationParams): Promise<void> {
 
-    for (const { srcFolder, targetFolder } of PROJECT_FOLDER_MAPPINGS) {
+    for (const { srcFolder, targetFolder, fileNames } of PROJECT_FOLDER_MAPPINGS) {
       const resolvedTarget = this.resolvePlaceholders(targetFolder, params);
-      const fileNames = await this.scanFolder(srcFolder);
 
       for (const fileName of fileNames) {
         await this.single.processFile(
@@ -34,8 +33,4 @@ export class ProjectGenerationService {
       .replace(/%%projectName%%/g, params.projectName);
   }
 
-  private async scanFolder(folder: string): Promise<string[]> {
-    const response = await fetch(`assets/templates/${folder}/manifest.json`);
-    return response.json();
-  }
 }

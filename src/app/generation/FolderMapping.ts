@@ -6,7 +6,7 @@ export interface FolderMapping {
 
 export const PROJECT_FOLDER_MAPPINGS: FolderMapping[] = [
   // Angular workspace files
-  { srcFolder: 'angular',   targetFolder: '',
+  { srcFolder: 'assets/templates/angular',   targetFolder: '',
     fileNames: [
       "angular.json.template.json",
       "tsconfig.app.json",
@@ -16,7 +16,7 @@ export const PROJECT_FOLDER_MAPPINGS: FolderMapping[] = [
   },
 
   // Root-level Angular files
-  { srcFolder: 'src',      targetFolder: 'src',
+  { srcFolder: 'assets/templates/src',      targetFolder: 'src',
     fileNames: [
       "index.html.template.html",
       "main.ts",
@@ -25,7 +25,7 @@ export const PROJECT_FOLDER_MAPPINGS: FolderMapping[] = [
   },
 
   // Root Angular app shell
-  { srcFolder: 'app',      targetFolder: 'src/app',
+  { srcFolder: 'assets/templates/app',      targetFolder: 'src/app',
     fileNames: [
       "app.component.html",
       "app.component.scss",
@@ -36,7 +36,7 @@ export const PROJECT_FOLDER_MAPPINGS: FolderMapping[] = [
   },
 
   // Generated services (edit layer)
-  { srcFolder: 'services',    targetFolder: 'src/app/%%modelFileName%%/edit',
+  { srcFolder: 'assets/templates/services',    targetFolder: 'src/app/%%modelFileName%%/edit',
     fileNames: [
       "model-history.service.ts.template.ts",
       "model.service.ts.template.ts",
@@ -46,7 +46,7 @@ export const PROJECT_FOLDER_MAPPINGS: FolderMapping[] = [
 
 export const MODEL_FOLDER_MAPPINGS: FolderMapping[] = [
   // Generated model classes (core layer)
-  { srcFolder: 'model',    targetFolder: 'src/app/%%modelFileName%%/core',
+  { srcFolder: 'assets/templates/model',    targetFolder: 'src/app/%%modelFileName%%/core',
     fileNames: []
   }
 ]

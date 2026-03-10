@@ -5,10 +5,8 @@ import { Injectable } from '@angular/core';
 })
 export class TemplateLoadService {
 
-  private basePath = 'templates/';
-
   async loadTemplate(path: string): Promise<string> {
-    const response = await fetch(this.basePath + path);
+    const response = await fetch( path);
     return response.text();
   }
 }
