@@ -1,0 +1,30 @@
+.outer-container {
+    display: flex;
+    justify-content: center;
+}
+
+.file-upload-container {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    justify-content: center;
+    border-radius: 6px;
+    border: 2px;
+    background-color: lightgray;
+    padding: 10px;
+}
+
+.upload-container {
+    margin-top: 6px;
+}
+
+.submit-container {
+    margin-top: 20px;
+}
+
+.submit-button {
+    border-radius: 6px;
+    border: 2px;
+    background-color: #067cf7;
+    color: white;
+}

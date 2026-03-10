@@ -1,0 +1,24 @@
+<div class="outer-container">
+    <div id="file-upload-container" class="file-upload-container">
+        <h2>Ecore File Upload</h2>
+
+        <p>Please select a Ecore-file to upload.</p>
+
+        <div id="upload-component" class="upload-container">
+            <input 
+                type="file"
+                id="fileInput"
+                accept=".ecore"
+                (change)="onFileSelected($event)">
+        </div>
+
+        <div class="submit-container">
+            <button class="submit-button"
+                    (click)="onSubmit()"
+                    [disabled]="!selectedFile">
+                    Submit
+            </button>
+        </div>
+    
+    </div>
+</div>
