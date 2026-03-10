@@ -35,7 +35,7 @@ export class ProjectGenerationService {
   }
 
   private async scanFolder(folder: string): Promise<string[]> {
-    const response = await fetch(`src/assets/templates/${folder}/manifest.json`);
+    const response = await fetch(`assets/templates/${folder}/manifest.json`);
     return response.json();
   }
 }
