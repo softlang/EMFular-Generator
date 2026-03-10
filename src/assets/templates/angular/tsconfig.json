@@ -3,11 +3,17 @@
   "compilerOptions": {
     "baseUrl": "./",
     "outDir": "./dist/out-tsc",
+    "moduleResolution": "node",
+    "experimentalDecorators": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
     "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+
+    "module": "ES2022",
+    "target": "ES2022",
+    "useDefineForClassFields": false
   }
 }
