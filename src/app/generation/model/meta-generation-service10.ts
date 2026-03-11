@@ -1,0 +1,109 @@
+import { Injectable } from '@angular/core';
+import {EClassJson, EPackageJson, EReferenceJson} from '../../parsing/ecore-json';
+import {TemplateLoadService} from '../../utils/template-load.service';
+import {PlaceholderReplacerService} from '../../utils/place-holder-replacer.service';
+import {ZipService} from '../../utils/zip.service';
+
+@Injectable({
+  providedIn: 'root',
+})
+export class MetaGenerationService10 {
+
+  private srcFolder = 'assets/templates/model/v10/meta/';
+
+  constructor(
+    private loader: TemplateLoadService,
+    private replacer: PlaceholderReplacerService,
+    private zip: ZipService
+  ) {}
+
+  async generateMeta(model: EPackageJson, folder: string) {
+    const refsBlocks = await this.buildAllClassRefs(model);
+    const modelMeta = await this.buildModelMeta(model, refsBlocks);
+
+    this.zip.addFile(`${folder}/_meta_.ts`, modelMeta);
+  }
+
+  private async buildAllClassRefs(model: EPackageJson): Promise<string> {
+    const refEntryTemplate = await this.loader.loadTemplate("REF_ENTRY.template.ts");
+    const classRefsTemplate = await this.loader.loadTemplate("CLASS_REFS.template.ts");
+
+    let refs_list = [];
+    for (const classEntry of model.eClasses) {
+      refs_list.push(
+        this.buildClassRef(classEntry, refEntryTemplate, classRefsTemplate)
+      )
+    }
+    return refs_list.join('\n');
+  }
+
+  private buildClassRef(classDef: EClassJson, refEntryTemplate: string, classRefsTemplate: string ): string {
+    //const refEntryTemplate = await this.loader.loadTemplate("REF_ENTRY.template.ts");
+    //const classRefsTemplate = await this.loader.loadTemplate("CLASS_REFS.template.ts");
+
+    let REFS_list: string[] = []
+    for (const refEntry of classDef.references) {
+      REFS_list.push(
+        this.buildRefEntry(refEntry, refEntryTemplate, classDef.name)
+      )
+    }
+    const REFS = REFS_list.join(",\n")
+    return this.replacer.applyPlaceholders(
+      classRefsTemplate,
+      {
+        className: classDef.name,
+        REFS: REFS,
+      })
+  }
+
+  private buildRefEntry(ref: EReferenceJson, refEntryTemplate: string, className: string): string {
+    //const refEntryTemplate = await this.loader.loadTemplate("REF_ENTRY.template.ts");
+    return this.replacer.applyPlaceholders(
+      refEntryTemplate,
+      {
+        refName: ref.name,
+        CONTENT: this.buildCONTENT(ref, className)
+      })
+  }
+
+  //indented
+  private buildCONTENT(ref: EReferenceJson, className: string): string {
+    const lines: string[] = [];
+    lines.push(`target: "${ref.type.replace(/^ecore:/, "")}",`);
+    lines.push(`max: ${ref.upperBound?ref.upperBound:1},`)
+    if (ref.lowerBound !== undefined && ref.lowerBound !== 0) {
+      lines.push(`min: ${ref.lowerBound},`);
+    }
+    if (ref.containment) {
+      lines.push(`containment: true,`);
+    }
+    if (ref) {//todo
+      lines.push(`isParent: true,`);
+    }
+    if(ref) {//todo
+      lines.push(`opposite: todo,`);
+    }
+    if(ref) {//todo
+      lines.push(`derivingMethod: Symbol(${className}.${ref.name}.compute),`);
+    }
+    return lines.join(",\n\t\t\t");   //indent with three tabs
+  }
+
+  private async buildModelMeta(model: EPackageJson, CLASS_REFS: string): Promise<string> {
+    const modelMetaTemplate = await this.loader.loadTemplate("model-meta.ts.template.ts");
+
+    const classEntries = model.eClasses
+      .map(cls => `    ${cls.name}: { references: Refs.${cls.name} },`)
+      .join("\n");
+
+    return this.replacer.applyPlaceholders(modelMetaTemplate, {
+      ModelName: model.name,
+      prefix: model.nsPrefix,
+      uri: model.nsURI,
+      CLASS_ENTRIES: classEntries,
+      CLASS_REFS: CLASS_REFS
+    });
+  }
+
+}
+

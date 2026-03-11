@@ -1,0 +1,5 @@
+  %%refName%%: {
+    %%CONTENT%%
+  } satisfies ReferenceMeta,
+
+
