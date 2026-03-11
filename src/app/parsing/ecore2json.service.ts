@@ -88,11 +88,22 @@ export class Ecore2JsonService {
       kind: 'EReference',
       name: el.getAttribute('name') ?? '',
       type: el.getAttribute('eType') ?? '',
-      containment: el.getAttribute('containment') === 'true',
+
       lowerBound: Number(el.getAttribute('lowerBound') ?? '0'),
       upperBound: Number(el.getAttribute('upperBound') ?? '1'),
+
+      // optional EMF semantics
+      containment: el.getAttribute('containment') === 'true' || undefined,
+      derived: el.getAttribute('derived') === 'true' || undefined,
+      transient: el.getAttribute('transient') === 'true' || undefined,
+      volatile: el.getAttribute('volatile') === 'true' || undefined,
+      changeable: el.getAttribute('changeable') === 'true' || undefined,
+
+      // opposite reference (if present)
+      opposite: el.getAttribute('eOpposite') || undefined,
     };
   }
+
 
   private parseEEnum(el: Element): EEnumJson {
     return {

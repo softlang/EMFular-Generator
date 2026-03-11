@@ -80,10 +80,10 @@ export class MetaGenerationService10 {
     if (ref) {//todo
       lines.push(`isParent: true,`);
     }
-    if(ref) {//todo
-      lines.push(`opposite: todo,`);
+    if(ref.opposite) {
+      lines.push(`opposite: ${ref.opposite},`);
     }
-    if(ref) {//todo
+    if(ref.derived) {
       lines.push(`derivingMethod: Symbol(${className}.${ref.name}.compute),`);
     }
     return lines.join(",\n\t\t\t");   //indent with three tabs

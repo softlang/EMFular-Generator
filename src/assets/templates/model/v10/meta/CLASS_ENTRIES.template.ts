@@ -1,1 +1,0 @@
-%%ClassName%%: { references: Refs.%%ClassName%% },

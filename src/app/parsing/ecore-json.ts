@@ -26,12 +26,24 @@ export interface EAttributeJson {
 
 export interface EReferenceJson {
   kind: "EReference";
+
+  // identity
   name: string;
   type: string;
-  containment: boolean;
+
+  // cardinality
   lowerBound: number;
   upperBound: number;
+
+  // semantics
+  containment?: boolean;
+  derived?: boolean;
+  transient?: boolean;
+  volatile?: boolean;
+  changeable?: boolean;
+  opposite?: string; // name of opposite reference, if any
 }
+
 
 export interface EEnumJson {
   kind: "EEnum";
