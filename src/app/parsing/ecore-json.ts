@@ -12,7 +12,8 @@ export interface EClassJson {
   name: string;
   _index: number;
   abstract: boolean;
-  superTypes: string[];
+  superTypes: string[];           //raw URIs
+  resolvedSuperTypes: string[];  // clean class names
   attributes: EAttributeJson[];
   references: EReferenceJson[];
 }

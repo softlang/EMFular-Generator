@@ -46,8 +46,42 @@ export class Ecore2JsonService {
       }
     }
     this.inferTreeParents(pkg)
+    this.resolveSuperTypes(pkg)
     return pkg;
   }
+
+  resolveSuperTypes(pkg: EPackageJson) {
+    for (const cls of pkg.eClasses) {
+      cls.resolvedSuperTypes = cls.superTypes
+        .map(uri => this.resolveSuperTypeUri(uri, pkg))
+        .filter((x): x is string => !!x);
+    }
+  }
+
+  private resolveSuperTypeUri(uri: string, pkg: EPackageJson): string | undefined {
+    // Case 1: "#//Person"
+    if (uri.includes('#//')) {
+      const name = uri.split('#//').pop()!;
+      return pkg.eClasses.some(c => c.name === name) ? name : undefined;
+    }
+
+    // Case 2: "ecore:Person"
+    if (uri.includes(':')) {
+      const name = uri.split(':').pop()!;
+      return pkg.eClasses.some(c => c.name === name) ? name : undefined;
+    }
+
+    // Case 3: XMI index "#/0/@eClassifiers.1"
+    const match = uri.match(/@eClassifiers\.(\d+)/);
+    if (match) {
+      const index = Number(match[1]);
+      const cls = pkg.eClasses.find(c => c._index === index);
+      return cls?.name;
+    }
+
+    return undefined;
+  }
+
 
   inferTreeParents(pkg: EPackageJson) {
     // Build a lookup table: "ClassName.refName" → reference
@@ -84,6 +118,7 @@ export class Ecore2JsonService {
       superTypes: (el.getAttribute('eSuperTypes') ?? '')
         .split(' ')
         .filter(Boolean),
+      resolvedSuperTypes: [],
       attributes: [],
       references: [],
     };
