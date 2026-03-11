@@ -7,7 +7,7 @@ import { ZipService } from '../../utils/zip.service';
 @Injectable({
   providedIn: 'root',
 })
-export class ClassGenerationService {
+export class InterfaceGenerationService {
 
   private srcFolder = 'assets/templates/model/v10/core/';
 
@@ -17,16 +17,14 @@ export class ClassGenerationService {
     private zip: ZipService
   ) {}
 
-  async generateInterfaces(model: EPackageJson, folder: string) {
-    const interfaceTemplate = await this.loader.loadTemplate(
-      this.srcFolder + 'interface.ts.template.ts'
-    );
+  async generateInterfaces(model: EPackageJson) {
+    const interfaceTemplate = await this.loader.loadTemplate(this.srcFolder + 'interface.ts.template.ts');
+    const targetFolder = `src/${model.name}/core/`
 
     for (const cls of model.eClasses) {
       if (!cls.interfaceLike) continue;
-
       const fileContent = this.buildInterfaceFile(cls, interfaceTemplate);
-      this.zip.addFile(`${folder}/${cls.name}.ts`, fileContent);
+      this.zip.addFile(`${targetFolder}/${cls.name}.ts`, fileContent);
     }
   }
 
@@ -36,7 +34,6 @@ export class ClassGenerationService {
   ): string {
 
     const superInterfaces = cls.resolvedSuperTypes
-
     const typeImports = superInterfaces.length > 0
       ? superInterfaces
         .map(name => `import type { ${name} } from './${name}';`)
