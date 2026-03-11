@@ -17,11 +17,13 @@ export class MetaGenerationService {
     private zip: ZipService
   ) {}
 
-  async generateMeta(model: EPackageJson, folder: string) {
+  async generateMeta(model: EPackageJson) {
     const refsBlocks = await this.buildAllClassRefs(model);
     const modelMeta = await this.buildModelMeta(model, refsBlocks);
 
-    this.zip.addFile(`${folder}/_meta_.ts`, modelMeta);
+    const outputFolder = `src/${model.name}/core/`
+
+    this.zip.addFile(`${outputFolder}/_meta_.ts`, modelMeta);
   }
 
   private buildEnums(model: EPackageJson): string {
