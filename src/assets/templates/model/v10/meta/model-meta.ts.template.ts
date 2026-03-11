@@ -2,6 +2,8 @@ import { ModelDefinition } from "emfular";
 import { Refs } from "./Refs";
 import { ReferenceMeta } from "emfular";
 
+%%ENUMS%%
+
 %%CLASS_REFS%%
 
 export const %%ModelName%%Meta: ModelDefinition = {

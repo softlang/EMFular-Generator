@@ -24,6 +24,17 @@ export class MetaGenerationService10 {
     this.zip.addFile(`${folder}/_meta_.ts`, modelMeta);
   }
 
+  private buildEnums(model: EPackageJson): string {
+    return model.eEnums
+      .map(e =>
+        `export enum ${e.name} {\n` +
+        e.literals.map(lit => `  ${lit} = "${lit}",`).join("\n") +
+        `\n}`
+      )
+      .join("\n\n");
+  }
+
+
   private async buildAllClassRefs(model: EPackageJson): Promise<string> {
     const refEntryTemplate = await this.loader.loadTemplate("REF_ENTRY.template.ts");
     const classRefsTemplate = await this.loader.loadTemplate("CLASS_REFS.template.ts");
@@ -101,7 +112,8 @@ export class MetaGenerationService10 {
       prefix: model.nsPrefix,
       uri: model.nsURI,
       CLASS_ENTRIES: classEntries,
-      CLASS_REFS: CLASS_REFS
+      CLASS_REFS: CLASS_REFS,
+      ENUMS: this.buildEnums(model)
     });
   }
 
