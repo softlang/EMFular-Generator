@@ -44,8 +44,35 @@ export class Ecore2JsonService {
         }
       }
     }
-
+    this.inferTreeParents(pkg)
     return pkg;
+  }
+
+  inferTreeParents(pkg: EPackageJson) {
+    // Build a lookup table: "ClassName.refName" → reference
+    const refIndex = new Map<string, EReferenceJson>();
+    for (const cls of pkg.eClasses) {
+      for (const ref of cls.references) {
+        refIndex.set(`${cls.name}.${ref.name}`, ref);
+      }
+    }
+
+    // Now resolve opposites and infer tree-parent
+    for (const cls of pkg.eClasses) {
+      for (const ref of cls.references) {
+        if (!ref.opposite) {
+          continue;
+        }
+        const oppositeRef = refIndex.get(ref.opposite);
+        if (!oppositeRef) {
+          continue;
+        }
+        // A reference is a tree parent iff its opposite is containment
+        if (oppositeRef.containment === true) {
+          ref.isTreeParent = true;
+        }
+      }
+    }
   }
 
   private parseEClass(el: Element): EClassJson {

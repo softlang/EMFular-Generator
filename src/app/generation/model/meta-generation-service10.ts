@@ -77,7 +77,7 @@ export class MetaGenerationService10 {
     if (ref.containment) {
       lines.push(`containment: true,`);
     }
-    if (ref) {//todo
+    if (ref.isTreeParent) {
       lines.push(`isParent: true,`);
     }
     if(ref.opposite) {
