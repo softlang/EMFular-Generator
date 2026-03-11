@@ -8,6 +8,7 @@ export interface ParsedEcoreModel {
 
 export interface ParsedEClass {
   name: string;
+  isAbstract?: true;
   attributes: ParsedEAttribute[];
   references: ParsedEReference[];
 }
@@ -21,8 +22,12 @@ export interface ParsedEAttribute {
 export interface ParsedEReference {
   name: string;
   targetType: string;
-  many: boolean;
-  containment: boolean;
+  max: number
+  min?: number;
+  containment?: true;
+  isParent?: true;
+  derivingMethod?: symbol;
+  opposite?: string;
 }
 
 @Injectable({
@@ -71,26 +76,11 @@ export class EcoreParserService {
         if (!name) continue;
 
         if (fType === 'ecore:EAttribute') {
-          const eType = f.getAttribute('eType') ?? '';
-          const tsType = this.mapType(eType);
-          const defaultValue = this.defaultValueFor(tsType);
-
-          attributes.push({ name, tsType, defaultValue });
+          attributes.push(this.parseAttribute(f, name));
         }
 
         if (fType === 'ecore:EReference') {
-          const eType = f.getAttribute('eType') ?? '';
-          const targetType = this.mapEReferenceType(eType, classNames);
-          const upperBound = f.getAttribute('upperBound');
-          const many = upperBound === '-1';
-          const containment = (f.getAttribute('containment') ?? '').toLowerCase() === 'true';
-
-          references.push({
-            name,
-            targetType,
-            many,
-            containment,
-          });
+          references.push(this.parseReference(f, name, classNames));
         }
       }
 
@@ -108,6 +98,28 @@ export class EcoreParserService {
     };
   }
 
+  private parseReference(f: Element, name: string, classNames: string[]): ParsedEReference {
+    const eType = f.getAttribute('eType') ?? '';
+    const targetType = this.mapEReferenceType(eType, classNames);
+    const max = EcoreParserService.string2int(f.getAttribute('upperBound'));
+    const containment = (f.getAttribute('containment') ?? '').toLowerCase() === 'true';
+
+    return {
+      name: name,
+      targetType: targetType,
+      max: max,
+      containment: containment,
+    } as ParsedEReference;
+  }
+
+  private parseAttribute(f: Element, name: string): ParsedEAttribute {
+    const eType = f.getAttribute('eType') ?? '';
+    const tsType = this.mapType(eType);
+    const defaultValue = this.defaultValueFor(tsType); //todo use real default if existent
+
+    return { name, tsType, defaultValue } as ParsedEAttribute;
+  }
+
   private getXsiType(el: Element): string | null {
     return (
       el.getAttribute('xsi:type') ||
@@ -121,6 +133,7 @@ export class EcoreParserService {
       return 'number';
     }
     if (eType.includes('EBoolean')) return 'boolean';
+    //add enum handling
     return 'any';
   }
 
@@ -138,10 +151,18 @@ export class EcoreParserService {
     return name.replace(/[^a-zA-Z0-9_]/g, '_');
   }
 
+  //todo
   private defaultValueFor(tsType: string): string {
     if (tsType === 'string') return '""';
     if (tsType === 'number') return '0';
     if (tsType === 'boolean') return 'false';
     return 'null as any';
+  }
+
+  private static string2int(s: string|null): number {
+    if(!s) return 0;
+    else {
+      return parseInt(s, 10);
+    }
   }
 }
