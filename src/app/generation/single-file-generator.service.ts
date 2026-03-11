@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import {TemplateLoadService} from './template-load.service';
-import {PlaceholderReplacerService} from './place-holder-replacer.service';
-import {ZipService} from './zip.service';
+import {TemplateLoadService} from '../utils/template-load.service';
+import {PlaceholderReplacerService} from '../utils/place-holder-replacer.service';
+import {ZipService} from '../utils/zip.service';
 
 
 @Injectable(
