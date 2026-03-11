@@ -26,7 +26,9 @@ export class Ecore2JsonService {
       name: root.getAttribute('name') ?? '',
       nsURI: root.getAttribute('nsURI') ?? '',
       nsPrefix: root.getAttribute('nsPrefix') ?? '',
-      classifiers: [],
+      eClasses: [],
+      eEnums: [],
+      eDataTypes: [],
     };
 
     for (const child of Array.from(root.children)) {
@@ -34,11 +36,11 @@ export class Ecore2JsonService {
         const type = child.getAttribute('xsi:type');
 
         if (type === 'ecore:EClass') {
-          pkg.classifiers.push(this.parseEClass(child));
+          pkg.eClasses.push(this.parseEClass(child));
         } else if (type === 'ecore:EEnum') {
-          pkg.classifiers.push(this.parseEEnum(child));
+          pkg.eEnums.push(this.parseEEnum(child));
         } else if (type === 'ecore:EDataType') {
-          pkg.classifiers.push(this.parseEDataType(child));
+          pkg.eDataTypes.push(this.parseEDataType(child));
         }
       }
     }

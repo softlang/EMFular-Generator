@@ -2,7 +2,9 @@ export interface EPackageJson {
   name: string;
   nsURI: string;
   nsPrefix: string;
-  classifiers: Array<EClassJson | EEnumJson | EDataTypeJson>;
+  eClasses: EClassJson[];
+  eEnums: EEnumJson[];
+  eDataTypes: EDataTypeJson[];
 }
 
 export interface EClassJson {
