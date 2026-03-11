@@ -7,7 +7,7 @@ import {ZipService} from '../../utils/zip.service';
 @Injectable({
   providedIn: 'root',
 })
-export class MetaGenerationService10 {
+export class MetaGenerationService {
 
   private srcFolder = 'assets/templates/model/v10/meta/';
 
@@ -36,8 +36,8 @@ export class MetaGenerationService10 {
 
 
   private async buildAllClassRefs(model: EPackageJson): Promise<string> {
-    const refEntryTemplate = await this.loader.loadTemplate("REF_ENTRY.template.ts");
-    const classRefsTemplate = await this.loader.loadTemplate("CLASS_REFS.template.ts");
+    const refEntryTemplate = await this.loader.loadTemplate(this.srcFolder+"REF_ENTRY.template.ts");
+    const classRefsTemplate = await this.loader.loadTemplate(this.srcFolder+"CLASS_REFS.template.ts");
 
     let refs_list = [];
     for (const classEntry of model.eClasses) {
@@ -101,7 +101,7 @@ export class MetaGenerationService10 {
   }
 
   private async buildModelMeta(model: EPackageJson, CLASS_REFS: string): Promise<string> {
-    const modelMetaTemplate = await this.loader.loadTemplate("model-meta.ts.template.ts");
+    const modelMetaTemplate = await this.loader.loadTemplate(this.srcFolder+"model-meta.ts.template.ts");
 
     const classEntries = model.eClasses
       .map(cls => `    ${cls.name}: { references: Refs.${cls.name} },`)

@@ -1,13 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 
-import { MetaGenerationService10 } from './meta-generation-service10';
+import { MetaGenerationService } from './meta-generation.service';
 
 describe('MetaGenerationService10', () => {
-  let service: MetaGenerationService10;
+  let service: MetaGenerationService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(MetaGenerationService10);
+    service = TestBed.inject(MetaGenerationService);
   });
 
   it('should be created', () => {
