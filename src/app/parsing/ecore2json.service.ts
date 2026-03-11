@@ -47,7 +47,36 @@ export class Ecore2JsonService {
     }
     this.inferTreeParents(pkg)
     this.resolveSuperTypes(pkg)
+    this.inferInterfaceLike(pkg)
     return pkg;
+  }
+
+  inferInterfaceLike(pkg: EPackageJson) {
+    for (const cls of pkg.eClasses) {
+      this.interfaceLike(pkg, cls.name)
+    }
+  }
+
+  interfaceLike(pkg: EPackageJson, className: string): boolean {
+    const cls = pkg.eClasses.find(cls => cls.name === className);
+    if (!cls) {
+      throw new Error("No class with name '" + className + "' found");
+    }
+    if (cls.interfaceLike !== undefined) {
+      return cls.interfaceLike;
+    }
+    //necessary: abstract and feature-less
+    if (!(cls.abstract && cls.attributes.length === 0 && cls.references.length === 0)) {
+      cls.interfaceLike = false;
+      return false;
+    }
+
+    // All supertypes must be interface-like
+    const allSupersInterfaceLike = cls.resolvedSuperTypes.every(
+      superName => this.interfaceLike(pkg, superName)
+    );
+    cls.interfaceLike = allSupersInterfaceLike;
+    return allSupersInterfaceLike;
   }
 
   resolveSuperTypes(pkg: EPackageJson) {
