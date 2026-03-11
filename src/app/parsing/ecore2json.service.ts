@@ -31,17 +31,18 @@ export class Ecore2JsonService {
       eDataTypes: [],
     };
 
+    let index = 0
     for (const child of Array.from(root.children)) {
       if (child.tagName === 'eClassifiers') {
         const type = child.getAttribute('xsi:type');
-
         if (type === 'ecore:EClass') {
-          pkg.eClasses.push(this.parseEClass(child));
+          pkg.eClasses.push(this.parseEClass(child, index));
         } else if (type === 'ecore:EEnum') {
-          pkg.eEnums.push(this.parseEEnum(child));
+          pkg.eEnums.push(this.parseEEnum(child, index));
         } else if (type === 'ecore:EDataType') {
-          pkg.eDataTypes.push(this.parseEDataType(child));
+          pkg.eDataTypes.push(this.parseEDataType(child, index));
         }
+        index++
       }
     }
     this.inferTreeParents(pkg)
@@ -56,7 +57,6 @@ export class Ecore2JsonService {
         refIndex.set(`${cls.name}.${ref.name}`, ref);
       }
     }
-
     // Now resolve opposites and infer tree-parent
     for (const cls of pkg.eClasses) {
       for (const ref of cls.references) {
@@ -75,9 +75,10 @@ export class Ecore2JsonService {
     }
   }
 
-  private parseEClass(el: Element): EClassJson {
+  private parseEClass(el: Element, index: number): EClassJson {
     const cls: EClassJson = {
       kind: 'EClass',
+      _index: index,
       name: el.getAttribute('name') ?? '',
       abstract: el.getAttribute('abstract') === 'true',
       superTypes: (el.getAttribute('eSuperTypes') ?? '')
@@ -132,9 +133,10 @@ export class Ecore2JsonService {
   }
 
 
-  private parseEEnum(el: Element): EEnumJson {
+  private parseEEnum(el: Element, index: number): EEnumJson {
     return {
       kind: 'EEnum',
+      _index: index,
       name: el.getAttribute('name') ?? '',
       literals: Array.from(el.children)
         .filter(c => c.tagName === 'eLiterals')
@@ -142,9 +144,10 @@ export class Ecore2JsonService {
     };
   }
 
-  private parseEDataType(el: Element): EDataTypeJson {
+  private parseEDataType(el: Element, index: number): EDataTypeJson {
     return {
       kind: 'EDataType',
+      _index: index,
       name: el.getAttribute('name') ?? '',
       instanceTypeName: el.getAttribute('instanceTypeName') ?? '',
     };

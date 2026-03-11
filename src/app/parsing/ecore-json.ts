@@ -10,6 +10,7 @@ export interface EPackageJson {
 export interface EClassJson {
   kind: "EClass";
   name: string;
+  _index: number;
   abstract: boolean;
   superTypes: string[];
   attributes: EAttributeJson[];
@@ -49,12 +50,14 @@ export interface EReferenceJson {
 export interface EEnumJson {
   kind: "EEnum";
   name: string;
+  _index: number;
   literals: string[];
 }
 
 export interface EDataTypeJson {
   kind: "EDataType";
   name: string;
+  _index: number;
   instanceTypeName: string;
 }
 
