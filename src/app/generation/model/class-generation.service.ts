@@ -40,6 +40,12 @@ export class ClassGenerationService {
     template: string
   ): string {
 
+    const usedEnums: Set<string> = new Set(); //filled by attributes
+
+    const ATTRIBUTES = this.buildAttributes(cls, model.eEnums, usedEnums);
+    const REFERENCES = this.buildReferences(cls);
+
+
     //distinguish interfaces and real classes on super:
     const [interfaces, realClasses] = cls.resolvedSuperTypes.reduce(
       ([i, r], name) => {
@@ -61,10 +67,8 @@ export class ClassGenerationService {
     const realParent = realClasses[0] ?? null;
     const EXTENDS = realParent ?? 'Referencable<any>';
 
-    const IMPORTS = this.buildImports(cls, interfaces, realParent, model);
+    const IMPORTS = this.buildImports(cls, interfaces, realParent, usedEnums, model);
 
-    const ATTRIBUTES = this.buildAttributes(cls, model.eEnums);
-    const REFERENCES = this.buildReferences(cls);
 
     return this.replacer.applyPlaceholders(template, {
       IMPORTS,
@@ -77,7 +81,12 @@ export class ClassGenerationService {
     });
   }
 
-  private buildImports(cls: EClassJson, interfaces: string[], realParent: string|null, model: EPackageJson): string {
+  private buildImports(
+    cls: EClassJson,
+    interfaces: string[],
+    realParent: string|null,
+    usedEnums: Set<string>,
+    model: EPackageJson): string {
     const imports = new Set<string>();
     // interface supertypes (type-only)
     interfaces.forEach(i =>
@@ -94,7 +103,7 @@ export class ClassGenerationService {
       imports.add(`import type { ModelList } from 'emfular';`);
     }
     // meta:
-    imports.add(`import { ${model.name}Meta, ${cls.name}Refs } from './_meta_';`)
+    imports.add(`import { ${model.name}Meta, ${cls.name}Refs, ${Array.from(usedEnums).join(", ")} } from './_meta_';`)
 
     if (realParent) {
       imports.add(`import { ${realParent} } from './${realParent}';`);
@@ -117,21 +126,25 @@ export class ClassGenerationService {
       .join('\n\n');
   }
 
-  private buildAttributes(cls: EClassJson, enums: EEnumJson[]): string {
+  //fills used enums
+  private buildAttributes(cls: EClassJson, enums: EEnumJson[], usedEnums: Set<string>): string {
     return cls.attributes
-      .map(a => this.buildAttribute(a, enums) )
+      .map(a => this.buildAttribute(a, enums, usedEnums) )
       .join('\n\n');
   }
 
-  private buildAttribute(attr: EAttributeJson,  enums: EEnumJson[]): string {
+  private buildAttribute(attr: EAttributeJson,  enums: EEnumJson[], usedEnums: Set<string>): string {
       const tsType = this.mapEcoreTypeToTs(attr);
       const optional = attr.lowerBound === 0 ? "?" : "";
       const isList =  attr.upperBound === -1 || attr.upperBound > 1
-      const enumInfo = this.findEnum(tsType, enums); // detect ONCE
-
+      const enumInfo = this.findEnum(tsType, enums);
+      if (enumInfo) {
+        usedEnums.add(enumInfo.name)
+      }
       const initializer = enumInfo
       ? this.buildEnumInitializer(attr, enumInfo, isList)
       : this.buildPrimitiveInitializer(attr, tsType, isList);
+
       return `\t@attribute()\n\t${attr.name}${optional}: ${tsType}${initializer};`;
   }
 
