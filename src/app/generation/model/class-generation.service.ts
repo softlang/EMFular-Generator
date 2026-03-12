@@ -79,24 +79,20 @@ export class ClassGenerationService {
 
   private buildImports(cls: EClassJson, interfaces: string[], realParent: string|null, model: EPackageJson): string {
     const imports = new Set<string>();
-
     // interface supertypes (type-only)
     interfaces.forEach(i =>
       imports.add(`import type { ${i} } from './${i}';`)
     );
-
     // referenced types (type-only), but skip real parent and self
     cls.references.forEach(ref => {
       if (ref.type === realParent) return;
       if (ref.type === cls.name) return;
       imports.add(`import type { ${ref.type} } from './${ref.type}';`);
     });
-
     //modelList if needed (type-only)
     if (cls.references.some(r => r.upperBound !== 1)) {
       imports.add(`import type { ModelList } from 'emfular';`);
     }
-
     // meta:
     imports.add(`import { ${model.name}Meta, ${cls.name}Refs } from './_meta_';`)
 
@@ -107,39 +103,6 @@ export class ClassGenerationService {
     }
 
     return Array.from(imports).join('\n');
-  }
-
-  private buildTypeImports(cls: EClassJson, interfaces: string[]): string {
-    const imports = new Set<string>();
-
-    // interface supertypes
-    interfaces.forEach(i => imports.add(`import type { ${i} } from './${i}';`));
-
-    // referenced types
-    cls.references.forEach(ref => {
-      imports.add(`import type { ${ref.type} } from './${ref.type}';`);
-    });
-
-    // ModelList if needed
-    if (cls.references.some(r => r.upperBound !== 1)) {
-      imports.add(`import type { ModelList } from 'emfular';`);
-    }
-
-    return Array.from(imports).join('\n');
-  }
-
-  private buildRealImports(cls: EClassJson, realParent: string | null, model: EPackageJson): string {
-    const imports = [
-      `import { ${model.name}Meta, ${cls.name}Refs } from './_meta_';`
-    ];
-
-    if (realParent) {
-      imports.push(`import { ${realParent} } from './${realParent}';`);
-    } else {
-      imports.push(`import { Referencable } from 'emfular';`)
-    }
-
-    return imports.join('\n');
   }
 
   private buildAttributes(cls: EClassJson): string {
@@ -155,7 +118,7 @@ export class ClassGenerationService {
           ? ref.type
           : `ModelList<${ref.type}>`;
 
-        return `  @reference(${cls.name}Meta.references.${ref.name})\n  ${ref.name}: ${type};`;
+        return `  @reference(${cls.name}Refs.${ref.name})\n  ${ref.name}: ${type};`;
       })
       .join('\n\n');
   }
