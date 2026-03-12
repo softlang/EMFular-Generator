@@ -33,7 +33,7 @@ export class MetaGenerationService {
         e.literals.map(lit => `  ${lit} = "${lit}",`).join("\n") +
         `\n}`
       )
-      .join("\n\n");
+      .join("\n");
   }
 
 
@@ -82,7 +82,7 @@ export class MetaGenerationService {
   //indented
   private buildCONTENT(ref: EReferenceJson, className: string): string {
     const lines: string[] = [];
-    lines.push(`target: "${ref.type.replace(/^ecore:/, "")}"`);
+    lines.push(`\t\ttarget: "${ref.type.replace(/^ecore:/, "")}"`);
     lines.push(`max: ${ref.upperBound?ref.upperBound:1}`)
     if (ref.lowerBound !== undefined && ref.lowerBound !== 0) {
       lines.push(`min: ${ref.lowerBound}`);
@@ -99,14 +99,14 @@ export class MetaGenerationService {
     if(ref.derived) {
       lines.push(`derivingMethod: Symbol(${className}.${ref.name}.compute)`);
     }
-    return lines.join(",\n\t\t\t");   //indent with three tabs
+    return lines.join(",\n\t\t"); //hence first entry needs extra indentation
   }
 
   private async buildModelMeta(model: EPackageJson, CLASS_REFS: string): Promise<string> {
     const modelMetaTemplate = await this.loader.loadTemplate(this.srcFolder+"model-meta.ts.template.ts");
 
     const classEntries = model.eClasses
-      .map(cls => `    ${cls.name}: { references: Refs.${cls.name} },`)
+      .map(cls => `    ${cls.name}: { references: ${cls.name}Refs },`)
       .join("\n");
 
     return this.replacer.applyPlaceholders(modelMetaTemplate, {
