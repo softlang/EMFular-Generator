@@ -126,11 +126,12 @@ export class ClassGenerationService {
   private buildAttribute(attr: EAttributeJson,  enums: EEnumJson[]): string {
       const tsType = this.mapEcoreTypeToTs(attr);
       const optional = attr.lowerBound === 0 ? "?" : "";
+      const isList =  attr.upperBound === -1 || attr.upperBound > 1
       const enumInfo = this.findEnum(tsType, enums); // detect ONCE
 
       const initializer = enumInfo
-      ? this.buildEnumInitializer(attr, enumInfo)
-      : this.buildPrimitiveInitializer(attr, tsType);
+      ? this.buildEnumInitializer(attr, enumInfo, isList)
+      : this.buildPrimitiveInitializer(attr, tsType, isList);
       return `\t@attribute()\n\t${attr.name}${optional}: ${tsType}${initializer};`;
   }
 
@@ -158,26 +159,39 @@ export class ClassGenerationService {
     return enums.find(e => e.name === typeName);
   }
 
+  private parseMultiDefault(multiDefault: string): string[] {
+    return multiDefault
+      .split(",")
+      .map(s => s.trim())  // remove whitespace
+      .filter(s => s.length > 0);
+  }
+
   // --- primitive types ----
 
-  private buildPrimitiveInitializer(attr: EAttributeJson, tsType: string): string {
+  private buildPrimitiveInitializer(attr: EAttributeJson, tsType: string, isList: boolean): string {
     if (attr.defaultValueLiteral !== undefined) {
-      return " = " + this.formatPrimitiveDefault(attr, tsType);
+      return " = " + this.formatPrimitiveDefault(attr.defaultValueLiteral, tsType, isList);
     }
     if (attr.lowerBound === 1) {
-      return " = " + this.emfPrimitiveDefault(tsType);
+      return " = " + this.emfPrimitiveDefault(tsType, isList);
     }
     return "";
   }
 
-  private formatPrimitiveDefault(attr: EAttributeJson, tsType: string): string {
+  private formatPrimitiveDefault(defaultAttr: string, tsType: string, isList: boolean): string {
     if (tsType === "string") {
-      return JSON.stringify(attr.defaultValueLiteral);
+      if(isList) {
+        this.parseMultiDefault(defaultAttr)
+      } else
+        return JSON.stringify(defaultAttr);
     }
-    return attr.defaultValueLiteral!;
+    return defaultAttr;
   }
 
-  private emfPrimitiveDefault(tsType: string): string {
+  private emfPrimitiveDefault(tsType: string, isList: boolean): string {
+    if(isList) {
+      return "[]"
+    }
     switch (tsType) {
       case "string": return '""';
       case "number": return "0";
@@ -189,14 +203,43 @@ export class ClassGenerationService {
   }
 
   //---- Enum handling -----
-  private buildEnumInitializer(attr: EAttributeJson, e: EEnumJson): string {
+  private buildEnumInitializer(attr: EAttributeJson, e: EEnumJson, isList: boolean): string {
+    if(isList) {
+      return this.buildEnumListInitializer(attr, e)
+    } else {
+      return this.buildEnumSingleInitializer(attr, e)
+    }
+  }
+
+  private buildEnumListInitializer(attr: EAttributeJson, e: EEnumJson): string {
     if (attr.defaultValueLiteral !== undefined) {
-      return ` = ${e.name}.${attr.defaultValueLiteral}`;
+      const valuesStr = this.parseMultiDefault(attr.defaultValueLiteral)
+        .map(v => this.getEnumValue(v, e))
+        .join(", ")
+      return ` = [${valuesStr}]`;
     }
     if (attr.lowerBound === 1) {
-      return ` = ${e.name}.${e.literals[0]}`;
+      return ` = []`;
     }
     return "";
+  }
+
+  private buildEnumSingleInitializer(attr: EAttributeJson, e: EEnumJson): string {
+    if (attr.defaultValueLiteral !== undefined) {
+      return ` = ${this.getEnumValue(attr.defaultValueLiteral, e)}`;
+    }
+    if (attr.lowerBound === 1) {
+      return ` = ${this.getEnumDefault(e)}`;
+    }
+    return "";
+  }
+
+  getEnumDefault(e: EEnumJson): string {
+    return `${e.name}.${e.literals[0]}`;
+  }
+
+  getEnumValue(value: string, e: EEnumJson): string {
+    return ` = ${e.name}.${value}`; //todo could sanitize/check
   }
 
 }
