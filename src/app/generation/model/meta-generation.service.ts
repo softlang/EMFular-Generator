@@ -71,8 +71,11 @@ export class MetaGenerationService {
 
   private buildRefEntry(ref: EReferenceJson, refEntryTemplate: string, className: string): string {
     //const refEntryTemplate = await this.loader.loadTemplate("REF_ENTRY.template.ts");
+    //needs inlining since empty last lines cause strange look
     return this.replacer.applyPlaceholders(
-      refEntryTemplate,
+      '  %%refName%%: {\n' +
+      '  %%CONTENT%%\n' +
+      '  } satisfies ReferenceMeta',
       {
         refName: ref.name,
         CONTENT: this.buildCONTENT(ref, className)

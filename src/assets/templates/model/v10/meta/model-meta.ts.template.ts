@@ -8,6 +8,6 @@ export const %%ModelName%%Meta: ModelDefinition = {
   prefix: "%%prefix%%",
   uri: "%%uri%%",
   classes: {
-    %%CLASS_ENTRIES%%
+  %%CLASS_ENTRIES%%
   }
 };
