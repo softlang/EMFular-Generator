@@ -34,6 +34,7 @@ export interface EReferenceJson {
   // identity
   name: string;
   type: string;
+  resolvedType: string;
 
   // cardinality
   lowerBound: number;

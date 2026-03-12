@@ -97,9 +97,9 @@ export class ClassGenerationService {
     );
     // referenced types (type-only), but skip real parent and self
     cls.references.forEach(ref => {
-      if (ref.type === realParent) return;
-      if (ref.type === cls.name) return;
-      imports.add(`import type { ${ref.type} } from './${ref.type}';`);
+      if (ref.resolvedType === realParent) return;
+      if (ref.resolvedType === cls.name) return;
+      imports.add(`import type { ${ref.resolvedType} } from './${ref.resolvedType}';`);
     });
     //modelList if needed (type-only)
     if (cls.references.some(r => r.upperBound !== 1)) {
@@ -121,8 +121,8 @@ export class ClassGenerationService {
     return cls.references
       .map(ref => {
         const type = ref.upperBound === 1
-          ? ref.type
-          : `ModelList<${ref.type}>`;
+          ? ref.resolvedType
+          : `ModelList<${ref.resolvedType}>`;
 
         return `  @reference(${cls.name}Refs.${ref.name})\n  declare ${ref.name}: ${type};`;
       })

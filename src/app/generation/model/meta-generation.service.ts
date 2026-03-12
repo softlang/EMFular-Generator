@@ -85,7 +85,7 @@ export class MetaGenerationService {
   //indented
   private buildCONTENT(ref: EReferenceJson, className: string): string {
     const lines: string[] = [];
-    lines.push(`\ttarget: "${ref.type.replace(/^ecore:/, "")}"`);
+    lines.push(`\ttarget: "${ref.resolvedType.replace(/^ecore:/, "")}"`);
     lines.push(`max: ${ref.upperBound?ref.upperBound:1}`)
     if (ref.lowerBound !== undefined && ref.lowerBound !== 0) {
       lines.push(`min: ${ref.lowerBound}`);

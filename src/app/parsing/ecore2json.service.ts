@@ -180,12 +180,18 @@ export class Ecore2JsonService {
     return res;
   }
 
+  private normalizeTypeName(raw: string): string {
+    const idx = raw.lastIndexOf("#//");
+    return idx >= 0 ? raw.substring(idx + 3) : raw;
+  }
+
   private parseEReference(el: Element): EReferenceJson {
+    const type = el.getAttribute('eType') ?? '';
     return {
       kind: 'EReference',
       name: el.getAttribute('name') ?? '',
-      type: el.getAttribute('eType') ?? '',
-
+      type: type,
+      resolvedType: this.normalizeTypeName(type) ,
       lowerBound: Number(el.getAttribute('lowerBound') ?? '0'),
       upperBound: Number(el.getAttribute('upperBound') ?? '1'),
 
