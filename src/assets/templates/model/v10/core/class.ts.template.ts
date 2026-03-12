@@ -1,8 +1,7 @@
-%%REAL_IMPORTS%%
-%%TYPE_IMPORTS%%
+%%IMPORTS%%
 
 @eClass(%%modelMeta%%, "%%className%%")
-export class %%className%% extends %%ETXENDS%% %%IMPLEMENTS%% {
+export class %%className%% extends %%EXTENDS%% %%IMPLEMENTS%% {
 
   constructor() {
     super();
