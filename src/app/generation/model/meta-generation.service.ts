@@ -57,7 +57,10 @@ export class MetaGenerationService {
         this.buildRefEntry(refEntry, classDef.name)
       )
     }
-    const REFS = REFS_list.join(",\n")
+    let REFS = REFS_list.join(",\n")
+    if (REFS_list.length > 0) {
+      REFS+="\n"
+    }
     return this.replacer.applyPlaceholders(
       'export const %%className%%Refs = {\n' +
       '%%REFS%%};',
@@ -70,9 +73,9 @@ export class MetaGenerationService {
   private buildRefEntry(ref: EReferenceJson, className: string): string {
     //needs inlining since empty last lines cause strange look
     return this.replacer.applyPlaceholders(
-      '  %%refName%%: {\n' +
-      '  %%CONTENT%%\n' +
-      '  } satisfies ReferenceMeta',
+      '\t%%refName%%: {\n' +
+      '\t%%CONTENT%%\n' +
+      '\t} satisfies ReferenceMeta',
       {
         refName: ref.name,
         CONTENT: this.buildCONTENT(ref, className)
@@ -82,7 +85,7 @@ export class MetaGenerationService {
   //indented
   private buildCONTENT(ref: EReferenceJson, className: string): string {
     const lines: string[] = [];
-    lines.push(`\t\ttarget: "${ref.type.replace(/^ecore:/, "")}"`);
+    lines.push(`\ttarget: "${ref.type.replace(/^ecore:/, "")}"`);
     lines.push(`max: ${ref.upperBound?ref.upperBound:1}`)
     if (ref.lowerBound !== undefined && ref.lowerBound !== 0) {
       lines.push(`min: ${ref.lowerBound}`);
@@ -113,7 +116,7 @@ export class MetaGenerationService {
       ModelName: model.name,
       prefix: model.nsPrefix,
       uri: model.nsURI,
-      CLASS_ENTRIES: classEntries,
+      CLASS_ENTRIES: "\t"+classEntries,
       CLASS_REFS: CLASS_REFS,
       ENUMS: this.buildEnums(model)
     });
