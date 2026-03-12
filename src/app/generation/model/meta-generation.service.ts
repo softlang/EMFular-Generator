@@ -18,7 +18,7 @@ export class MetaGenerationService {
   ) {}
 
   async generateMeta(model: EPackageJson) {
-    const refsBlocks = await this.buildAllClassRefs(model);
+    const refsBlocks =  this.buildAllClassRefs(model);
     const modelMeta = await this.buildModelMeta(model, refsBlocks);
 
     const outputFolder = `src/app/${model.name}/core/`
@@ -37,19 +37,18 @@ export class MetaGenerationService {
   }
 
 
-  private async buildAllClassRefs(model: EPackageJson): Promise<string> {
-    const classRefsTemplate = await this.loader.loadTemplate(this.srcFolder+"CLASS_REFS.template.ts");
+  private buildAllClassRefs(model: EPackageJson): string {
 
     let refs_list = [];
     for (const classEntry of model.eClasses) {
       refs_list.push(
-        this.buildClassRef(classEntry, classRefsTemplate)
+        this.buildClassRef(classEntry)
       )
     }
     return refs_list.join('\n');
   }
 
-  private buildClassRef(classDef: EClassJson, classRefsTemplate: string): string {
+  private buildClassRef(classDef: EClassJson): string {
     //const classRefsTemplate = await this.loader.loadTemplate("CLASS_REFS.template.ts");
 
     let REFS_list: string[] = []
@@ -60,7 +59,8 @@ export class MetaGenerationService {
     }
     const REFS = REFS_list.join(",\n")
     return this.replacer.applyPlaceholders(
-      classRefsTemplate,
+      'export const %%className%%Refs = {\n' +
+      '%%REFS%%};',
       {
         className: classDef.name,
         REFS: REFS,
@@ -106,8 +106,8 @@ export class MetaGenerationService {
     const modelMetaTemplate = await this.loader.loadTemplate(this.srcFolder+"model-meta.ts.template.ts");
 
     const classEntries = model.eClasses
-      .map(cls => `    ${cls.name}: { references: ${cls.name}Refs },`)
-      .join("\n");
+      .map(cls => `${cls.name}: { references: ${cls.name}Refs },`)
+      .join("\n\t\t");
 
     return this.replacer.applyPlaceholders(modelMetaTemplate, {
       ModelName: model.name,
