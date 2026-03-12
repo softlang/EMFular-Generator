@@ -21,7 +21,7 @@ export class MetaGenerationService {
     const refsBlocks = await this.buildAllClassRefs(model);
     const modelMeta = await this.buildModelMeta(model, refsBlocks);
 
-    const outputFolder = `src/${model.name}/core/`
+    const outputFolder = `src/app/${model.name}/core/`
 
     this.zip.addFile(`${outputFolder}/_meta_.ts`, modelMeta);
   }

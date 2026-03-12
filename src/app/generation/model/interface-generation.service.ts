@@ -19,7 +19,7 @@ export class InterfaceGenerationService {
 
   async generateInterfaces(model: EPackageJson) {
     const interfaceTemplate = await this.loader.loadTemplate(this.srcFolder + 'interface.ts.template.ts');
-    const targetFolder = `src/${model.name}/core/`
+    const targetFolder = `src/app/${model.name}/core/`
 
     for (const cls of model.eClasses) {
       if (!cls.interfaceLike) continue;
