@@ -1,6 +1,4 @@
-import { ModelDefinition } from "emfular";
-import { Refs } from "./Refs";
-import { ReferenceMeta } from "emfular";
+import { ModelDefinition, ReferenceMeta } from "emfular";
 
 %%ENUMS%%
 

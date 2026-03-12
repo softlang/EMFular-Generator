@@ -26,7 +26,7 @@ export class ClassGenerationService {
     const classMap = new Map(model.eClasses.map(c => [c.name, c]));
 
     for (const cls of model.eClasses) {
-      if (cls.interfaceLike) continue; // interfaces handled elsewhere
+      if (cls.interfaceLike) continue; // interfaces handled on interface service
 
       const fileContent = this.buildClassFile(cls, classMap, model, classTemplate);
       this.zip.addFile(`${targetFolder}/${cls.name}.ts`, fileContent);
@@ -40,51 +40,73 @@ export class ClassGenerationService {
     template: string
   ): string {
 
-    // 1. Real parent (only one allowed)
-    const realParent = this.resolveRealParent(cls, classMap);
+    //distinguish interfaces and real classes on super:
+    const [interfaces, realClasses] = cls.resolvedSuperTypes.reduce(
+      ([i, r], name) => {
+        const sup = classMap.get(name)!;
+        if (sup.interfaceLike) i.push(name);
+        else r.push(name);
+        return [i, r];
+      },
+      [[], []] as [string[], string[]]
+    );
 
-    // 2. Interface supertypes
-    const interfaces = cls.resolvedSuperTypes
-      .map(n => classMap.get(n)!)
-      .filter(c => c.interfaceLike)
-      .map(c => c.name);
 
-    // 3. Imports
-    const TYPE_IMPORTS = this.buildTypeImports(cls, interfaces);
-    const REAL_IMPORTS = this.buildRealImports(realParent, model);
-
-    // 4. Extends + implements
-    const extendsExpr = realParent ?? 'Referencable<any>';
-    const implementsExpr = interfaces.length > 0
+    // implements:
+    const IMPLEMENTS = interfaces.length > 0
       ? `implements ${interfaces.join(', ')}`
       : '';
 
-    // 5. Attributes + references
+    // real parent (extends)
+    const realParent = realClasses[0] ?? null;
+    const EXTENDS = realParent ?? 'Referencable<any>';
+
+    const IMPORTS = this.buildImports(cls, interfaces, realParent, model);
+
     const ATTRIBUTES = this.buildAttributes(cls);
     const REFERENCES = this.buildReferences(cls);
 
     return this.replacer.applyPlaceholders(template, {
-      TYPE_IMPORTS,
-      REAL_IMPORTS,
+      IMPORTS,
       modelMeta: `${model.name}Meta`,
       className: cls.name,
-      extendsExpr,
-      implementsExpr,
+      EXTENDS,
+      IMPLEMENTS,
       ATTRIBUTES,
       REFERENCES,
     });
   }
 
-  private resolveRealParent(cls: EClassJson, classMap: Map<string,EClassJson>): string | null {
-    const parents = cls.resolvedSuperTypes
-      .map(n => classMap.get(n)!)
-      .filter(c => !c.interfaceLike);
+  private buildImports(cls: EClassJson, interfaces: string[], realParent: string|null, model: EPackageJson): string {
+    const imports = new Set<string>();
 
-    if (parents.length > 1) {
-      throw new Error(`Class ${cls.name} has multiple real parents`);
+    // interface supertypes (type-only)
+    interfaces.forEach(i =>
+      imports.add(`import type { ${i} } from './${i}';`)
+    );
+
+    // referenced types (type-only), but skip real parent and self
+    cls.references.forEach(ref => {
+      if (ref.type === realParent) return;
+      if (ref.type === cls.name) return;
+      imports.add(`import type { ${ref.type} } from './${ref.type}';`);
+    });
+
+    //modelList if needed (type-only)
+    if (cls.references.some(r => r.upperBound !== 1)) {
+      imports.add(`import type { ModelList } from 'emfular';`);
     }
 
-    return parents.length === 1 ? parents[0].name : null;
+    // meta:
+    imports.add(`import { ${model.name}Meta, ${cls.name}Refs } from './_meta_';`)
+
+    if (realParent) {
+      imports.add(`import { ${realParent} } from './${realParent}';`);
+    } else {
+      imports.add(`import { Referencable } from 'emfular';`);
+    }
+
+    return Array.from(imports).join('\n');
   }
 
   private buildTypeImports(cls: EClassJson, interfaces: string[]): string {
@@ -100,20 +122,21 @@ export class ClassGenerationService {
 
     // ModelList if needed
     if (cls.references.some(r => r.upperBound !== 1)) {
-      imports.add(`import type { ModelList } from '../ModelList';`);
+      imports.add(`import type { ModelList } from 'emfular';`);
     }
 
     return Array.from(imports).join('\n');
   }
 
-  private buildRealImports(realParent: string | null, model: EPackageJson): string {
+  private buildRealImports(cls: EClassJson, realParent: string | null, model: EPackageJson): string {
     const imports = [
-      `import { Referencable } from '../Referencable';`,
-      `import { ${model.name}Meta } from '../_meta_';`
+      `import { ${model.name}Meta, ${cls.name}Refs } from './_meta_';`
     ];
 
     if (realParent) {
       imports.push(`import { ${realParent} } from './${realParent}';`);
+    } else {
+      imports.push(`import { Referencable } from 'emfular';`)
     }
 
     return imports.join('\n');
