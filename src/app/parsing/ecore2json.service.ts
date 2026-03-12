@@ -166,13 +166,18 @@ export class Ecore2JsonService {
   }
 
   private parseEAttribute(el: Element): EAttributeJson {
-    return {
+    const res: EAttributeJson =  {
       kind: 'EAttribute',
       name: el.getAttribute('name') ?? '',
       type: el.getAttribute('eType') ?? '',
       lowerBound: Number(el.getAttribute('lowerBound') ?? '0'),
       upperBound: Number(el.getAttribute('upperBound') ?? '1'),
     };
+    const defaultValue = el.getAttribute('defaultValueLiteral');
+    if (defaultValue !== null) {
+      res.defaultValueLiteral = defaultValue;
+    }
+    return res;
   }
 
   private parseEReference(el: Element): EReferenceJson {

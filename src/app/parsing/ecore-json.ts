@@ -25,6 +25,7 @@ export interface EAttributeJson {
   type: string;
   lowerBound: number;
   upperBound: number;
+  defaultValueLiteral?: string;
 }
 
 export interface EReferenceJson {
