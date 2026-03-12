@@ -82,22 +82,22 @@ export class MetaGenerationService {
   //indented
   private buildCONTENT(ref: EReferenceJson, className: string): string {
     const lines: string[] = [];
-    lines.push(`target: "${ref.type.replace(/^ecore:/, "")}",`);
-    lines.push(`max: ${ref.upperBound?ref.upperBound:1},`)
+    lines.push(`target: "${ref.type.replace(/^ecore:/, "")}"`);
+    lines.push(`max: ${ref.upperBound?ref.upperBound:1}`)
     if (ref.lowerBound !== undefined && ref.lowerBound !== 0) {
-      lines.push(`min: ${ref.lowerBound},`);
+      lines.push(`min: ${ref.lowerBound}`);
     }
     if (ref.containment) {
-      lines.push(`containment: true,`);
+      lines.push(`containment: true`);
     }
     if (ref.isTreeParent) {
-      lines.push(`isParent: true,`);
+      lines.push(`isParent: true`);
     }
     if(ref.opposite) {
-      lines.push(`opposite: ${ref.opposite},`);
+      lines.push(`opposite: "${ref.opposite}"`);
     }
     if(ref.derived) {
-      lines.push(`derivingMethod: Symbol(${className}.${ref.name}.compute),`);
+      lines.push(`derivingMethod: Symbol(${className}.${ref.name}.compute)`);
     }
     return lines.join(",\n\t\t\t");   //indent with three tabs
   }
