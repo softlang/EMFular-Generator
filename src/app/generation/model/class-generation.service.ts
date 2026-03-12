@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { EClassJson, EPackageJson } from '../../parsing/ecore-json';
+import {EAttributeJson, EClassJson, EEnumJson, EPackageJson} from '../../parsing/ecore-json';
 import { TemplateLoadService } from '../../utils/template-load.service';
 import { PlaceholderReplacerService } from '../../utils/place-holder-replacer.service';
 import { ZipService } from '../../utils/zip.service';
@@ -63,7 +63,7 @@ export class ClassGenerationService {
 
     const IMPORTS = this.buildImports(cls, interfaces, realParent, model);
 
-    const ATTRIBUTES = this.buildAttributes(cls);
+    const ATTRIBUTES = this.buildAttributes(cls, model.eEnums);
     const REFERENCES = this.buildReferences(cls);
 
     return this.replacer.applyPlaceholders(template, {
@@ -105,12 +105,6 @@ export class ClassGenerationService {
     return Array.from(imports).join('\n');
   }
 
-  private buildAttributes(cls: EClassJson): string {
-    return cls.attributes
-      .map(a => `  @attribute()\n  ${a.name}: ${a.type} = ${this.defaultValue(a)};`)
-      .join('\n\n');
-  }
-
   private buildReferences(cls: EClassJson): string {
     return cls.references
       .map(ref => {
@@ -118,16 +112,84 @@ export class ClassGenerationService {
           ? ref.type
           : `ModelList<${ref.type}>`;
 
-        return `  @reference(${cls.name}Refs.${ref.name})\n  ${ref.name}: ${type};`;
+        return `  @reference(${cls.name}Refs.${ref.name})\n  declare ${ref.name}: ${type};`;
       })
       .join('\n\n');
   }
 
-  private defaultValue(a: any): string {
-    if (a.defaultValueLiteral !== undefined) return JSON.stringify(a.defaultValueLiteral);
-    if (a.type === 'string') return '""';
-    if (a.type === 'number') return '0';
-    if (a.type === 'boolean') return 'false';
-    return 'undefined';
+  private buildAttributes(cls: EClassJson, enums: EEnumJson[]): string {
+    return cls.attributes
+      .map(a => this.buildAttribute(a, enums) )
+      .join('\n\n');
   }
+
+  private buildAttribute(attr: EAttributeJson,  enums: EEnumJson[]): string {
+      const tsType = this.mapEcoreTypeToTs(attr);
+      const optional = attr.lowerBound === 0 ? "?" : "";
+      const initializer = this.buildAttributeInitializer(attr, tsType, enums);
+
+      return `\t@attribute()\n\t${attr.name}${optional}: ${tsType}${initializer};`;
+  }
+
+  private mapEcoreTypeToTs(attr: EAttributeJson): string {
+    const t = attr.type;
+
+    if (t.endsWith("#//EString")) return "string";
+    if (t.endsWith("#//EBoolean") || t.endsWith("#//EBooleanObject")) return "boolean";
+
+    if (
+      t.endsWith("#//EInt") || t.endsWith("#//EIntegerObject") ||
+      t.endsWith("#//ELong") || t.endsWith("#//EShort") ||
+      t.endsWith("#//EFloat") || t.endsWith("#//EDouble")
+    ) return "number";
+
+    if (t.endsWith("#//EDate")) return "Date";
+    if (t.endsWith("#//EByteArray")) return "Uint8Array";
+
+    // enum or custom datatype → short name
+    const idx = t.lastIndexOf("#//");
+    return idx >= 0 ? t.substring(idx + 3) : t;
+  }
+
+
+  private buildAttributeInitializer(attr: EAttributeJson, tsType: string, enums: EEnumJson[]): string {
+    // explicit defaultValueLiteral
+    if (attr.defaultValueLiteral !== undefined) {
+      return " = " + this.formatExplicitDefault(attr, tsType, enums);
+    }
+    // required attribute → EMF intrinsic default
+    if (attr.lowerBound === 1) {
+      return " = " + this.emfDefaultFor(tsType, enums);
+    }
+    return "";
+  }
+
+  private formatExplicitDefault(attr: EAttributeJson, tsType: string, enums: EEnumJson[]): string {
+    if (tsType === "string") {
+      return JSON.stringify(attr.defaultValueLiteral);
+    } else if (this.findEnum(tsType, enums)) {
+      return `${tsType}.${attr.defaultValueLiteral}`;
+    }
+    return attr.defaultValueLiteral!;
+  }
+
+  private emfDefaultFor(tsType: string, enums: EEnumJson[]): string {
+    switch (tsType) {
+      case "string": return '""';
+      case "number": return "0";
+      case "boolean": return "false";
+      case "Date": return "null";
+      case "Uint8Array": return "new Uint8Array()";
+    }
+    const e = this.findEnum(tsType, enums);
+    if (e) {
+      return `${e.name}.${e.literals[0]}`;
+    }
+    return "undefined";
+  }
+
+  private findEnum(typeName: string, enums: EEnumJson[]): EEnumJson | undefined {
+    return enums.find(e => e.name === typeName);
+  }
+  
 }
