@@ -1,12 +1,17 @@
 import { Injectable } from '@angular/core';
 import { GenerationParams } from './generation-params';
 import { ProjectGenerationService } from './project-generation.service';
+import {ModelGenerationService} from './model/model-generation.service';
+import {Ecore2JsonService} from '../parsing/ecore2json.service';
+import {EPackageJson} from '../parsing/ecore-json';
 
 @Injectable({ providedIn: 'root' })
 export class GenerationService {
 
   constructor(
-    private projectGen: ProjectGenerationService
+    private projectGen: ProjectGenerationService,
+    private modelGenerationService: ModelGenerationService,
+    private ecore2jsonService: Ecore2JsonService,
   ) {}
 
   async processEcoreFile(file: File, projectName?: string): Promise<string> {
@@ -33,9 +38,11 @@ export class GenerationService {
 
     // Generate the Angular project structure
     await this.projectGen.generateProjectFiles(params);
+    //todo repair service file names or accept them;
+    // maybe move to further generation?
 
-    // TODO: call ModelGenerationService once implemented
-    // await this.modelGen.generateModel(params);
+    const parsedModel: EPackageJson = this.ecore2jsonService.parse(xml)
+    await this.modelGenerationService.generateModelFiles(parsedModel)
     return params.projectName
   }
 
