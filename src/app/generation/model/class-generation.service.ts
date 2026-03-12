@@ -148,7 +148,7 @@ export class ClassGenerationService {
       ? this.buildEnumInitializer(attr, enumInfo, isList)
       : this.buildPrimitiveInitializer(attr, tsType, isList);
 
-      return `\t@attribute()\n\t${attr.name}${optional}: ${tsType}${initializer};`;
+      return `  @attribute()\n  ${attr.name}${optional}: ${tsType}${initializer};`;
   }
 
   private mapEcoreTypeToTs(attr: EAttributeJson): string {
