@@ -1,3 +1,0 @@
-  %%refName%%: {
-  %%CONTENT%%
-  } satisfies ReferenceMeta

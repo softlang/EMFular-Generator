@@ -38,26 +38,24 @@ export class MetaGenerationService {
 
 
   private async buildAllClassRefs(model: EPackageJson): Promise<string> {
-    const refEntryTemplate = await this.loader.loadTemplate(this.srcFolder+"REF_ENTRY.template.ts");
     const classRefsTemplate = await this.loader.loadTemplate(this.srcFolder+"CLASS_REFS.template.ts");
 
     let refs_list = [];
     for (const classEntry of model.eClasses) {
       refs_list.push(
-        this.buildClassRef(classEntry, refEntryTemplate, classRefsTemplate)
+        this.buildClassRef(classEntry, classRefsTemplate)
       )
     }
     return refs_list.join('\n');
   }
 
-  private buildClassRef(classDef: EClassJson, refEntryTemplate: string, classRefsTemplate: string ): string {
-    //const refEntryTemplate = await this.loader.loadTemplate("REF_ENTRY.template.ts");
+  private buildClassRef(classDef: EClassJson, classRefsTemplate: string): string {
     //const classRefsTemplate = await this.loader.loadTemplate("CLASS_REFS.template.ts");
 
     let REFS_list: string[] = []
     for (const refEntry of classDef.references) {
       REFS_list.push(
-        this.buildRefEntry(refEntry, refEntryTemplate, classDef.name)
+        this.buildRefEntry(refEntry, classDef.name)
       )
     }
     const REFS = REFS_list.join(",\n")
@@ -69,8 +67,7 @@ export class MetaGenerationService {
       })
   }
 
-  private buildRefEntry(ref: EReferenceJson, refEntryTemplate: string, className: string): string {
-    //const refEntryTemplate = await this.loader.loadTemplate("REF_ENTRY.template.ts");
+  private buildRefEntry(ref: EReferenceJson, className: string): string {
     //needs inlining since empty last lines cause strange look
     return this.replacer.applyPlaceholders(
       '  %%refName%%: {\n' +
