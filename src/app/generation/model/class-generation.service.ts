@@ -88,6 +88,9 @@ export class ClassGenerationService {
     usedEnums: Set<string>,
     model: EPackageJson): string {
     const imports = new Set<string>();
+    //basic import: eClass and attribuets and reference decorators if needed from emfular:
+    imports.add(`import { eClass${cls.references.length>0? ', reference': ''}${cls.attributes.length>0? ', attribute': ''} } from 'emfular'`)
+
     // interface supertypes (type-only)
     interfaces.forEach(i =>
       imports.add(`import type { ${i} } from './${i}';`)
@@ -103,7 +106,7 @@ export class ClassGenerationService {
       imports.add(`import type { ModelList } from 'emfular';`);
     }
     // meta:
-    imports.add(`import { ${model.name}Meta, ${cls.name}Refs, ${Array.from(usedEnums).join(", ")} } from './_meta_';`)
+    imports.add(`import { ${model.name}Meta ${cls.references.length> 0?`, ${cls.name}Refs,`:',' }${Array.from(usedEnums).join(", ")} } from './_meta_';`)
 
     if (realParent) {
       imports.add(`import { ${realParent} } from './${realParent}';`);
