@@ -126,8 +126,11 @@ export class ClassGenerationService {
   private buildAttribute(attr: EAttributeJson,  enums: EEnumJson[]): string {
       const tsType = this.mapEcoreTypeToTs(attr);
       const optional = attr.lowerBound === 0 ? "?" : "";
-      const initializer = this.buildAttributeInitializer(attr, tsType, enums);
+      const enumInfo = this.findEnum(tsType, enums); // detect ONCE
 
+      const initializer = enumInfo
+      ? this.buildEnumInitializer(attr, enumInfo)
+      : this.buildPrimitiveInitializer(attr, tsType);
       return `\t@attribute()\n\t${attr.name}${optional}: ${tsType}${initializer};`;
   }
 
@@ -151,45 +154,49 @@ export class ClassGenerationService {
     return idx >= 0 ? t.substring(idx + 3) : t;
   }
 
+  private findEnum(typeName: string, enums: EEnumJson[]): EEnumJson | undefined {
+    return enums.find(e => e.name === typeName);
+  }
 
-  private buildAttributeInitializer(attr: EAttributeJson, tsType: string, enums: EEnumJson[]): string {
-    // explicit defaultValueLiteral
+  // --- primitive types ----
+
+  private buildPrimitiveInitializer(attr: EAttributeJson, tsType: string): string {
     if (attr.defaultValueLiteral !== undefined) {
-      return " = " + this.formatExplicitDefault(attr, tsType, enums);
+      return " = " + this.formatPrimitiveDefault(attr, tsType);
     }
-    // required attribute → EMF intrinsic default
     if (attr.lowerBound === 1) {
-      return " = " + this.emfDefaultFor(tsType, enums);
+      return " = " + this.emfPrimitiveDefault(tsType);
     }
     return "";
   }
 
-  private formatExplicitDefault(attr: EAttributeJson, tsType: string, enums: EEnumJson[]): string {
+  private formatPrimitiveDefault(attr: EAttributeJson, tsType: string): string {
     if (tsType === "string") {
       return JSON.stringify(attr.defaultValueLiteral);
-    } else if (this.findEnum(tsType, enums)) {
-      return `${tsType}.${attr.defaultValueLiteral}`;
     }
     return attr.defaultValueLiteral!;
   }
 
-  private emfDefaultFor(tsType: string, enums: EEnumJson[]): string {
+  private emfPrimitiveDefault(tsType: string): string {
     switch (tsType) {
       case "string": return '""';
       case "number": return "0";
       case "boolean": return "false";
       case "Date": return "null";
       case "Uint8Array": return "new Uint8Array()";
+      default: return "undefined";
     }
-    const e = this.findEnum(tsType, enums);
-    if (e) {
-      return `${e.name}.${e.literals[0]}`;
-    }
-    return "undefined";
   }
 
-  private findEnum(typeName: string, enums: EEnumJson[]): EEnumJson | undefined {
-    return enums.find(e => e.name === typeName);
+  //---- Enum handling -----
+  private buildEnumInitializer(attr: EAttributeJson, e: EEnumJson): string {
+    if (attr.defaultValueLiteral !== undefined) {
+      return ` = ${e.name}.${attr.defaultValueLiteral}`;
+    }
+    if (attr.lowerBound === 1) {
+      return ` = ${e.name}.${e.literals[0]}`;
+    }
+    return "";
   }
-  
+
 }
