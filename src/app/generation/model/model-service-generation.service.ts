@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import {TemplateLoadService} from '../../utils/template-load.service';
 import {PlaceholderReplacerService} from '../../utils/place-holder-replacer.service';
 import {ZipService} from '../../utils/zip.service';
-import {EClassJson, EPackageJson} from '../../parsing/ecore-json';
+import {EPackageJson} from '../../parsing/ecore-json';
 
 @Injectable({
   providedIn: 'root',
@@ -22,13 +22,13 @@ export class ModelServiceGenerationService {
 
     const historyTemplate = await this.loader.loadTemplate(this.srcFolder+'model-history.service.ts.template.ts')
     this.zip.addFile(
-      outputFolder+`${model.name}-history.service.ts`,
+      outputFolder+`${model.pascalizedName}-history.service.ts`,
       this.createHistoryService(historyTemplate, model)
     )
 
     const modelServiceTemplate = await this.loader.loadTemplate(this.srcFolder+'model.service.ts.template.ts')
     this.zip.addFile(
-      outputFolder+`${model.name}.service.ts`,
+      outputFolder+`${model.pascalizedName}.service.ts`,
       this.createModelService(modelServiceTemplate, model)
     )
   }
@@ -41,7 +41,7 @@ export class ModelServiceGenerationService {
     return this.replacer.applyPlaceholders(
       modelServiceTemplate,
       {
-        modelName: model.name,
+        modelName: model.pascalizedName,
         root: model.root!.name,
         ANTI_EXTINCTION_IMPORTS: this.createImports(classesToInstantiate),
         ANTI_EXTINCTION_PROPERTIES: this.initializeClasses(classesToInstantiate),
@@ -68,7 +68,7 @@ export class ModelServiceGenerationService {
     return this.replacer.applyPlaceholders(
       historyTemplate,
       {
-        modelName: model.name,
+        modelName: model.pascalizedName,
         root: model.root!.name
       }
     )
