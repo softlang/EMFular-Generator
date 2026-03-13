@@ -20,15 +20,33 @@ export class ModelServiceGenerationService {
   async generateServices(model: EPackageJson) {
     const outputFolder = `src/app/${model.name}/edit/`
 
+    const historyTemplate = await this.loader.loadTemplate(this.srcFolder+'model-history.service.ts.template.ts')
+    this.zip.addFile(
+      outputFolder+`${model.name}-history.service.ts`,
+      this.createHistoryService(historyTemplate, model)
+    )
 
+    const modelServiceTemplate = await this.loader.loadTemplate(this.srcFolder+'model.service.ts.template.ts')
+    this.zip.addFile(
+      outputFolder+`${model.name}.service.ts`,
+      this.createModelService(modelServiceTemplate, model)
+    )
   }
 
-  createHistoryService(historyTemplate: string, model: EPackageJson) {
-    this.replacer.applyPlaceholders(
+  createModelService(modelServiceTemplate: string, model: EPackageJson): string {
+
+    return this.replacer.applyPlaceholders(
+      modelServiceTemplate,
+      {}
+    )
+  }
+
+  createHistoryService(historyTemplate: string, model: EPackageJson): string {
+    return this.replacer.applyPlaceholders(
       historyTemplate,
       {
         modelName: model.name,
-        root: ""
+        root: model.root!.name
       }
     )
   }

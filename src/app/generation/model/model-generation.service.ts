@@ -12,11 +12,13 @@ export class ModelGenerationService {
     private metaGenerationService: MetaGenerationService,
     private interfaceGenerationService: InterfaceGenerationService,
     private classGenerationService: ClassGenerationService,
+    private modelServiceGenerationService: ModelGenerationService,
   ) {}
 
   async generateModelFiles(model: EPackageJson) {
     await this.metaGenerationService.generateMeta(model);
     await this.interfaceGenerationService.generateInterfaces(model);
     await this.classGenerationService.generateClasses(model)
+    await this.modelServiceGenerationService.generateModelFiles(model)
   }
 }

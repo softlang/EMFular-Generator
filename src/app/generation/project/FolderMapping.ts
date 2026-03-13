@@ -35,18 +35,4 @@ export const PROJECT_FOLDER_MAPPINGS: FolderMapping[] = [
     ]
   },
 
-  // Generated services (edit layer)
-  { srcFolder: 'assets/templates/services',    targetFolder: 'src/app/%%modelFileName%%/edit',
-    fileNames: [
-      "model-history.service.ts.template.ts",
-      "model.service.ts.template.ts",
-    ]
-  },
 ];
-
-export const MODEL_FOLDER_MAPPINGS: FolderMapping[] = [
-  // Generated model classes (core layer)
-  { srcFolder: 'assets/templates/model',    targetFolder: 'src/app/%%modelFileName%%/core',
-    fileNames: []
-  }
-]
