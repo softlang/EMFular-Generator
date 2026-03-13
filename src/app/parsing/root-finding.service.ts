@@ -12,19 +12,27 @@ export class RootFindingService {
   }
 
   private findRootEClass(model: EPackageJson): EClassJson {
-    const all = new Set(model.eClasses.map(c => c.name));
-    const contained = new Set<string>();
+    const containedTargets = new Set<string>();
 
+    // collect all types that are *contained by* others
     for (const cls of model.eClasses) {
-      for (const ref of cls.references) {
+      for (const ref of cls.references ?? []) {
         if (ref.containment && ref.resolvedType) {
-          contained.add(ref.resolvedType);
+          containedTargets.add(ref.resolvedType);
         }
       }
     }
 
-    const roots = [...all].filter(name => !contained.has(name));
+    const roots: EClassJson[] = [];
 
+    for (const cls of model.eClasses) {
+      const hasSuperTypes = cls.superTypes && cls.superTypes.length > 0;
+      const isContainedByOthers = containedTargets.has(cls.name);
+
+      if (!hasSuperTypes && !isContainedByOthers) {
+        roots.push(cls);
+      }
+    }
     if (roots.length === 0) {
       throw new Error(
         `No root EClass found. EMFular currently requires exactly one containment root.`
@@ -39,9 +47,7 @@ export class RootFindingService {
       );
     }
 
-    return model.eClasses.find(
-      c => c.name === roots[0]
-    )!;
+    return roots[0];
   }
 
 

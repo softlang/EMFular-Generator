@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { ModelService } from 'ngx-emfular-integration';
 import { IoService } from 'ngx-emfular-helper';
 
-import { %%modelName%% } from '../core/%%modelName%%';
 import { %%modelName%%HistoryService } from './%%modelName%%-history.service';
 %%ANTI_EXTINCTION_IMPORTS%%
 
