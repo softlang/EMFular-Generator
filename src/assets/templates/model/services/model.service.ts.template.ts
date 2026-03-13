@@ -4,7 +4,7 @@ import { IoService } from 'ngx-emfular-helper';
 
 import { %%modelName%% } from '../core/%%modelName%%';
 import { %%modelName%%HistoryService } from './%%modelName%%-history.service';
-%%MODELIMPORTS%%
+%%ANTI_EXTINCTION_IMPORTS%%
 
 @Injectable({
   providedIn: 'root'

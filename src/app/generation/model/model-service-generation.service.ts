@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import {TemplateLoadService} from '../../utils/template-load.service';
 import {PlaceholderReplacerService} from '../../utils/place-holder-replacer.service';
 import {ZipService} from '../../utils/zip.service';
-import {EPackageJson} from '../../parsing/ecore-json';
+import {EClassJson, EPackageJson} from '../../parsing/ecore-json';
 
 @Injectable({
   providedIn: 'root',
@@ -34,11 +34,34 @@ export class ModelServiceGenerationService {
   }
 
   createModelService(modelServiceTemplate: string, model: EPackageJson): string {
+    //only to work against extinction by tree shaking on model
+    const classesToInstantiate= this.filterRealClasses(model)
+    //todo we could also write create methods for all objects...
 
     return this.replacer.applyPlaceholders(
       modelServiceTemplate,
-      {}
+      {
+        modelName: model.name,
+        root: model.root!.name,
+        ANTI_EXTINCTION_IMPORTS: this.createImports(classesToInstantiate),
+        ANTI_EXTINCTION_PROPERTIES: this.initializeClasses(classesToInstantiate),
+      }
     )
+  }
+
+  private filterRealClasses(model: EPackageJson): string[] {
+    return model.eClasses.filter(c => !c.abstract && !c.interfaceLike)//todo verify that inetrfacelike does not require abstract
+      .map(c => c.name)
+  }
+
+  private createImports(classes: string[]): string {
+    return classes.map(cls => `import { ${cls} } from "../core/${cls}";`)
+      .join('\n');
+  }
+
+  private initializeClasses(classes: string[]): string {
+    return classes.map(cls => `againstExtinction${cls} = new ${cls}()`)
+      .join('\n');
   }
 
   createHistoryService(historyTemplate: string, model: EPackageJson): string {
