@@ -49,6 +49,7 @@ export interface EReferenceJson {
   volatile?: boolean;
   changeable?: boolean;
   opposite?: string; // name of opposite reference, if any
+  resolvedOpposite?: string;
   isTreeParent?: boolean; //detects opposites of trees
 }
 

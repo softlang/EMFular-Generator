@@ -160,7 +160,6 @@ export class Ecore2JsonService {
 
     for (const child of Array.from(el.children)) {
       const type = child.getAttribute('xsi:type');
-
       if (type === 'ecore:EAttribute') {
         cls.attributes.push(this.parseEAttribute(child));
       } else if (type === 'ecore:EReference') {
@@ -191,8 +190,15 @@ export class Ecore2JsonService {
     return idx >= 0 ? raw.substring(idx + 3) : raw;
   }
 
+  private normalizeOpposite(raw: string|undefined): string|undefined {
+    if (!raw ) return undefined;
+    const idx = raw.lastIndexOf("/");
+    return idx >= 0 ? raw.substring(idx + 1) : raw;
+  }
+
   private parseEReference(el: Element): EReferenceJson {
     const type = el.getAttribute('eType') ?? '';
+    const opposite = el.getAttribute('eOpposite') || undefined
     return {
       kind: 'EReference',
       name: el.getAttribute('name') ?? '',
@@ -209,7 +215,8 @@ export class Ecore2JsonService {
       changeable: el.getAttribute('changeable') === 'true' || undefined,
 
       // opposite reference (if present)
-      opposite: el.getAttribute('eOpposite') || undefined,
+      opposite: opposite,
+      resolvedOpposite: this.normalizeOpposite(opposite),
     };
   }
 
