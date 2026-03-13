@@ -119,11 +119,11 @@ export class Ecore2JsonService {
 
 
   inferTreeParents(pkg: EPackageJson) {
-    // Build a lookup table: "ClassName.refName" → reference
+    // Build a lookup table following the opposite naming schema
     const refIndex = new Map<string, EReferenceJson>();
     for (const cls of pkg.eClasses) {
       for (const ref of cls.references) {
-        refIndex.set(`${cls.name}.${ref.name}`, ref);
+        refIndex.set(`#//${cls.name}/${ref.name}`, ref);
       }
     }
     // Now resolve opposites and infer tree-parent
@@ -133,11 +133,8 @@ export class Ecore2JsonService {
           continue;
         }
         const oppositeRef = refIndex.get(ref.opposite);
-        if (!oppositeRef) {
-          continue;
-        }
         // A reference is a tree parent iff its opposite is containment
-        if (oppositeRef.containment === true) {
+        if (oppositeRef?.containment === true) {
           ref.isTreeParent = true;
         }
       }
