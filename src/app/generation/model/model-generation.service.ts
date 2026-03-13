@@ -3,6 +3,7 @@ import {MetaGenerationService} from './meta-generation.service';
 import {InterfaceGenerationService} from './interface-generation.service';
 import {ClassGenerationService} from './class-generation.service';
 import {EPackageJson} from '../../parsing/ecore-json';
+import {ModelServiceGenerationService} from './model-service-generation.service';
 
 @Injectable({
   providedIn: 'root',
@@ -12,13 +13,13 @@ export class ModelGenerationService {
     private metaGenerationService: MetaGenerationService,
     private interfaceGenerationService: InterfaceGenerationService,
     private classGenerationService: ClassGenerationService,
-    private modelServiceGenerationService: ModelGenerationService,
+    private modelServiceGenerationService: ModelServiceGenerationService,
   ) {}
 
   async generateModelFiles(model: EPackageJson) {
     await this.metaGenerationService.generateMeta(model);
     await this.interfaceGenerationService.generateInterfaces(model);
     await this.classGenerationService.generateClasses(model)
-    await this.modelServiceGenerationService.generateModelFiles(model)
+    await this.modelServiceGenerationService.generateServices(model)
   }
 }
