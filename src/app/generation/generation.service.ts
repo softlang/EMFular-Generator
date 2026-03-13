@@ -30,10 +30,6 @@ export class GenerationService {
       modelName,
       modelFileName,
       emfularVersion: '10.0.0',
-
-      // TODO: filled later by the model generator
-      allModelImports: '',
-      antiExtinctionProperties: ''
     };
 
     // Generate the Angular project structure

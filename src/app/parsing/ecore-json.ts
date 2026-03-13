@@ -1,5 +1,6 @@
 export interface EPackageJson {
   name: string;
+  pascalizedName: string;
   nsURI: string;
   nsPrefix: string;
   root?: EClassJson,

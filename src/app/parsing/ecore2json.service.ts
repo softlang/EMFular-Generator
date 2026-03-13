@@ -25,9 +25,11 @@ export class Ecore2JsonService {
     if (!root.tagName.endsWith('EPackage')) {
       throw new Error('Root element is not an EPackage');
     }
+    const name = root.getAttribute('name') ?? ''
 
     const pkg: EPackageJson = {
-      name: root.getAttribute('name') ?? '',
+      name: name,
+      pascalizedName: this.pascalCase(name),
       nsURI: root.getAttribute('nsURI') ?? '',
       nsPrefix: root.getAttribute('nsPrefix') ?? '',
       eClasses: [],
@@ -231,5 +233,12 @@ export class Ecore2JsonService {
       name: el.getAttribute('name') ?? '',
       instanceTypeName: el.getAttribute('instanceTypeName') ?? '',
     };
+  }
+
+  private pascalCase(str: string): string {
+    return str
+      .split(/[_\s-]+/)
+      .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+      .join('');
   }
 }

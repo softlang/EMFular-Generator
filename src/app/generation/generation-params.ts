@@ -3,6 +3,4 @@ export interface GenerationParams {
   modelName: string;
   modelFileName: string;
   emfularVersion: string;
-  allModelImports: string;
-  antiExtinctionProperties: string;
 }
