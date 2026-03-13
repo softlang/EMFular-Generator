@@ -28,7 +28,7 @@ jobs:
         run: npm run build
 
       - name: Test
-        run:  ng test --run
+        run: npm run test:ci
 
     outputs:
       # We expose the branch name so dependent jobs can use it
