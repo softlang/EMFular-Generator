@@ -1,13 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 
-import { PlaceHolderReplacerService } from './place-holder-replacer.service';
+import { PlaceholderReplacerService } from './place-holder-replacer.service';
 
 describe('PlaceHolderReplacer', () => {
-  let service: PlaceHolderReplacerService;
+  let service: PlaceholderReplacerService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(PlaceHolderReplacerService);
+    service = TestBed.inject(PlaceholderReplacerService);
   });
 
   it('should be created', () => {
