@@ -29,6 +29,7 @@ export class ZipService {
 
   async downloadZip(projectName: string): Promise<void> {
     const blob = await this.finalize();
+    this.zip = new JSZip();
     this.downloadBlob(blob, `${projectName}.zip`);
   }
 
