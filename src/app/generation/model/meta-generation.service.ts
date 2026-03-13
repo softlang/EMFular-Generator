@@ -100,7 +100,7 @@ export class MetaGenerationService {
       lines.push(`opposite: "${ref.opposite}"`);
     }
     if(ref.derived) {
-      lines.push(`derivingMethod: Symbol(${className}.${ref.name}.compute)`);
+      lines.push(`derivingMethod: Symbol("${className}.${ref.name}.compute")`);
     }
     return lines.join(",\n\t\t"); //hence first entry needs extra indentation
   }
