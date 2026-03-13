@@ -28,7 +28,7 @@ jobs:
         run: npm run build
 
       - name: Test
-        run: npm test -- --watch=false --browsers=ChromeHeadless
+        run:  ng test --run
 
     outputs:
       # We expose the branch name so dependent jobs can use it
