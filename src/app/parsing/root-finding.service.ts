@@ -50,7 +50,7 @@ export class RootFindingService {
 
     if (roots.length > 1) {
       throw new Error(
-        `Multiple root EClasses found: ${roots.join(
+        `Multiple root EClasses found: ${roots.map(r => r.name).join(
           ", "
         )}. EMFular currently requires exactly one root.`
       );
