@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { GenerationParams } from './generation-params';
-import { ProjectGenerationService } from './project-generation.service';
+import { ProjectGenerationService } from './project/project-generation.service';
 import {ModelGenerationService} from './model/model-generation.service';
 import {Ecore2JsonService} from '../parsing/ecore2json.service';
 import {EPackageJson} from '../parsing/ecore-json';

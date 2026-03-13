@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import {SingleFileGeneratorService} from './single-file-generator.service';
-import {GenerationParams} from './generation-params';
+import {GenerationParams} from '../generation-params';
 import {PROJECT_FOLDER_MAPPINGS} from './FolderMapping';
 
 @Injectable({ providedIn: 'root' })
