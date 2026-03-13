@@ -2,6 +2,7 @@ export interface EPackageJson {
   name: string;
   nsURI: string;
   nsPrefix: string;
+  root?: EClassJson,
   eClasses: EClassJson[];
   eEnums: EEnumJson[];
   eDataTypes: EDataTypeJson[];

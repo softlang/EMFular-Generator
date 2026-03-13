@@ -7,11 +7,15 @@ import {
   EEnumJson,
   EDataTypeJson,
 } from './ecore-json';
+import {RootFindingService} from './root-finding.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class Ecore2JsonService {
+
+  constructor(private rootFindingService: RootFindingService) {
+  }
 
   parse(xml: string): EPackageJson {
     const parser = new DOMParser();
@@ -48,6 +52,7 @@ export class Ecore2JsonService {
     this.inferTreeParents(pkg)
     this.resolveSuperTypes(pkg)
     this.inferInterfaceLike(pkg)
+    this.rootFindingService.determineRoot(pkg)
     return pkg;
   }
 
