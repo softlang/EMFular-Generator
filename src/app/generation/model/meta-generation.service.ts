@@ -99,8 +99,9 @@ export class MetaGenerationService {
     if(ref.opposite) {
       lines.push(`opposite: "${ref.opposite}"`);
     }
-    if(ref.derived) {
-      lines.push(`derivingMethod: Symbol("${className}.${ref.name}.compute")`);
+    if(ref.derived) { //todo can we use it on 10.1?
+      //lines.push(`derivingMethod: Symbol("${className}.${ref.name}.compute")`);
+      lines.push(`//todo: derived`);
     }
     return lines.join(",\n\t\t"); //hence first entry needs extra indentation
   }

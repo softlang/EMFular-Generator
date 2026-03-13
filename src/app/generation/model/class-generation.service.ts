@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import {EAttributeJson, EClassJson, EEnumJson, EPackageJson} from '../../parsing/ecore-json';
+import {EAttributeJson, EClassJson, EEnumJson, EPackageJson, EReferenceJson} from '../../parsing/ecore-json';
 import { TemplateLoadService } from '../../utils/template-load.service';
 import { PlaceholderReplacerService } from '../../utils/place-holder-replacer.service';
 import { ZipService } from '../../utils/zip.service';
@@ -120,13 +120,27 @@ export class ClassGenerationService {
   private buildReferences(cls: EClassJson): string {
     return cls.references
       .map(ref => {
-        const type = ref.upperBound === 1
-          ? ref.resolvedType
-          : `ModelList<${ref.resolvedType}>`;
+        if(ref.derived)
+          return this.buildDerivedRef(ref, cls.name)
+        else
+          return this.buildNormalRef(ref, cls.name)
+      }).join('\n\n');
+  }
 
-        return `  @reference(${cls.name}Refs.${ref.name})\n  declare ${ref.name}: ${type};`;
-      })
-      .join('\n\n');
+  private buildNormalRef(ref: EReferenceJson, className: string) {
+    const type = ref.upperBound === 1
+      ? ref.resolvedType
+      : `ModelList<${ref.resolvedType}>`;
+    return `  @reference(${className}Refs.${ref.name})\n  declare ${ref.name}: ${type};`;
+  }
+
+  private buildDerivedRef(ref: EReferenceJson, className: string) {
+    //right now just create a getter with right type:
+    const type = ref.upperBound === 1
+      ? ref.resolvedType
+      : ref.resolvedType+"[]"
+    const notImplemented = "throw new Error('Method not implemented.'); //TODO"
+    return `  get ${ref.name}(): ${type} {\n\t\t${notImplemented}\n  }\n`;
   }
 
   //fills used enums
