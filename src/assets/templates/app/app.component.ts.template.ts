@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { TreeEditorComponent } from 'ngx-emfular-integration';
-import { %%modelName%%Service } from './%%modelFileName%%/edit/%%modelFileName%%.service';
+import { %%modelName%%Service } from './%%modelFileName%%/edit/%%modelName%%.service';
 
 @Component({
   selector: 'app-root',

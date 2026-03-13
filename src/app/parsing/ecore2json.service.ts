@@ -18,8 +18,7 @@ export class Ecore2JsonService {
   }
 
   parse(xml: string): EPackageJson {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(xml, 'application/xml');
+    const doc = this.parseXml(xml);
     const root = doc.documentElement;
 
     if (!root.tagName.endsWith('EPackage')) {
@@ -240,5 +239,17 @@ export class Ecore2JsonService {
       .split(/[_\s-]+/)
       .map(part => part.charAt(0).toUpperCase() + part.slice(1))
       .join('');
+  }
+
+  private parseXml(xml: string): Document {
+    const parser = new DOMParser();
+    const dom = parser.parseFromString(xml, 'application/xml');
+
+    const error = dom.querySelector('parsererror');
+    if (error) {
+      throw new Error('The uploaded file is not valid XML.');
+    }
+
+    return dom;
   }
 }

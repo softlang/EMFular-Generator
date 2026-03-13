@@ -16,29 +16,18 @@ export class GenerationService {
 
   async processEcoreFile(file: File, projectName?: string): Promise<string> {
     const xml = await this.readFile(file);
-    const dom = this.parseXml(xml);
-
-    const modelName = this.extractRootEClass(dom);
-    if (!modelName) {
-      throw new Error('The uploaded file is not a valid Ecore model: No root EClass found.');
-    }
-
-    const modelFileName = this.toFileName(modelName);
+    const model: EPackageJson = this.ecore2jsonService.parse(xml)
 
     const params: GenerationParams = {
-      projectName : projectName ? projectName : modelName+"-graphical-editor",
-      modelName,
-      modelFileName,
+      projectName : projectName ? projectName : model.name+"-graphical-editor",
+      modelName : model.pascalizedName,
+      modelFileName: model.name, //for folders
       emfularVersion: '10.0.0',
     };
 
     // Generate the Angular project structure
     await this.projectGen.generateProjectFiles(params);
-    //todo repair service file names or accept them;
-    // maybe move to further generation?
-
-    const parsedModel: EPackageJson = this.ecore2jsonService.parse(xml)
-    await this.modelGenerationService.generateModelFiles(parsedModel)
+    await this.modelGenerationService.generateModelFiles(model)
     return params.projectName
   }
 
@@ -53,29 +42,4 @@ export class GenerationService {
     });
   }
 
-  private parseXml(xml: string): Document {
-    const parser = new DOMParser();
-    const dom = parser.parseFromString(xml, 'application/xml');
-
-    const error = dom.querySelector('parsererror');
-    if (error) {
-      throw new Error('The uploaded file is not valid XML.');
-    }
-
-    return dom;
-  }
-
-  private extractRootEClass(dom: Document): string | null {
-    const classifiers = Array.from(dom.getElementsByTagName('eClassifiers'));
-
-    const firstEClass = classifiers.find(el =>
-      el.getAttribute('xsi:type') === 'ecore:EClass'
-    );
-
-    return firstEClass?.getAttribute('name') ?? null;
-  }
-
-  private toFileName(name: string): string {
-    return name.charAt(0).toLowerCase() + name.slice(1);
-  }
 }
