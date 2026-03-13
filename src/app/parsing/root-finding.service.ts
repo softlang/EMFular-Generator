@@ -12,30 +12,39 @@ export class RootFindingService {
   }
 
   private findRootEClass(model: EPackageJson): EClassJson {
+    // 1. Collect all types that are containment targets (ignore self-containment)
     const containedTargets = new Set<string>();
 
-    // collect all types that are *contained by* others
     for (const cls of model.eClasses) {
       for (const ref of cls.references ?? []) {
-        if (ref.containment && ref.resolvedType) {
+        if (ref.containment && ref.resolvedType && ref.resolvedType !== cls.name) {
           containedTargets.add(ref.resolvedType);
         }
       }
     }
 
-    const roots: EClassJson[] = [];
-
-    for (const cls of model.eClasses) {
-      const hasSuperTypes = cls.superTypes && cls.superTypes.length > 0;
-      const isContainedByOthers = containedTargets.has(cls.name);
-
-      if (!hasSuperTypes && !isContainedByOthers) {
-        roots.push(cls);
+    // 2. fixed point over containedTargets to find recursivly contained targets
+    let ctsize = 0;
+    while(containedTargets.size > ctsize) {
+      ctsize = containedTargets.size;
+      for (const cls of model.eClasses) {
+        if (
+          cls.resolvedSuperTypes.some(sup => containedTargets.has(sup))
+        ) {
+          containedTargets.add(cls.name)
+        }
       }
     }
+
+    // 4. Root candidates: non-abstract, non-interface, NOT contained (directly or via ancestors)
+    const roots = model.eClasses.filter(cls =>
+      !cls.abstract && cls.interfaceLike !== true &&
+      !(containedTargets.has(cls.name))
+    );
+
     if (roots.length === 0) {
       throw new Error(
-        `No root EClass found. EMFular currently requires exactly one containment root.`
+        `No root EClass found. A root must be non-abstract, non-interface, and not contained (directly or via ancestors) by any other class.`
       );
     }
 
