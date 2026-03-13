@@ -106,7 +106,7 @@ export class ClassGenerationService {
       imports.add(`import type { ModelList } from 'emfular';`);
     }
     // meta:
-    imports.add(`import { ${model.name}Meta ${cls.references.length> 0?`, ${cls.name}Refs,`:',' }${Array.from(usedEnums).join(", ")} } from './_meta_';`)
+    imports.add(`import { ${model.name}Meta${cls.references.length> 0?`, ${cls.name}Refs`:'' }${usedEnums.size>0?", "+Array.from(usedEnums).join(", "):''} } from './_meta_';`)
 
     if (realParent) {
       imports.add(`import { ${realParent} } from './${realParent}';`);
