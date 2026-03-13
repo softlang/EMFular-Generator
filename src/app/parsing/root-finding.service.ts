@@ -23,13 +23,31 @@ export class RootFindingService {
       }
     }
 
-    // 2. fixed point over containedTargets to find recursivly contained targets
+    // 2. Precompute immediate subtypes ("children")
+    const children = new Map<string, string[]>();
+    for (const cls of model.eClasses) {
+      for (const sup of cls.resolvedSuperTypes ?? []) {
+        const arr = children.get(sup) ?? [];
+        arr.push(cls.name);
+        children.set(sup, arr);
+      }
+    }
+
+    // 3. fixed point over containedTargets to find recursivly contained targets,
+    //i.e. recursive sub- and supertypes
     let ctsize = 0;
     while(containedTargets.size > ctsize) {
       ctsize = containedTargets.size;
       for (const cls of model.eClasses) {
         if (
           cls.resolvedSuperTypes.some(sup => containedTargets.has(sup))
+        ) {
+          containedTargets.add(cls.name)
+        }
+        const ownChildren: string[] | undefined = children.get(cls.name)
+        if(ownChildren
+          && ownChildren.length > 0
+          && ownChildren.every(child => containedTargets.has(child))
         ) {
           containedTargets.add(cls.name)
         }
