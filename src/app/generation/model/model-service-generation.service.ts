@@ -17,7 +17,7 @@ export class ModelServiceGenerationService {
     private zip: ZipService
   ) {}
 
-  async generateServices(model: EPackageJson, root: EClassJson) {
+  async generateServices(model: EPackageJson, root: EClassJson, realClasses: string[]) {
     const outputFolder = `src/app/${model.name}/edit/`
 
     const historyTemplate = await this.loader.loadTemplate(this.srcFolder+'model-history.service.ts.template.ts')
@@ -29,14 +29,12 @@ export class ModelServiceGenerationService {
     const modelServiceTemplate = await this.loader.loadTemplate(this.srcFolder+'model.service.ts.template.ts')
     this.zip.addFile(
       outputFolder+`${model.pascalizedName}.service.ts`,
-      this.createModelService(modelServiceTemplate, model, root)
+      this.createModelService(modelServiceTemplate, model, root, realClasses)
     )
   }
 
-  createModelService(modelServiceTemplate: string, model: EPackageJson, root: EClassJson): string {
-    //only to work against extinction by tree shaking on model
-    const classesToInstantiate= this.filterRealClasses(model)
-    //todo we could also write create methods for all objects...
+  createModelService(modelServiceTemplate: string, model: EPackageJson, root: EClassJson, realClasses: string[]): string {
+    const classesToInstantiate= realClasses
 
     return this.replacer.applyPlaceholders(
       modelServiceTemplate,
@@ -44,15 +42,9 @@ export class ModelServiceGenerationService {
         modelName: model.pascalizedName,
         root: root.name,
         ALL_REAL_CLASSES_IMPORTS: this.createImports(classesToInstantiate),
-        //ANTI_EXTINCTION_PROPERTIES: this.initializeClasses(classesToInstantiate),
         MODEL_CREATION_METHODS: this.addCreationMethods(classesToInstantiate),
       }
     )
-  }
-
-  private filterRealClasses(model: EPackageJson): string[] {
-    return model.eClasses.filter(c => !c.abstract && !c.interfaceLike)//todo verify that inetrfacelike does not require abstract
-      .map(c => c.name)
   }
 
   private createImports(classes: string[]): string {
