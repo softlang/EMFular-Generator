@@ -12,8 +12,8 @@ import { %%root%% } from "../core/%%root%%";
   imports: [
     TreeEditorComponent
   ],
-  templateUrl: './%%modelName%%editor.component.html',
-  styleUrl: './%%modelName%%editor.component.css'
+  templateUrl: './%%modelName%%-editor.component.html',
+  styleUrl: './%%modelName%%-editor.component.css'
 })
 export class %%modelName%%EditorComponent{
 
