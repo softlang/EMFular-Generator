@@ -1,17 +1,14 @@
 import {Injectable} from '@angular/core';
-import {EClassJson, EPackageJson} from './ecore-json';
+import {EClassJson, EPackageJson} from '../../parsing/ecore-json';
 
 @Injectable({
   providedIn: 'root',
 })
 export class RootFindingService {
 
-  public determineRoot(model: EPackageJson): void {
-    if (model.root) return;
-    model.root = this.findRootEClass(model);
-  }
 
-  private findRootEClass(model: EPackageJson): EClassJson {
+
+  public findRootEClassCandidates(model: EPackageJson): EClassJson[] {
     // 1. Collect all types that are containment targets (ignore self-containment)
     const containedTargets = new Set<string>();
 
@@ -60,6 +57,10 @@ export class RootFindingService {
       !(containedTargets.has(cls.name))
     );
 
+    return roots
+  }
+
+  public determineUniqueRoot(roots: EClassJson[]): EClassJson {
     if (roots.length === 0) {
       throw new Error(
         `No root EClass found. A root must be non-abstract, non-interface, and not contained (directly or via ancestors) by any other class.`
@@ -76,7 +77,6 @@ export class RootFindingService {
 
     return roots[0];
   }
-
 
 
 }
