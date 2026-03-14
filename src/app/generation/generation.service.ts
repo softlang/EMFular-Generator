@@ -4,6 +4,7 @@ import { ProjectGenerationService } from './project/project-generation.service';
 import {ModelGenerationService} from './model/model-generation.service';
 import {Ecore2JsonService} from '../parsing/ecore2json.service';
 import {EPackageJson} from '../parsing/ecore-json';
+import {RootFindingService} from '../parsing/root-finding.service';
 
 @Injectable({ providedIn: 'root' })
 export class GenerationService {
@@ -12,11 +13,13 @@ export class GenerationService {
     private projectGen: ProjectGenerationService,
     private modelGenerationService: ModelGenerationService,
     private ecore2jsonService: Ecore2JsonService,
+    private rootFindingService: RootFindingService,
   ) {}
 
   async processEcoreFile(file: File, projectName?: string): Promise<string> {
     const xml = await this.readFile(file);
     const model: EPackageJson = this.ecore2jsonService.parse(xml)
+    this.rootFindingService.determineRoot(model)
 
     const params: GenerationParams = {
       projectName : projectName ? projectName : model.name+"-graphical-editor",
