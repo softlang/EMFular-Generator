@@ -173,8 +173,10 @@ export class ClassGenerationService {
 
     if (
       t.endsWith("#//EInt") || t.endsWith("#//EIntegerObject") ||
-      t.endsWith("#//ELong") || t.endsWith("#//EShort") ||
-      t.endsWith("#//EFloat") || t.endsWith("#//EDouble")
+      t.endsWith("#//ELong") || t.endsWith('#//ELongObject') ||
+      t.endsWith("#//EShort") || t.endsWith("#//EShortObject") ||
+      t.endsWith("#//EFloat") || t.endsWith("#//EFloatObject") ||
+      t.endsWith("#//EDouble") || t.endsWith("#//EDoubleObject")
     ) return "number";
 
     if (t.endsWith("#//EDate")) return "Date";

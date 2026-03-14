@@ -27,7 +27,7 @@ export const PROJECT_FOLDER_MAPPINGS: FolderMapping[] = [
   // Root Angular app shell
   { srcFolder: 'assets/templates/app',      targetFolder: 'src/app',
     fileNames: [
-      "app.component.html",
+      "app.component.html.template.html",
       "app.component.scss",
       "app.component.ts.template.ts",
       "app.config.ts",
