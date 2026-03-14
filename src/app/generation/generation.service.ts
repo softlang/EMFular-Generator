@@ -3,8 +3,11 @@ import { GenerationParams } from './generation-params';
 import { ProjectGenerationService } from './project/project-generation.service';
 import {ModelGenerationService} from './model/model-generation.service';
 import {Ecore2JsonService} from '../parsing/ecore2json.service';
-import {EPackageJson} from '../parsing/ecore-json';
+import {EClassJson, EPackageJson} from '../parsing/ecore-json';
 import {RootFindingService} from './root/root-finding.service';
+import {RootSelectionDialogComponent} from './root/root-selection-dialog/root-selection-dialog.component';
+import {MatDialog} from '@angular/material/dialog';
+import {firstValueFrom} from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class GenerationService {
@@ -14,12 +17,12 @@ export class GenerationService {
     private modelGenerationService: ModelGenerationService,
     private ecore2jsonService: Ecore2JsonService,
     private rootFindingService: RootFindingService,
+    private dialog: MatDialog,
   ) {}
 
   async processEcoreFile(file: File, projectName?: string): Promise<string> {
     const xml = await this.readFile(file);
     const model: EPackageJson = this.ecore2jsonService.parse(xml)
-    const rootCandidates = this.rootFindingService.findRootEClassCandidates(model)
 
     const params: GenerationParams = {
       projectName : projectName ? projectName : model.name+"-graphical-editor",
@@ -30,7 +33,14 @@ export class GenerationService {
 
     // Generate the Angular project structure
     await this.projectGen.generateProjectFiles(params);
-    await this.modelGenerationService.generateModelFiles(model)
+
+    // choose root:
+    const root: EClassJson | null = await this.determineRoot(model);
+    if (root == null) {
+      throw new Error('No root found'); //todo we could generate all but services
+    }
+
+    await this.modelGenerationService.generateModelFiles(model, root)
     return params.projectName
   }
 
@@ -43,6 +53,24 @@ export class GenerationService {
 
       reader.readAsText(file);
     });
+  }
+
+  async determineRoot(model: EPackageJson): Promise<EClassJson | null> {
+    const candidates = this.rootFindingService.findRootEClassCandidates(model);
+    if (candidates.length === 1) {
+      return candidates[0];
+    }
+    if (candidates.length === 0) {
+      return null; // or open a manual selection dialog over all
+    }
+    return await this.pickRoot(candidates);
+  }
+
+  async pickRoot(candidates: EClassJson[]): Promise<EClassJson | null> {
+    const dialogRef = this.dialog.open(RootSelectionDialogComponent, {
+      data: candidates,
+    });
+    return await firstValueFrom(dialogRef.afterClosed());
   }
 
 }

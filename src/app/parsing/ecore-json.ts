@@ -3,7 +3,6 @@ export interface EPackageJson {
   pascalizedName: string;
   nsURI: string;
   nsPrefix: string;
-  root?: EClassJson,
   eClasses: EClassJson[];
   eEnums: EEnumJson[];
   eDataTypes: EDataTypeJson[];

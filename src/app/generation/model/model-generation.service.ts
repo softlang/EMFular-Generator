@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import {MetaGenerationService} from './meta-generation.service';
 import {InterfaceGenerationService} from './interface-generation.service';
 import {ClassGenerationService} from './class-generation.service';
-import {EPackageJson} from '../../parsing/ecore-json';
+import {EClassJson, EPackageJson} from '../../parsing/ecore-json';
 import {ModelServiceGenerationService} from './model-service-generation.service';
 
 @Injectable({
@@ -16,10 +16,10 @@ export class ModelGenerationService {
     private modelServiceGenerationService: ModelServiceGenerationService,
   ) {}
 
-  async generateModelFiles(model: EPackageJson) {
+  async generateModelFiles(model: EPackageJson, root: EClassJson) {
     await this.metaGenerationService.generateMeta(model);
     await this.interfaceGenerationService.generateInterfaces(model);
     await this.classGenerationService.generateClasses(model)
-    await this.modelServiceGenerationService.generateServices(model)
+    await this.modelServiceGenerationService.generateServices(model, root)
   }
 }
