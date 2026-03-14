@@ -20,7 +20,7 @@
 
     "emfular": "%%emfularVersion%%",
     "ngx-emfular-helper": "^1.0.0",
-    "ngx-emfular-integration": "^0.3.0",
+    "ngx-emfular-integration": "^0.3.4",
     "ngx-svg-graphics": "^3.0.0",
 
     "rxjs": "~7.8.0",
