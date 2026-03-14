@@ -6,7 +6,7 @@ import { ModelDefinition, ReferenceMeta } from "emfular";
 export const %%ModelName%%Meta: ModelDefinition = {
   name: "%%prefix%%",
   prefix: "%%prefix%%",
-  uri: "%%uri%%",
+  uri: "%%uri%%#//", //because emfular expects complete uri
   classes: {
     %%CLASS_ENTRIES%%
   }
