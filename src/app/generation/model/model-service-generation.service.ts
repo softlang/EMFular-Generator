@@ -43,8 +43,9 @@ export class ModelServiceGenerationService {
       {
         modelName: model.pascalizedName,
         root: root.name,
-        ANTI_EXTINCTION_IMPORTS: this.createImports(classesToInstantiate),
-        ANTI_EXTINCTION_PROPERTIES: this.initializeClasses(classesToInstantiate),
+        ALL_REAL_CLASSES_IMPORTS: this.createImports(classesToInstantiate),
+        //ANTI_EXTINCTION_PROPERTIES: this.initializeClasses(classesToInstantiate),
+        MODEL_CREATION_METHODS: this.addCreationMethods(classesToInstantiate),
       }
     )
   }
@@ -60,8 +61,14 @@ export class ModelServiceGenerationService {
   }
 
   private initializeClasses(classes: string[]): string {
-    return classes.map(cls => `againstExtinction${cls} = new ${cls}()`)
+    const comment = '  // explicitly use modeling classes to avoid tree-shaking them away:\n'
+    return comment+classes.map(cls => `againstExtinction${cls} = new ${cls}()`)
       .join('\n');
+  }
+
+  private addCreationMethods(classes: string[]): string {
+    return "\t"+classes.map(cls => `create${cls} () {\n\t\treturn new ${cls}()\n\t}\n`)
+      .join('\n\t');
   }
 
   createHistoryService(historyTemplate: string, model: EPackageJson, root: EClassJson): string {
