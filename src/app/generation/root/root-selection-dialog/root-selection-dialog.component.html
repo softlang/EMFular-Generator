@@ -1,20 +1,11 @@
 <h2 mat-dialog-title>
-  {{ isMany() ? 'Multiple Root Classes Detected' : 'No Root Class Found' }}
+  Multiple Root Classes Detected
 </h2>
 
 <mat-dialog-content>
-
-  @if (isMany()) {
-    <p>
-      EMFular found several possible root classes. Please choose one.
-    </p>
-  }
-
-  @if (isNone()) {
-    <p>
-      EMFular could not infer a root class. Select one manually.
-    </p>
-  }
+  <p>
+    EMFular found several possible root classes. Please choose one.
+  </p>
 
   <mat-radio-group [(ngModel)]="selected">
     @for (cls of candidates; track cls.name) {
@@ -39,15 +30,13 @@
           }
 
           @if (allFeaturesTransient(cls)) {
-            <span>all references transient</span>
+            <span>all features transient</span>
           }
 
         </div>
       </mat-radio-button>
     }
   </mat-radio-group>
-
-
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
