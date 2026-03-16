@@ -3,6 +3,12 @@
   margin: 0 auto;
   padding: 2rem;
 }
+.logo {
+  display: block;
+  margin: 0 auto 1rem auto;
+  max-width: 120px;
+  height: auto;
+}
 
 .intro {
   margin-bottom: 2rem;
