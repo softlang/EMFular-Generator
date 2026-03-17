@@ -137,7 +137,7 @@ export class ClassGenerationService {
   private buildDerivedRef(ref: EReferenceJson, className: string) {
     //right now just create a getter with right type:
     const type = ref.upperBound === 1
-      ? ref.resolvedType
+      ? ref.resolvedType+(ref.lowerBound!==1?"|undefined":"")
       : ref.resolvedType+"[]"
     const notImplemented = "throw new Error('Method not implemented.'); //TODO"
     return `  get ${ref.name}(): ${type} {\n\t\t${notImplemented}\n  }\n`;
