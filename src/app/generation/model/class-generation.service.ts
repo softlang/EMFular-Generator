@@ -74,6 +74,7 @@ export class ClassGenerationService {
       IMPORTS,
       modelMeta: `${model.name}Meta`,
       className: cls.name,
+      abstract: this.asAbstract(cls),
       EXTENDS,
       IMPLEMENTS,
       ATTRIBUTES,
@@ -274,4 +275,7 @@ export class ClassGenerationService {
     return ` = ${e.name}.${value}`; //todo could sanitize/check
   }
 
+  asAbstract(meta:EClassJson): string {
+    return meta.abstract?" abstract ": " "
+  }
 }
