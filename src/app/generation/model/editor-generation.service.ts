@@ -60,7 +60,6 @@ export class EditorGenerationService {
   createButton(clsName: string): string {
     const buttonTemplate = `{
         label: "%%cls%%",
-        icon: "+",
         action: () => {
           const res = this.modelService.create%%cls%%()
           if(res){
