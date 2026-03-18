@@ -64,7 +64,7 @@ export class EditorGenerationService {
         action: () => {
           const res = this.modelService.create%%cls%%()
           if(res){
-            this.basicDetailsService.openDetails(res, this.modelService)
+            this.treeDetailsService.openDetails(res, this.modelService)
           }
         }
       }`
