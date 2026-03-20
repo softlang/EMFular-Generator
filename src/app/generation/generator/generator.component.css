@@ -31,3 +31,8 @@
 .file-info {
   margin-top: 1rem;
 }
+
+
+.error {
+  color: #a94442;
+}

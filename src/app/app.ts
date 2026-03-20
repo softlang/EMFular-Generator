@@ -10,4 +10,15 @@ import {GeneratorComponent} from './generation/generator/generator.component';
 })
 export class App {
   protected readonly title = signal('EMFular-generator');
+
+  constructor() {
+    window.addEventListener("error", e => {
+      console.error("GLOBAL ERROR:", e.error);
+    });
+
+    window.addEventListener("unhandledrejection", e => {
+      console.error("UNHANDLED PROMISE:", e.reason);
+    });
+  }
+
 }

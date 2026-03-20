@@ -26,5 +26,9 @@
   <div *ngIf="fileName" class="file-info">
     <strong>Selected file:</strong> {{ fileName }}
   </div>
+  <div *ngIf="errorMessage" class="error">
+    {{ errorMessage }}
+  </div>
+
 </div>
 

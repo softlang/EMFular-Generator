@@ -22,7 +22,14 @@ export class GenerationService {
 
   async processEcoreFile(file: File, projectName?: string): Promise<string> {
     const xml = await this.readFile(file);
-    const model: EPackageJson = this.ecore2jsonService.parse(xml)
+    let model: EPackageJson;
+    try {
+      model = this.ecore2jsonService.parse(xml);
+    } catch (e) {
+      console.error("PARSER ERROR:", e);
+      throw e; // bubble up to component
+    }
+    //const model: EPackageJson = this.ecore2jsonService.parse(xml)
 
     const params: GenerationParams = {
       projectName : projectName ? projectName : model.name+"-graphical-editor",
