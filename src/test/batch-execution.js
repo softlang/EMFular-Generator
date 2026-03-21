@@ -5,7 +5,8 @@ import path from "path";
 // --- Passive modal helpers ---
 async function waitForModal(page, timeout = 2000) {
   try {
-    await page.waitForSelector(".mat-dialog-container", { timeout });
+    await page.waitForSelector(".mat-mdc-dialog-container", { timeout });
+    console.log("Saw modal")
     return true;
   } catch {
     return false;
@@ -13,8 +14,9 @@ async function waitForModal(page, timeout = 2000) {
 }
 
 async function extractModalData(page) {
+  console.log("Page: "+page)
   return await page.evaluate(() => {
-    const modal = document.querySelector(".mat-dialog-container");
+    const modal = document.querySelector(".mat-mdc-dialog-container");
     if (!modal) return null;
 
     const radios = Array.from(modal.querySelectorAll("mat-radio-button"));
@@ -23,6 +25,7 @@ async function extractModalData(page) {
     const selected = radios.find(r => r.classList.contains("mat-radio-checked"));
     const chosen = selected ? selected.innerText.trim() : null;
 
+    console.log("Extracted data"+radios)
     return { candidates, chosen };
   });
 }
@@ -94,12 +97,11 @@ async function runBatch() {
 
     const choicePath = path.join(choicesDir, file + ".json");
 
-    // --- STEP 1: Load choice file BEFORE upload ---
-    let choice = { ecore: file };
+    // --- STEP 1: decide whether we apply choices or wait for modals ---
     const hasChoice = fs.existsSync(choicePath);
 
     if (hasChoice) {
-      choice = JSON.parse(fs.readFileSync(choicePath, "utf8"));
+      const choice = JSON.parse(fs.readFileSync(choicePath, "utf8"));
       console.log("  Found existing choice:", choice);
 
       // --- STEP 2: Apply overrides BEFORE upload ---
@@ -123,36 +125,51 @@ async function runBatch() {
       processingError = false;
       continue;
     }
-
     // --- STEP 3: Passive modal reading ONLY if no choice file exists ---
     if (!hasChoice) {
       console.log("  No choice file → passively reading dialogs");
+      let packageCandidates;
+      let packageChoice;
 
       // PACKAGE MODAL
-      if (await waitForModal(page, 5000)) {
-        const data = await extractModalData(page);
-        if (data) {
-          choice.packageCandidates = data.candidates;
-          choice.package = data.chosen;
-          console.log("  Package modal:", data);
-        }
-        await waitForModalClose(page); // user clicks
-      }
-
-      // ROOT MODAL
       if (await waitForModal(page, 2000)) {
         const data = await extractModalData(page);
         if (data) {
-          choice.rootCandidates = data.candidates;
-          choice.root = data.chosen;
+          packageCandidates = data.candidates;
+          packageChoice = data.chosen;
+          console.log("  Package modal:", data);
+        }
+        await waitForModalClose(page); // user clicks
+      } else {
+        console.log("Timeout")
+      }
+
+      // ROOT MODAL
+      let rootCandidates;
+      let rootChoice;
+      if (await waitForModal(page, 2000)) {
+        const data = await extractModalData(page);
+        if (data) {
+          rootCandidates = data.candidates;
+          rootChoice = data.chosen;
           console.log("  Root modal:", data);
         }
         await waitForModalClose(page); // user clicks
       }
 
-      fs.writeFileSync(choicePath, JSON.stringify(choice, null, 2));
-      console.log("  Stored new choice:", choicePath);
-    }
+      if(packageChoice || rootChoice) {
+        const choice =  {
+          ecore: file,
+          packageCandidates: packageCandidates,
+        package: packageChoice,
+        rootCandidates: rootCandidates,
+        root: rootChoice
+        }
+        fs.writeFileSync(choicePath, JSON.stringify(choice, null, 2));
+        console.log("  Stored new choice:", choicePath);
+      }
+
+  }
 
     // --- STEP 4: Always wait for generation to finish ---
     console.log("  Waiting for generation (zip)...");
