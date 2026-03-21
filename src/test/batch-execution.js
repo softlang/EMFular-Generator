@@ -40,53 +40,30 @@ async function runBatch() {
   for (const file of files) {
     console.log("Processing:", file);
 
-    // Take baseline BEFORE upload
-    const before = new Set(fs.readdirSync(downloadPath));
-
-    // Upload file
     const input = await page.$("input[type=file]");
     await input.uploadFile(`./ecores/${file}`);
 
     // Give Angular time to parse and possibly throw
     await new Promise(r => setTimeout(r, 500));
 
-    // Skip if Angular logged ANY error
     if (processingError) {
       console.log("  ✖ Skipping due to console error.");
       processingError = false;
       continue;
     }
 
-    console.log("  Waiting for ZIP...");
+    console.log("  Waiting for download anchor...");
 
-    // Wait for new file with timeout
-    const zip = await waitForNewFile(downloadPath, before, 15000);
+    await page.waitForFunction(() => {
+      const a = document.getElementById('downloadLink');
+      return a && a.href && a.href.startsWith('blob:');
+    }, { timeout: 15000 });
 
-    if (!zip) {
-      console.log("  ✖ Timeout waiting for ZIP.");
-      continue;
-    }
-
-    console.log("  ZIP downloaded:", zip);
+    console.log("  Download anchor detected.");
     console.log("  Done.");
   }
 
   await browser.close();
-}
-
-async function waitForNewFile(dir, before, timeoutMs) {
-  const start = Date.now();
-
-  while (Date.now() - start < timeoutMs) {
-    await new Promise(r => setTimeout(r, 300));
-
-    const after = new Set(fs.readdirSync(dir));
-    for (const f of after) {
-      if (!before.has(f)) return f;
-    }
-  }
-
-  return null; // timeout
 }
 
 runBatch();
