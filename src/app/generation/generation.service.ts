@@ -22,8 +22,12 @@ export class GenerationService {
 
   async processEcoreFile(file: File, projectName?: string, rootByUser?: string, packageByUser?: string): Promise<string> {
     const xml = await this.readFile(file);
+    // integrate multi package dealing here
     const model: EPackageJson = this.ecore2jsonService.parse(xml)
+    return await this.processEPackage(model, projectName, rootByUser);
+  }
 
+  private async processEPackage(model: EPackageJson, projectName?: string, rootByUser?: string): Promise<string> {
     const params: GenerationParams = {
       projectName : projectName ? projectName : model.name+"-graphical-editor",
       modelName : model.pascalizedName,
@@ -37,7 +41,7 @@ export class GenerationService {
     // choose root:
     let root : EClassJson | null;
     if(rootByUser) {
-     root = this.rootFromUser(model, rootByUser)
+      root = this.rootFromUser(model, rootByUser)
     } else {
       root = await this.determineRoot(model);
       if (root == null) {
