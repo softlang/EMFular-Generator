@@ -20,7 +20,7 @@ export class GenerationService {
     private dialog: MatDialog,
   ) {}
 
-  async processEcoreFile(file: File, projectName?: string): Promise<string> {
+  async processEcoreFile(file: File, projectName?: string, rootByUser?: string, packageByUser?: string): Promise<string> {
     const xml = await this.readFile(file);
     const model: EPackageJson = this.ecore2jsonService.parse(xml)
 

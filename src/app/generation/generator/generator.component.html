@@ -9,28 +9,58 @@
 
   <a id="downloadLink" style="display:none"></a>
 
-  <div
-    class="upload-area"
-    (drop)="onDrop($event)"
-    (dragover)="onDragOver($event)"
-    (click)="fileInput.click()"
-  >
-    <p>Drop your .ecore file here or click to select</p>
-    <input
-      #fileInput
-      type="file"
-      accept=".ecore,.xml"
-      (change)="onFileSelected($event)"
-      hidden
-    />
+  <div class="generator-layout">
+
+    <!-- LEFT: Generator options -->
+    <div class="generator-options">
+      <h3>Generator Options</h3>
+
+      <label for="packageOverride">Package selection:</label>
+      <input
+        id="packageOverride"
+        type="text"
+        [(ngModel)]="packageByUser"
+        placeholder="Optional: choose package"
+      />
+
+      <label for="rootOverride">Root class:</label>
+      <input
+        id="rootOverride"
+        type="text"
+        [(ngModel)]="rootByUser"
+        placeholder="Optional: choose root class"
+      />
+
+      <p class="hint">
+        Leave empty to auto-detect.
+        Fill in to override detection.
+      </p>
+    </div>
+
+    <!-- RIGHT: Upload area -->
+    <div
+      class="upload-area"
+      (drop)="onDrop($event)"
+      (dragover)="onDragOver($event)"
+      (click)="fileInput.click()"
+    >
+      <p>Drop your .ecore file here or click to select</p>
+      <input
+        #fileInput
+        type="file"
+        accept=".ecore,.xml"
+        (change)="onFileSelected($event)"
+        hidden
+      />
+    </div>
+
   </div>
 
   <div *ngIf="fileName" class="file-info">
     <strong>Selected file:</strong> {{ fileName }}
   </div>
+
   <div *ngIf="errorMessage" class="error">
     {{ errorMessage }}
   </div>
-
 </div>
-

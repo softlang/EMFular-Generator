@@ -2,6 +2,7 @@ import {ChangeDetectorRef, Component} from '@angular/core';
 import {NgIf} from '@angular/common';
 import {GenerationService} from '../generation.service';
 import {ZipService} from '../../utils/zip.service';
+import {FormsModule} from '@angular/forms';
 
 @Component({
   selector: 'emfular-generator',
@@ -9,12 +10,16 @@ import {ZipService} from '../../utils/zip.service';
   templateUrl: './generator.component.html',
   styleUrls: ['./generator.component.css'],
   imports: [
-    NgIf
+    NgIf,
+    FormsModule
   ]
 })
 export class GeneratorComponent {
   fileName: string | null = null;
   errorMessage: string | null = null;
+
+  rootByUser: string ="";
+  packageByUser: string="";
 
   constructor(
     private generationService: GenerationService,
@@ -48,8 +53,12 @@ export class GeneratorComponent {
 
     try {
       const finalProjectName =
-        await this.generationService.processEcoreFile(file, projectName);
-
+        await this.generationService.processEcoreFile(
+          file,
+          projectName,
+          this.sanitize(this.rootByUser),
+          this.sanitize(this.packageByUser)
+        );
       await this.zipService.downloadZip(finalProjectName);
 
     } catch (e) {
@@ -60,4 +69,8 @@ export class GeneratorComponent {
     }
   }
 
+  private sanitize(str: string): string|undefined {
+    const clean = str.trim()
+    return clean.length<1? undefined: clean;
+  }
 }

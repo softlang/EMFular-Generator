@@ -1,8 +1,9 @@
 .page {
-  max-width: 700px;
+  max-width: 900px;
   margin: 0 auto;
   padding: 2rem;
 }
+
 .logo {
   display: block;
   margin: 0 auto 1rem auto;
@@ -15,7 +16,49 @@
   line-height: 1.5;
 }
 
+/* NEW: Two-column layout */
+.generator-layout {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+}
+
+/* LEFT: Options panel */
+.generator-options {
+  flex: 1;
+  border: 1px solid #ccc;
+  padding: 1rem;
+  border-radius: 8px;
+  background: #fafafa;
+}
+
+.generator-options h3 {
+  margin-top: 0;
+}
+
+.generator-options label {
+  display: block;
+  margin-top: 1rem;
+  font-weight: bold;
+}
+
+.generator-options input {
+  width: 100%;
+  padding: 0.4rem;
+  margin-top: 0.3rem;
+  border: 1px solid #aaa;
+  border-radius: 4px;
+}
+
+.generator-options .hint {
+  font-size: 0.85rem;
+  color: #666;
+  margin-top: 1rem;
+}
+
+/* RIGHT: Upload area */
 .upload-area {
+  flex: 1;
   border: 2px dashed #999;
   border-radius: 8px;
   padding: 3rem 1rem;
@@ -31,7 +74,6 @@
 .file-info {
   margin-top: 1rem;
 }
-
 
 .error {
   color: #a94442;
