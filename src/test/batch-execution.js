@@ -32,7 +32,10 @@ async function extractModalData(page) {
     const radios = Array.from(modal.querySelectorAll("mat-radio-button"));
     return radios.map(r => {
       const label = r.querySelector("label");
-      return label ? label.innerText.trim() : "(missing label)";
+      if (!label) return "(missing label)";
+
+      const text = label.innerText.trim();
+      return text.split("\n")[0];   // ⭐ keep only the first line
     });
   }, MODAL_SELECTOR);
 
