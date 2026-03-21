@@ -33,7 +33,10 @@ export class GeneratorComponent {
     const file = input.files?.[0];
     if (!file) return;
 
-    this.processFile(file);
+    this.processFile(file).finally(() => {
+      input.value = ""; // reset AFTER async work
+    });
+
   }
 
   onDrop(event: DragEvent) {
@@ -41,7 +44,10 @@ export class GeneratorComponent {
     const file = event.dataTransfer?.files?.[0];
     if (!file) return;
 
-    this.processFile(file);
+    this.processFile(file).finally(() => {
+      const input = event.target as HTMLInputElement;
+      input.value = ""; // reset AFTER async work
+    });
   }
 
   onDragOver(event: DragEvent) {
