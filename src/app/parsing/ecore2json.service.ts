@@ -181,8 +181,8 @@ export class Ecore2JsonService {
   }
 
   private normalizeTypeName(raw: string): string {
-    const idx = raw.lastIndexOf("#//");
-    return idx >= 0 ? raw.substring(idx + 3) : raw;
+    const idx = raw.lastIndexOf("//"); //not #// to work with older models
+    return idx >= 0 ? raw.substring(idx + 2) : raw;
   }
 
   private normalizeOpposite(raw: string|undefined): string|undefined {
