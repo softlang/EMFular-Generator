@@ -20,12 +20,12 @@
 .generator-layout {
   display: flex;
   gap: 2rem;
-  align-items: flex-start;
+  align-items: stretch;
 }
 
 /* LEFT: Options panel */
 .generator-options {
-  flex: 1;
+  flex: 0 0 30%;
   border: 1px solid #ccc;
   padding: 1rem;
   border-radius: 8px;
