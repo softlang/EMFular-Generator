@@ -8,6 +8,7 @@ import {RootFindingService} from './root/root-finding.service';
 import {RootSelectionDialogComponent} from './root/root-selection-dialog/root-selection-dialog.component';
 import {MatDialog} from '@angular/material/dialog';
 import {firstValueFrom} from 'rxjs';
+import {PackageSelectionDialogComponent} from './package-selection-dialog/package-selection-dialog';
 
 @Injectable({ providedIn: 'root' })
 export class GenerationService {
@@ -33,12 +34,33 @@ export class GenerationService {
       if(match){
         model = match;
       } else {
-        throw new Error('No EPackages found.');
+        throw new Error(
+          `Given EPackage class ${packageByUser} not found.\n`
+          +`Packages are ${models.map(c => c.name).join(', ')}.`
+        );
       }
     } else {
-      model = models[0] //todo refine, with heuristic
+      if(models.length ==1){
+        model = models[0]
+      } else {  //no autodetection, just user choice
+        const choice = await this.pickPackage(models);
+        if(choice){
+          model = choice;
+        } else {
+          throw new Error(
+            `Several packages found (${models.map(m => m.name)}) - please choose one explicitly.`
+          );
+        }
+      }
     }
     return await this.processEPackage(model, projectName, rootByUser);
+  }
+
+  async pickPackage(candidates: EPackageJson[]): Promise<EPackageJson | null> {
+    const dialogRef = this.dialog.open(PackageSelectionDialogComponent, {
+      data: candidates,
+    });
+    return await firstValueFrom(dialogRef.afterClosed());
   }
 
   private async processEPackage(model: EPackageJson, projectName?: string, rootByUser?: string): Promise<string> {
