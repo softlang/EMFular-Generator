@@ -2,11 +2,14 @@ import puppeteer from "puppeteer";
 import fs from "fs";
 import path from "path";
 
+// --- CENTRALIZED SELECTORS ---
+const MODAL_SELECTOR =
+  "mat-dialog-container, .mat-dialog-container, .mat-mdc-dialog-container";
+
 // --- Passive modal helpers ---
 async function waitForModal(page, timeout = 2000) {
   try {
-    await page.waitForSelector(".mat-mdc-dialog-container", { timeout });
-    console.log("Saw modal")
+    await page.waitForSelector(MODAL_SELECTOR, { timeout });
     return true;
   } catch {
     return false;
@@ -14,26 +17,28 @@ async function waitForModal(page, timeout = 2000) {
 }
 
 async function extractModalData(page) {
-  console.log("Page: "+page)
-  return await page.evaluate(() => {
-    const modal = document.querySelector(".mat-mdc-dialog-container");
+  return await page.evaluate((selector) => {
+    const modal = document.querySelector(selector);
     if (!modal) return null;
 
     const radios = Array.from(modal.querySelectorAll("mat-radio-button"));
     const candidates = radios.map(r => r.innerText.trim());
 
-    const selected = radios.find(r => r.classList.contains("mat-radio-checked"));
+    const selected = radios.find(r =>
+      r.classList.contains("mat-radio-checked")
+    );
     const chosen = selected ? selected.innerText.trim() : null;
 
-    console.log("Extracted data"+radios)
     return { candidates, chosen };
-  });
+  }, MODAL_SELECTOR);
 }
 
 async function waitForModalClose(page) {
-  await page.waitForFunction(() => {
-    return !document.querySelector(".mat-dialog-container");
-  }, { timeout: 60000 });
+  await page.waitForFunction(
+    (selector) => !document.querySelector(selector),
+    { timeout: 60000 },
+    MODAL_SELECTOR
+  );
 }
 
 // --- Override setter ---
@@ -96,25 +101,19 @@ async function runBatch() {
     console.log("Processing:", file);
 
     const choicePath = path.join(choicesDir, file + ".json");
-
-    // --- STEP 1: decide whether we apply choices or wait for modals ---
     const hasChoice = fs.existsSync(choicePath);
 
     if (hasChoice) {
       const choice = JSON.parse(fs.readFileSync(choicePath, "utf8"));
       console.log("  Found existing choice:", choice);
-
-      // --- STEP 2: Apply overrides BEFORE upload ---
       await setOverrideFields(page, choice);
     }
 
-    // Capture old blob URL BEFORE upload
     const oldHref = await page.evaluate(() => {
       const a = document.getElementById("downloadLink");
       return a ? a.href : null;
     });
 
-    // Upload file
     const input = await page.$("input[type=file]");
     await input.uploadFile(`./ecores/${file}`);
 
@@ -125,53 +124,50 @@ async function runBatch() {
       processingError = false;
       continue;
     }
-    // --- STEP 3: Passive modal reading ONLY if no choice file exists ---
+
+    // --- Passive modal reading ---
     if (!hasChoice) {
       console.log("  No choice file → passively reading dialogs");
-      let packageCandidates;
-      let packageChoice;
+
+      let packageCandidates, packageChoice;
+      let rootCandidates, rootChoice;
 
       // PACKAGE MODAL
-      if (await waitForModal(page, 2000)) {
+      if (await waitForModal(page, 10000)) {
         const data = await extractModalData(page);
         if (data) {
           packageCandidates = data.candidates;
           packageChoice = data.chosen;
           console.log("  Package modal:", data);
         }
-        await waitForModalClose(page); // user clicks
-      } else {
-        console.log("Timeout")
+        await waitForModalClose(page);
       }
 
       // ROOT MODAL
-      let rootCandidates;
-      let rootChoice;
-      if (await waitForModal(page, 2000)) {
+      if (await waitForModal(page, 10000)) {
         const data = await extractModalData(page);
         if (data) {
           rootCandidates = data.candidates;
           rootChoice = data.chosen;
           console.log("  Root modal:", data);
         }
-        await waitForModalClose(page); // user clicks
+        await waitForModalClose(page);
       }
 
-      if(packageChoice || rootChoice) {
-        const choice =  {
+      if (packageChoice || rootChoice) {
+        const choice = {
           ecore: file,
-          packageCandidates: packageCandidates,
-        package: packageChoice,
-        rootCandidates: rootCandidates,
-        root: rootChoice
-        }
+          packageCandidates,
+          package: packageChoice,
+          rootCandidates,
+          root: rootChoice
+        };
         fs.writeFileSync(choicePath, JSON.stringify(choice, null, 2));
         console.log("  Stored new choice:", choicePath);
       }
+    }
 
-  }
-
-    // --- STEP 4: Always wait for generation to finish ---
+    // --- Wait for generation ---
     console.log("  Waiting for generation (zip)...");
     await page.waitForFunction(
       oldHref => {
