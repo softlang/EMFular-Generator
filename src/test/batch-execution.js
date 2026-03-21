@@ -25,6 +25,10 @@ async function runBatch() {
   const downloadPath = path.resolve("./out");
   fs.mkdirSync(downloadPath, { recursive: true });
 
+  // Per-file choices directory
+  const choicesDir = path.resolve("./choices");
+  fs.mkdirSync(choicesDir, { recursive: true });
+
   const client = await page.target().createCDPSession();
   await client.send("Page.setDownloadBehavior", {
     behavior: "allow",
@@ -40,6 +44,19 @@ async function runBatch() {
   for (const file of files) {
     console.log("Processing:", file);
 
+    // Load per-file choice if exists (not applied yet)
+    const choicePath = path.join(choicesDir, file + ".json");
+    if (fs.existsSync(choicePath)) {
+      const existing = JSON.parse(fs.readFileSync(choicePath, "utf8"));
+      console.log("  Found existing choice:", existing);
+    }
+
+    // Capture old blob URL BEFORE upload
+    const oldHref = await page.evaluate(() => {
+      const a = document.getElementById("downloadLink");
+      return a ? a.href : null;
+    });
+
     const input = await page.$("input[type=file]");
     await input.uploadFile(`./ecores/${file}`);
 
@@ -52,14 +69,45 @@ async function runBatch() {
       continue;
     }
 
-    console.log("  Waiting for download anchor...");
+    console.log("  Waiting for generation (zip)...");
 
-    await page.waitForFunction(() => {
-      const a = document.getElementById('downloadLink');
-      return a && a.href && a.href.startsWith('blob:');
-    }, { timeout: 15000 });
+    // Wait for the blob URL to change (REAL generation completion)
+    await page.waitForFunction(
+      (oldHref) => {
+        const a = document.getElementById("downloadLink");
+        return a && a.href && a.href !== oldHref;
+      },
+      { timeout: 60000 },
+      oldHref
+    );
 
-    console.log("  Download anchor detected.");
+    console.log("  Generation complete.");
+
+    // Wait for file to appear
+    await new Promise(r => setTimeout(r, 500));
+
+    // Find newest downloaded JSON
+    const newest = fs.readdirSync(downloadPath)
+      .map(f => ({ f, t: fs.statSync(path.join(downloadPath, f)).mtimeMs }))
+      .sort((a, b) => b.t - a.t)[0]?.f;
+
+    if (newest && newest.endsWith(".json")) {
+      const json = JSON.parse(fs.readFileSync(path.join(downloadPath, newest), "utf8"));
+
+      // Extract package/root from generator output
+      const pkg = json.package || json.packageName;
+      const root = json.root || json.rootClass;
+
+      if (pkg || root) {
+        const newChoice = { ecore: file };
+        if (pkg) newChoice.package = pkg;
+        if (root) newChoice.root = root;
+
+        console.log("  Writing choice:", newChoice);
+        fs.writeFileSync(choicePath, JSON.stringify(newChoice, null, 2));
+      }
+    }
+
     console.log("  Done.");
   }
 
