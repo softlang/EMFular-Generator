@@ -35,13 +35,29 @@ export class GenerationService {
     await this.projectGen.generateProjectFiles(params);
 
     // choose root:
-    const root: EClassJson | null = await this.determineRoot(model);
-    if (root == null) {
-      throw new Error('No root found'); //todo we could generate all but services
+    let root : EClassJson | null;
+    if(rootByUser) {
+     root = this.rootFromUser(model, rootByUser)
+    } else {
+      root = await this.determineRoot(model);
+      if (root == null) {
+        throw new Error(
+          'Auto-detection for Root failed: No root candidate found - please choose one explicitly.'
+        ); //todo we could generate all but services
+      }
     }
 
     await this.modelGenerationService.generateModelFiles(model, root)
     return params.projectName
+  }
+
+  private rootFromUser(model: EPackageJson, rootByUser: string): EClassJson {
+    const root = model.eClasses.find(c => c.name === rootByUser)
+    if (!root) {
+      throw new Error(`Given Root class ${rootByUser} not found on Package ${model.name}.\n`
+      +`Classes are ${model.eClasses.map(c => c.name).join(', ')}.`);
+    }
+    return root;
   }
 
   private readFile(file: File): Promise<string> {
