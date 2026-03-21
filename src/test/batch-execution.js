@@ -9,6 +9,18 @@ async function runBatch() {
   });
 
   const page = await browser.newPage();
+  let processingError = false;
+
+  page.on("console", msg => {
+    if (msg.type() === "error") {
+      const text = msg.text();
+      console.error("CONSOLE ERROR:", text);
+
+      //if (text.includes("PROCESSING ERROR:")) {
+      processingError = true;
+      //}
+    }
+  });
 
   // Enable downloads
   const downloadPath = path.resolve("./out");
@@ -29,16 +41,23 @@ async function runBatch() {
   for (const file of files) {
     console.log("Processing:", file);
 
-    // Upload file via hidden input
     const input = await page.$("input[type=file]");
     await input.uploadFile(`./ecores/${file}`);
 
-    // Wait for the ZIP to be downloaded
+    await new Promise(r => setTimeout(r, 500));
+
+    if (processingError) {
+      console.log("  ✖ Skipping due to PROCESSING ERROR.");
+      processingError = false; // reset for next file
+      continue;
+    }
+
     console.log("  Waiting for ZIP...");
     await waitForNewFile(downloadPath);
 
     console.log("  Done.");
   }
+
 
   await browser.close();
 }
