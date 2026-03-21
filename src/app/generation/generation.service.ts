@@ -22,8 +22,22 @@ export class GenerationService {
 
   async processEcoreFile(file: File, projectName?: string, rootByUser?: string, packageByUser?: string): Promise<string> {
     const xml = await this.readFile(file);
-    // integrate multi package dealing here
-    const model: EPackageJson = this.ecore2jsonService.parse(xml)
+    // multi package ecores
+    const models: EPackageJson[] = this.ecore2jsonService.parse(xml)
+    if(models.length == 0){
+      throw new Error('No EPackages found.');
+    }
+    let model: EPackageJson;
+    if(packageByUser){
+      let match = models.find(p => p.name == packageByUser)
+      if(match){
+        model = match;
+      } else {
+        throw new Error('No EPackages found.');
+      }
+    } else {
+      model = models[0] //todo refine, with heuristic
+    }
     return await this.processEPackage(model, projectName, rootByUser);
   }
 

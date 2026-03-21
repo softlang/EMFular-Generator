@@ -16,12 +16,42 @@ export class Ecore2JsonService {
   constructor() {
   }
 
-  parse(xml: string): EPackageJson {
+  parse(xml: string): EPackageJson[] {
     const doc = this.parseXml(xml);
-    const root = doc.documentElement;
+    const docElem = doc.documentElement;
 
+    const result: EPackageJson[] = [];
+
+    // TODO: When subpackage support is added, we must detect eSubpackages
+    // and attach them to their parent EPackage instead of treating them
+    // as independent top-level packages.
+
+    const stack: Element[] = [docElem];
+
+    while (stack.length > 0) {
+      const el = stack.pop()!;
+
+      if (this.isEPackage(el)) {
+        result.push(this.parsePackage(el));
+      } else {
+        // Not a package → continue scanning children
+        for (const child of Array.from(el.children)) {
+          stack.push(child);
+        }
+      }
+    }
+    return result;
+  }
+
+  private isEPackage(el: Element): boolean {
+    const tag = el.tagName;
+    const type = el.getAttribute('xmi:type') ?? '';
+    return tag.endsWith('EPackage') || type.endsWith('EPackage');
+  }
+
+  parsePackage(root: Element): EPackageJson {
     if (!root.tagName.endsWith('EPackage')) {
-      throw new Error('Root element is not an EPackage');
+      throw new Error('Not an EPackage');
     }
     const name = root.getAttribute('name') ?? ''
 
