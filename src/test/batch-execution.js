@@ -17,20 +17,52 @@ async function waitForModal(page, timeout = 2000) {
 }
 
 async function extractModalData(page) {
-  return await page.evaluate((selector) => {
-    const modal = document.querySelector(selector);
-    if (!modal) return null;
+  // 1. Wait for modal to appear
+  try {
+    await page.waitForSelector(MODAL_SELECTOR, { timeout: 10000 });
+  } catch {
+    return null;
+  }
+
+  // 2. Extract candidates (sync DOM code)
+  const candidates = await page.evaluate((MODAL_SELECTOR) => {
+    const modal = document.querySelector(MODAL_SELECTOR);
+    if (!modal) return [];
 
     const radios = Array.from(modal.querySelectorAll("mat-radio-button"));
-    const candidates = radios.map(r => r.innerText.trim());
-
-    const selected = radios.find(r =>
-      r.classList.contains("mat-radio-checked")
-    );
-    const chosen = selected ? selected.innerText.trim() : null;
-
-    return { candidates, chosen };
+    return radios.map(r => {
+      const label = r.querySelector("label");
+      return label ? label.innerText.trim() : "(missing label)";
+    });
   }, MODAL_SELECTOR);
+
+  // 3. Track checked radio while dialog is open
+  let lastChosen = null;
+
+  while (true) {
+    const state = await page.evaluate((MODAL_SELECTOR) => {
+      const modal = document.querySelector(MODAL_SELECTOR);
+      if (!modal) {
+        return { open: false, chosen: null };
+      }
+
+      const selected = modal.querySelector("mat-radio-button.mat-mdc-radio-checked");
+      if (!selected) {
+        return { open: true, chosen: null };
+      }
+
+      const label = selected.querySelector("label");
+      const chosen = label ? label.innerText.trim() : null;
+      return { open: true, chosen };
+    }, MODAL_SELECTOR);
+
+    if (!state.open) break;
+    if (state.chosen) lastChosen = state.chosen;
+
+    await new Promise(r => setTimeout(r, 100));
+  }
+
+  return { candidates, chosen: lastChosen };
 }
 
 async function waitForModalClose(page) {
