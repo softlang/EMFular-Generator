@@ -6,6 +6,14 @@ import {EClassJson, EPackageJson} from '../../parsing/ecore-json';
 })
 export class RootFindingService {
 
+  public allPossibleRootClasses(model: EPackageJson): EClassJson[] {
+    return model.eClasses.filter(
+      cls =>
+        !cls.abstract
+        && cls.interfaceLike !== true
+    )
+  }
+
   public findRootEClassCandidates(model: EPackageJson): EClassJson[] {
     // 1. Collect all types that are containment targets (ignore self-containment)
     const containedTargets = new Set<string>();
