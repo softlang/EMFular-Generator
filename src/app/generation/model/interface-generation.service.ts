@@ -47,8 +47,8 @@ export class InterfaceGenerationService {
     return this.replacer.applyPlaceholders(
       interfaceTemplate,
       {
-        type_imports: typeImports,
-        CLASS_NAME: cls.name,
+        TYPE_IMPORTS: typeImports,
+        className: cls.name,
         SUPER_INTERFACES: extendsClause,
       }
     );
