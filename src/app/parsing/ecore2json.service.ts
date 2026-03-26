@@ -122,24 +122,25 @@ export class Ecore2JsonService {
   }
 
   private resolveSuperTypeUri(uri: string, pkg: EPackageJson): string | undefined {
-    // Case 1: "#//Person"
-    if (uri.includes('#//')) {
-      const name = uri.split('#//').pop()!;
-      return pkg.eClasses.some(c => c.name === name) ? name : undefined;
-    }
-
-    // Case 2: "ecore:Person"
-    if (uri.includes(':')) {
-      const name = uri.split(':').pop()!;
-      return pkg.eClasses.some(c => c.name === name) ? name : undefined;
-    }
-
-    // Case 3: XMI index "#/0/@eClassifiers.1"
+    // Case 1: XMI index "#/0/@eClassifiers.1"
     const match = uri.match(/@eClassifiers\.(\d+)/);
     if (match) {
       const index = Number(match[1]);
       const cls = pkg.eClasses.find(c => c._index === index);
       return cls?.name;
+    }
+
+    // Case 2: "#//Person" plus now also /1/Person
+    if (uri.includes('/')) {
+      const name = uri.split('/').pop()!;
+      return pkg.eClasses.some(c => c.name === name) ? name : undefined;
+    }
+    //done also remove any /? since name is the last one behind it?
+
+    // Case 3: "ecore:Person"
+    if (uri.includes(':')) {
+      const name = uri.split(':').pop()!;
+      return pkg.eClasses.some(c => c.name === name) ? name : undefined;
     }
 
     return undefined;
@@ -199,7 +200,7 @@ export class Ecore2JsonService {
     const res: EAttributeJson =  {
       kind: 'EAttribute',
       name: el.getAttribute('name') ?? '',
-      type: el.getAttribute('eType') ?? '',
+      type: this.normalizeTypeName(el.getAttribute('eType') ?? ''),
       lowerBound: Number(el.getAttribute('lowerBound') ?? '0'),
       upperBound: Number(el.getAttribute('upperBound') ?? '1'),
     };
@@ -211,8 +212,8 @@ export class Ecore2JsonService {
   }
 
   private normalizeTypeName(raw: string): string {
-    const idx = raw.lastIndexOf("//"); //not #// to work with older models
-    return idx >= 0 ? raw.substring(idx + 2) : raw;
+    const idx = raw.lastIndexOf("/"); //not #// to work with older models
+    return idx >= 0 ? raw.substring(idx + 1) : raw;
   }
 
   private normalizeOpposite(raw: string|undefined): string|undefined {
