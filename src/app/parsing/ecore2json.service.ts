@@ -26,6 +26,7 @@ export class Ecore2JsonService {
     // and attach them to their parent EPackage instead of treating them
     // as independent top-level packages.
 
+
     const stack: Element[] = [docElem];
 
     while (stack.length > 0) {
@@ -65,25 +66,53 @@ export class Ecore2JsonService {
       eDataTypes: [],
     };
 
+    const idMap = new Map<string, any>();
     let index = 0
     for (const child of Array.from(root.children)) {
       if (child.tagName === 'eClassifiers') {
         const type = child.getAttribute('xsi:type');
+        const id = child.getAttribute('xmi:id');
+
         if (type === 'ecore:EClass') {
-          pkg.eClasses.push(this.parseEClass(child, index));
+          const cls = this.parseEClass(child, index);
+          pkg.eClasses.push(cls);
+          if (id) idMap.set(id, cls);
         } else if (type === 'ecore:EEnum') {
-          pkg.eEnums.push(this.parseEEnum(child, index));
+          const en = this.parseEEnum(child, index);
+          pkg.eEnums.push(en);
+          if (id) idMap.set(id, en);
         } else if (type === 'ecore:EDataType') {
-          pkg.eDataTypes.push(this.parseEDataType(child, index));
+          const dt = this.parseEDataType(child, index);
+          pkg.eDataTypes.push(dt);
+          if (id) idMap.set(id, dt);
         }
         index++
       }
     }
+    this.resolveIdBasedTypes(pkg, idMap);
     this.inferTreeParents(pkg)
     this.resolveSuperTypes(pkg)
     this.inferInterfaceLike(pkg)
     return pkg;
   }
+
+  private resolveIdBasedTypes(pkg: EPackageJson, idMap: Map<string, any>) {
+    for (const cls of pkg.eClasses) {
+      for (const ref of cls.references) {
+        if (ref.type && idMap.has(ref.type)) {
+          const target = idMap.get(ref.type);
+          ref.resolvedType = target.name;
+        }
+      }
+      for (const attr of cls.attributes) {
+        if (attr.type && idMap.has(attr.type)) {
+          const target = idMap.get(attr.type);
+          attr.type = target.name;
+        }
+      }
+    }
+  }
+
 
   inferInterfaceLike(pkg: EPackageJson) {
     for (const cls of pkg.eClasses) {
