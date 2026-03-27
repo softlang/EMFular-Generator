@@ -66,53 +66,45 @@ export class Ecore2JsonService {
       eDataTypes: [],
     };
 
-    const idMap = new Map<string, any>();
+    const idToName = new Map<string, string>();
+    for (const child of Array.from(root.children)) {
+      if (child.tagName === 'eClassifiers') {
+        const id = child.getAttribute('xmi:id');
+        const name = child.getAttribute('name');
+        if (id && name) {
+          idToName.set(id, name);
+        }
+      }
+    }
+
+    console.error("Map:");
+    for (const [key, value] of idToName.entries()) {
+      console.error("  " + key + " → " + value);
+    }
+
     let index = 0
     for (const child of Array.from(root.children)) {
       if (child.tagName === 'eClassifiers') {
         const type = child.getAttribute('xsi:type');
-        const id = child.getAttribute('xmi:id');
 
         if (type === 'ecore:EClass') {
-          const cls = this.parseEClass(child, index);
+          const cls = this.parseEClass(child, index, idToName);
           pkg.eClasses.push(cls);
-          if (id) idMap.set(id, cls);
         } else if (type === 'ecore:EEnum') {
           const en = this.parseEEnum(child, index);
           pkg.eEnums.push(en);
-          if (id) idMap.set(id, en);
         } else if (type === 'ecore:EDataType') {
           const dt = this.parseEDataType(child, index);
           pkg.eDataTypes.push(dt);
-          if (id) idMap.set(id, dt);
         }
         index++
       }
     }
-    this.resolveIdBasedTypes(pkg, idMap);
     this.inferTreeParents(pkg)
     this.resolveSuperTypes(pkg)
     this.inferInterfaceLike(pkg)
     return pkg;
   }
-
-  private resolveIdBasedTypes(pkg: EPackageJson, idMap: Map<string, any>) {
-    for (const cls of pkg.eClasses) {
-      for (const ref of cls.references) {
-        if (ref.type && idMap.has(ref.type)) {
-          const target = idMap.get(ref.type);
-          ref.resolvedType = target.name;
-        }
-      }
-      for (const attr of cls.attributes) {
-        if (attr.type && idMap.has(attr.type)) {
-          const target = idMap.get(attr.type);
-          attr.type = target.name;
-        }
-      }
-    }
-  }
-
 
   inferInterfaceLike(pkg: EPackageJson) {
     for (const cls of pkg.eClasses) {
@@ -199,7 +191,7 @@ export class Ecore2JsonService {
     }
   }
 
-  private parseEClass(el: Element, index: number): EClassJson {
+  private parseEClass(el: Element, index: number, idToName: Map<string,string>): EClassJson {
     const cls: EClassJson = {
       kind: 'EClass',
       _index: index,
@@ -216,20 +208,21 @@ export class Ecore2JsonService {
     for (const child of Array.from(el.children)) {
       const type = child.getAttribute('xsi:type');
       if (type === 'ecore:EAttribute') {
-        cls.attributes.push(this.parseEAttribute(child));
+        cls.attributes.push(this.parseEAttribute(child, idToName));
       } else if (type === 'ecore:EReference') {
-        cls.references.push(this.parseEReference(child));
+        cls.references.push(this.parseEReference(child, idToName));
       }
     }
 
     return cls;
   }
 
-  private parseEAttribute(el: Element): EAttributeJson {
+  private parseEAttribute(el: Element, idToName: Map<string,string>): EAttributeJson {
+    const rawType = el.getAttribute('eType') ?? ''
     const res: EAttributeJson =  {
       kind: 'EAttribute',
       name: el.getAttribute('name') ?? '',
-      type: this.normalizeTypeName(el.getAttribute('eType') ?? ''),
+      type: idToName.get(this.normalizeIdRef(rawType)) ?? this.normalizeTypeName(rawType),
       lowerBound: Number(el.getAttribute('lowerBound') ?? '0'),
       upperBound: Number(el.getAttribute('upperBound') ?? '1'),
     };
@@ -239,6 +232,16 @@ export class Ecore2JsonService {
     }
     return res;
   }
+
+  private normalizeIdRef(raw: string): string {
+    if (!raw) return raw;
+    let id = raw;
+    if (id.startsWith('#')) {
+      id = id.substring(1);
+    }
+    return id;
+  }
+
 
   private normalizeTypeName(raw: string): string {
     const idx = raw.lastIndexOf("/"); //not #// to work with older models
@@ -251,14 +254,14 @@ export class Ecore2JsonService {
     return idx >= 0 ? raw.substring(idx + 1) : raw;
   }
 
-  private parseEReference(el: Element): EReferenceJson {
+  private parseEReference(el: Element, idToName: Map<string, string>): EReferenceJson {
     const type = el.getAttribute('eType') ?? '';
     const opposite = el.getAttribute('eOpposite') || undefined
     return {
       kind: 'EReference',
       name: el.getAttribute('name') ?? '',
       type: type,
-      resolvedType: this.normalizeTypeName(type) ,
+      resolvedType: idToName.get(this.normalizeIdRef(type)) ?? this.normalizeTypeName(type),
       lowerBound: Number(el.getAttribute('lowerBound') ?? '0'),
       upperBound: Number(el.getAttribute('upperBound') ?? '1'),
 
