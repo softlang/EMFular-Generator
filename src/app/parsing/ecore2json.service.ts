@@ -1,13 +1,11 @@
 import { Injectable } from '@angular/core';
 import {
   EPackageJson,
-  EClassJson,
   EReferenceJson,
   EEnumJson,
   EDataTypeJson,
 } from './ecore-json';
-import {Attribute2JsonService} from './attribute2json.service';
-import {Reference2JsonService} from './reference2json.service';
+import {Class2JsonService} from './class2json.service';
 
 @Injectable({
   providedIn: 'root',
@@ -15,10 +13,8 @@ import {Reference2JsonService} from './reference2json.service';
 export class Ecore2JsonService {
 
   constructor(
-    private attribute2json: Attribute2JsonService,
-    private reference2json: Reference2JsonService,
-  ) {
-  }
+    private class2json: Class2JsonService,
+  ) {}
 
   parse(xml: string): EPackageJson[] {
     const doc = this.parseXml(xml);
@@ -92,7 +88,7 @@ export class Ecore2JsonService {
         const type = child.getAttribute('xsi:type');
 
         if (type === 'ecore:EClass') {
-          const cls = this.parseEClass(child, index, idToName);
+          const cls = this.class2json.parseEClass(child, index, idToName);
           pkg.eClasses.push(cls);
         } else if (type === 'ecore:EEnum') {
           const en = this.parseEEnum(child, index);
@@ -106,36 +102,7 @@ export class Ecore2JsonService {
     }
     this.inferTreeParents(pkg)
     this.resolveSuperTypes(pkg)
-    this.inferInterfaceLike(pkg)
     return pkg;
-  }
-
-  inferInterfaceLike(pkg: EPackageJson) {
-    for (const cls of pkg.eClasses) {
-      this.interfaceLike(pkg, cls.name)
-    }
-  }
-
-  interfaceLike(pkg: EPackageJson, className: string): boolean {
-    const cls = pkg.eClasses.find(cls => cls.name === className);
-    if (!cls) {
-      throw new Error("No class with name '" + className + "' found");
-    }
-    if (cls.interfaceLike !== undefined) {
-      return cls.interfaceLike;
-    }
-    //necessary: abstract and feature-less
-    if (!(cls.abstract && cls.attributes.length === 0 && cls.references.length === 0)) {
-      cls.interfaceLike = false;
-      return false;
-    }
-
-    // All supertypes must be interface-like
-    const allSupersInterfaceLike = cls.resolvedSuperTypes.every(
-      superName => this.interfaceLike(pkg, superName)
-    );
-    cls.interfaceLike = allSupersInterfaceLike;
-    return allSupersInterfaceLike;
   }
 
   resolveSuperTypes(pkg: EPackageJson) {
@@ -195,36 +162,6 @@ export class Ecore2JsonService {
     }
   }
 
-  private parseEClass(el: Element, index: number, idToName: Map<string,string>): EClassJson {
-    const cls: EClassJson = {
-      kind: 'EClass',
-      _index: index,
-      name: el.getAttribute('name') ?? '',
-      abstract: el.getAttribute('abstract') === 'true',
-      superTypes: (el.getAttribute('eSuperTypes') ?? '')
-        .split(' ')
-        .filter(Boolean),
-      resolvedSuperTypes: [],
-      attributes: [],
-      references: [],
-    };
-
-    for (const child of Array.from(el.children)) {
-      const type = child.getAttribute('xsi:type');
-      if (type === 'ecore:EAttribute') {
-        cls.attributes.push(
-          this.attribute2json.parseEAttribute(child, idToName)
-        );
-      } else if (type === 'ecore:EReference') {
-        cls.references.push(
-          this.reference2json.parseEReference(child, idToName)
-        );
-      }
-    }
-
-    return cls;
-  }
-
   private parseEEnum(el: Element, index: number): EEnumJson {
     return {
       kind: 'EEnum',
@@ -255,12 +192,10 @@ export class Ecore2JsonService {
   private parseXml(xml: string): Document {
     const parser = new DOMParser();
     const dom = parser.parseFromString(xml, 'application/xml');
-
     const error = dom.querySelector('parsererror');
     if (error) {
       throw new Error('The uploaded file is not valid XML.');
     }
-
     return dom;
   }
 }

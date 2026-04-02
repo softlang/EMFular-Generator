@@ -22,7 +22,7 @@ export interface EClassJson {
   abstract: boolean;
   superTypes: string[];           //raw URIs
   resolvedSuperTypes: string[];  // clean class names
-  interfaceLike?: boolean;      //only set this when we can inspect all supertypess
+  interfaceLike?: boolean;
   attributes: EAttributeJson[];
   references: EReferenceJson[];
 }
