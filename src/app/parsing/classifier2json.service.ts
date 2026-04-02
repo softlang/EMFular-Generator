@@ -1,12 +1,12 @@
 import { Injectable } from '@angular/core';
-import {EClassJson} from './ecore-json';
+import {EClassifierJson, EClassJson, EDataTypeJson, EEnumJson} from './ecore-json';
 import {Attribute2JsonService} from './attribute2json.service';
 import {Reference2JsonService} from './reference2json.service';
 
 @Injectable({
   providedIn: 'root',
 })
-export class Class2JsonService {
+export class Classifier2JsonService {
 
   constructor(
     private attribute2json: Attribute2JsonService,
@@ -14,10 +14,10 @@ export class Class2JsonService {
   ) {}
 
   parseEClass(el: Element, index: number, idToName: Map<string,string>): EClassJson {
+    const general = this.parseClassifier(el, index);
     const cls: EClassJson = {
+      ...general,
       kind: 'EClass',
-      _index: index,
-      name: el.getAttribute('name') ?? '',
       abstract: el.getAttribute('abstract') === 'true',
       interfaceLike: el.getAttribute('interface') === 'true',
       superTypes: (el.getAttribute('eSuperTypes') ?? '')
@@ -42,4 +42,40 @@ export class Class2JsonService {
     }
     return cls;
   }
+
+
+  parseEEnum(el: Element, index: number): EEnumJson {
+    const general = this.parseClassifier(el, index);
+    return {
+      ...general,
+      kind: 'EEnum',
+      literals: Array.from(el.children)
+        .filter(c => c.tagName === 'eLiterals')
+        .map(c => c.getAttribute('name') ?? ''),
+    };
+  }
+
+  parseEDataType(el: Element, index: number): EDataTypeJson {
+    const general = this.parseClassifier(el, index);
+    return{
+      ...general,
+      kind: 'EDataType',
+      instanceTypeName: el.getAttribute('instanceTypeName') ?? '',
+    };
+  }
+
+  private parseClassifier(el: Element, index: number): EClassifierJson {
+    const name: string | null = el.getAttribute('name');
+    const res: EClassifierJson = {
+      _index: index,
+      _rawName: name ?? '',
+      name: name??'', //todo
+    }
+    const id: string | null = el.getAttribute('xmi:id')
+    if (id) {
+      res._id = id
+    }
+    return res;
+  }
+
 }

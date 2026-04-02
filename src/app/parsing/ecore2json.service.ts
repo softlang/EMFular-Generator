@@ -2,10 +2,8 @@ import { Injectable } from '@angular/core';
 import {
   EPackageJson,
   EReferenceJson,
-  EEnumJson,
-  EDataTypeJson,
 } from './ecore-json';
-import {Class2JsonService} from './class2json.service';
+import {Classifier2JsonService} from './classifier2json.service';
 
 @Injectable({
   providedIn: 'root',
@@ -13,7 +11,7 @@ import {Class2JsonService} from './class2json.service';
 export class Ecore2JsonService {
 
   constructor(
-    private class2json: Class2JsonService,
+    private classifiers2Json: Classifier2JsonService,
   ) {}
 
   parse(xml: string): EPackageJson[] {
@@ -88,13 +86,13 @@ export class Ecore2JsonService {
         const type = child.getAttribute('xsi:type');
 
         if (type === 'ecore:EClass') {
-          const cls = this.class2json.parseEClass(child, index, idToName);
+          const cls = this.classifiers2Json.parseEClass(child, index, idToName);
           pkg.eClasses.push(cls);
         } else if (type === 'ecore:EEnum') {
-          const en = this.parseEEnum(child, index);
+          const en = this.classifiers2Json.parseEEnum(child, index);
           pkg.eEnums.push(en);
         } else if (type === 'ecore:EDataType') {
-          const dt = this.parseEDataType(child, index);
+          const dt = this.classifiers2Json.parseEDataType(child, index);
           pkg.eDataTypes.push(dt);
         }
         index++
@@ -160,26 +158,6 @@ export class Ecore2JsonService {
         }
       }
     }
-  }
-
-  private parseEEnum(el: Element, index: number): EEnumJson {
-    return {
-      kind: 'EEnum',
-      _index: index,
-      name: el.getAttribute('name') ?? '',
-      literals: Array.from(el.children)
-        .filter(c => c.tagName === 'eLiterals')
-        .map(c => c.getAttribute('name') ?? ''),
-    };
-  }
-
-  private parseEDataType(el: Element, index: number): EDataTypeJson {
-    return {
-      kind: 'EDataType',
-      _index: index,
-      name: el.getAttribute('name') ?? '',
-      instanceTypeName: el.getAttribute('instanceTypeName') ?? '',
-    };
   }
 
   private pascalCase(str: string): string {

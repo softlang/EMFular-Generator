@@ -1,7 +1,11 @@
 export interface CrossPackageRef {
+  originalRef: string;
+  resolvedRef?: ResolvedRef
+}
+
+export interface ResolvedRef {
   name: string;
   pkgUri?: string;
-  originalRef: string;
 }
 
 export interface EPackageJson {
@@ -15,14 +19,24 @@ export interface EPackageJson {
   subPackages?: EPackageJson[];
 }
 
-export interface EClassJson {
+export interface EClassifierJson {
+  name: string;
+  _rawName: string;
+  _index: number;
+  _id?: string;
+}
+
+export interface EClassJson extends EClassifierJson {
   kind: "EClass";
   name: string;
+  _rawName: string;
   _index: number;
+  _id?: string;
+
   abstract: boolean;
+  interfaceLike?: boolean;
   superTypes: string[];           //raw URIs
   resolvedSuperTypes: string[];  // clean class names
-  interfaceLike?: boolean;
   attributes: EAttributeJson[];
   references: EReferenceJson[];
 }
@@ -60,17 +74,23 @@ export interface EReferenceJson {
 }
 
 
-export interface EEnumJson {
+export interface EEnumJson extends EClassifierJson {
   kind: "EEnum";
   name: string;
+  _rawName: string;
   _index: number;
+  _id?: string;
+
   literals: string[];
 }
 
-export interface EDataTypeJson {
+export interface EDataTypeJson extends EClassifierJson {
   kind: "EDataType";
   name: string;
+  _rawName: string;
   _index: number;
+  _id?: string;
+
   instanceTypeName: string;
 }
 
