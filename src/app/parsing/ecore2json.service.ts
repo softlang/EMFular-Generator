@@ -2,18 +2,22 @@ import { Injectable } from '@angular/core';
 import {
   EPackageJson,
   EClassJson,
-  EAttributeJson,
   EReferenceJson,
   EEnumJson,
   EDataTypeJson,
 } from './ecore-json';
+import {Attribute2JsonService} from './attribute2json.service';
+import {Reference2JsonService} from './reference2json.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class Ecore2JsonService {
 
-  constructor() {
+  constructor(
+    private attribute2json: Attribute2JsonService,
+    private reference2json: Reference2JsonService,
+  ) {
   }
 
   parse(xml: string): EPackageJson[] {
@@ -208,76 +212,18 @@ export class Ecore2JsonService {
     for (const child of Array.from(el.children)) {
       const type = child.getAttribute('xsi:type');
       if (type === 'ecore:EAttribute') {
-        cls.attributes.push(this.parseEAttribute(child, idToName));
+        cls.attributes.push(
+          this.attribute2json.parseEAttribute(child, idToName)
+        );
       } else if (type === 'ecore:EReference') {
-        cls.references.push(this.parseEReference(child, idToName));
+        cls.references.push(
+          this.reference2json.parseEReference(child, idToName)
+        );
       }
     }
 
     return cls;
   }
-
-  private parseEAttribute(el: Element, idToName: Map<string,string>): EAttributeJson {
-    const rawType = el.getAttribute('eType') ?? ''
-    const res: EAttributeJson =  {
-      kind: 'EAttribute',
-      name: el.getAttribute('name') ?? '',
-      type: idToName.get(this.normalizeIdRef(rawType)) ?? this.normalizeTypeName(rawType),
-      lowerBound: Number(el.getAttribute('lowerBound') ?? '0'),
-      upperBound: Number(el.getAttribute('upperBound') ?? '1'),
-    };
-    const defaultValue = el.getAttribute('defaultValueLiteral');
-    if (defaultValue !== null) {
-      res.defaultValueLiteral = defaultValue;
-    }
-    return res;
-  }
-
-  private normalizeIdRef(raw: string): string {
-    if (!raw) return raw;
-    let id = raw;
-    if (id.startsWith('#')) {
-      id = id.substring(1);
-    }
-    return id;
-  }
-
-
-  private normalizeTypeName(raw: string): string {
-    const idx = raw.lastIndexOf("/"); //not #// to work with older models
-    return idx >= 0 ? raw.substring(idx + 1) : raw;
-  }
-
-  private normalizeOpposite(raw: string|undefined): string|undefined {
-    if (!raw ) return undefined;
-    const idx = raw.lastIndexOf("/");
-    return idx >= 0 ? raw.substring(idx + 1) : raw;
-  }
-
-  private parseEReference(el: Element, idToName: Map<string, string>): EReferenceJson {
-    const type = el.getAttribute('eType') ?? '';
-    const opposite = el.getAttribute('eOpposite') || undefined
-    return {
-      kind: 'EReference',
-      name: el.getAttribute('name') ?? '',
-      type: type,
-      resolvedType: idToName.get(this.normalizeIdRef(type)) ?? this.normalizeTypeName(type),
-      lowerBound: Number(el.getAttribute('lowerBound') ?? '0'),
-      upperBound: Number(el.getAttribute('upperBound') ?? '1'),
-
-      // optional EMF semantics
-      containment: el.getAttribute('containment') === 'true' || undefined,
-      derived: el.getAttribute('derived') === 'true' || undefined,
-      transient: el.getAttribute('transient') === 'true' || undefined,
-      volatile: el.getAttribute('volatile') === 'true' || undefined,
-      changeable: el.getAttribute('changeable') === 'true' || undefined,
-
-      // opposite reference (if present)
-      opposite: opposite,
-      resolvedOpposite: this.normalizeOpposite(opposite),
-    };
-  }
-
 
   private parseEEnum(el: Element, index: number): EEnumJson {
     return {
