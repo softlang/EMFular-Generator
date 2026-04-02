@@ -26,6 +26,7 @@ export class Ecore2JsonService {
     // and attach them to their parent EPackage instead of treating them
     // as independent top-level packages.
 
+
     const stack: Element[] = [docElem];
 
     while (stack.length > 0) {
@@ -65,16 +66,36 @@ export class Ecore2JsonService {
       eDataTypes: [],
     };
 
+    const idToName = new Map<string, string>();
+    for (const child of Array.from(root.children)) {
+      if (child.tagName === 'eClassifiers') {
+        const id = child.getAttribute('xmi:id');
+        const name = child.getAttribute('name');
+        if (id && name) {
+          idToName.set(id, name);
+        }
+      }
+    }
+
+    console.error("Map:");
+    for (const [key, value] of idToName.entries()) {
+      console.error("  " + key + " → " + value);
+    }
+
     let index = 0
     for (const child of Array.from(root.children)) {
       if (child.tagName === 'eClassifiers') {
         const type = child.getAttribute('xsi:type');
+
         if (type === 'ecore:EClass') {
-          pkg.eClasses.push(this.parseEClass(child, index));
+          const cls = this.parseEClass(child, index, idToName);
+          pkg.eClasses.push(cls);
         } else if (type === 'ecore:EEnum') {
-          pkg.eEnums.push(this.parseEEnum(child, index));
+          const en = this.parseEEnum(child, index);
+          pkg.eEnums.push(en);
         } else if (type === 'ecore:EDataType') {
-          pkg.eDataTypes.push(this.parseEDataType(child, index));
+          const dt = this.parseEDataType(child, index);
+          pkg.eDataTypes.push(dt);
         }
         index++
       }
@@ -122,24 +143,25 @@ export class Ecore2JsonService {
   }
 
   private resolveSuperTypeUri(uri: string, pkg: EPackageJson): string | undefined {
-    // Case 1: "#//Person"
-    if (uri.includes('#//')) {
-      const name = uri.split('#//').pop()!;
-      return pkg.eClasses.some(c => c.name === name) ? name : undefined;
-    }
-
-    // Case 2: "ecore:Person"
-    if (uri.includes(':')) {
-      const name = uri.split(':').pop()!;
-      return pkg.eClasses.some(c => c.name === name) ? name : undefined;
-    }
-
-    // Case 3: XMI index "#/0/@eClassifiers.1"
+    // Case 1: XMI index "#/0/@eClassifiers.1"
     const match = uri.match(/@eClassifiers\.(\d+)/);
     if (match) {
       const index = Number(match[1]);
       const cls = pkg.eClasses.find(c => c._index === index);
       return cls?.name;
+    }
+
+    // Case 2: "#//Person" plus now also /1/Person
+    if (uri.includes('/')) {
+      const name = uri.split('/').pop()!;
+      return pkg.eClasses.some(c => c.name === name) ? name : undefined;
+    }
+    //done also remove any /? since name is the last one behind it?
+
+    // Case 3: "ecore:Person"
+    if (uri.includes(':')) {
+      const name = uri.split(':').pop()!;
+      return pkg.eClasses.some(c => c.name === name) ? name : undefined;
     }
 
     return undefined;
@@ -169,7 +191,7 @@ export class Ecore2JsonService {
     }
   }
 
-  private parseEClass(el: Element, index: number): EClassJson {
+  private parseEClass(el: Element, index: number, idToName: Map<string,string>): EClassJson {
     const cls: EClassJson = {
       kind: 'EClass',
       _index: index,
@@ -186,20 +208,21 @@ export class Ecore2JsonService {
     for (const child of Array.from(el.children)) {
       const type = child.getAttribute('xsi:type');
       if (type === 'ecore:EAttribute') {
-        cls.attributes.push(this.parseEAttribute(child));
+        cls.attributes.push(this.parseEAttribute(child, idToName));
       } else if (type === 'ecore:EReference') {
-        cls.references.push(this.parseEReference(child));
+        cls.references.push(this.parseEReference(child, idToName));
       }
     }
 
     return cls;
   }
 
-  private parseEAttribute(el: Element): EAttributeJson {
+  private parseEAttribute(el: Element, idToName: Map<string,string>): EAttributeJson {
+    const rawType = el.getAttribute('eType') ?? ''
     const res: EAttributeJson =  {
       kind: 'EAttribute',
       name: el.getAttribute('name') ?? '',
-      type: el.getAttribute('eType') ?? '',
+      type: idToName.get(this.normalizeIdRef(rawType)) ?? this.normalizeTypeName(rawType),
       lowerBound: Number(el.getAttribute('lowerBound') ?? '0'),
       upperBound: Number(el.getAttribute('upperBound') ?? '1'),
     };
@@ -210,9 +233,19 @@ export class Ecore2JsonService {
     return res;
   }
 
+  private normalizeIdRef(raw: string): string {
+    if (!raw) return raw;
+    let id = raw;
+    if (id.startsWith('#')) {
+      id = id.substring(1);
+    }
+    return id;
+  }
+
+
   private normalizeTypeName(raw: string): string {
-    const idx = raw.lastIndexOf("//"); //not #// to work with older models
-    return idx >= 0 ? raw.substring(idx + 2) : raw;
+    const idx = raw.lastIndexOf("/"); //not #// to work with older models
+    return idx >= 0 ? raw.substring(idx + 1) : raw;
   }
 
   private normalizeOpposite(raw: string|undefined): string|undefined {
@@ -221,14 +254,14 @@ export class Ecore2JsonService {
     return idx >= 0 ? raw.substring(idx + 1) : raw;
   }
 
-  private parseEReference(el: Element): EReferenceJson {
+  private parseEReference(el: Element, idToName: Map<string, string>): EReferenceJson {
     const type = el.getAttribute('eType') ?? '';
     const opposite = el.getAttribute('eOpposite') || undefined
     return {
       kind: 'EReference',
       name: el.getAttribute('name') ?? '',
       type: type,
-      resolvedType: this.normalizeTypeName(type) ,
+      resolvedType: idToName.get(this.normalizeIdRef(type)) ?? this.normalizeTypeName(type),
       lowerBound: Number(el.getAttribute('lowerBound') ?? '0'),
       upperBound: Number(el.getAttribute('upperBound') ?? '1'),
 

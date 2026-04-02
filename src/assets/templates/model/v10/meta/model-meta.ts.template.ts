@@ -1,5 +1,6 @@
 import { ModelDefinition, ReferenceMeta } from "emfular";
 
+%%TYPES%%
 %%ENUMS%%
 %%CLASS_REFS%%
 

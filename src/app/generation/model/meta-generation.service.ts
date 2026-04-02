@@ -36,6 +36,13 @@ export class MetaGenerationService {
       .join("\n");
   }
 
+  private buildTypes(model: EPackageJson): string {
+    return model.eDataTypes
+      .map(e =>
+        `export type ${e.name} = any;`  //todo just aliases, currently all to any = Object
+      ).join("\n");
+  }
+
 
   private buildAllClassRefs(model: EPackageJson): string {
 
@@ -101,7 +108,7 @@ export class MetaGenerationService {
     }
     if(ref.derived) { //todo can we use it on 10.1?
       //lines.push(`derivingMethod: Symbol("${className}.${ref.name}.compute")`);
-      lines.push(`//todo: derived`);
+      lines.push(`//derived`);
     }
     return lines.join(",\n\t\t"); //hence first entry needs extra indentation
   }
@@ -119,6 +126,7 @@ export class MetaGenerationService {
       uri: model.nsURI,
       CLASS_ENTRIES: "\t"+classEntries,
       CLASS_REFS: CLASS_REFS,
+      TYPES: this.buildTypes(model),
       ENUMS: this.buildEnums(model)
     });
   }

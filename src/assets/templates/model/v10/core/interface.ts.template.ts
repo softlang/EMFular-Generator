@@ -1,4 +1,4 @@
 %%TYPE_IMPORTS%%
 
-export interface %%className%% extends %%SUPER_INTERFACES%% {
+export interface %%className%% %%SUPER_INTERFACES%% {
 }

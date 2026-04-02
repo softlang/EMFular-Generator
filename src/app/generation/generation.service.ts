@@ -112,12 +112,12 @@ export class GenerationService {
   }
 
   async determineRoot(model: EPackageJson): Promise<EClassJson | null> {
-    const candidates = this.rootFindingService.findRootEClassCandidates(model);
+    const candidates = this.rootFindingService.allPossibleRootClasses(model);
     if (candidates.length === 1) {
       return candidates[0];
     }
     if (candidates.length === 0) {
-      return null; // or open a manual selection dialog over all
+      throw new Error("No non-abstract, not interface-like class found, hence no useful generation possible")
     }
     return await this.pickRoot(candidates);
   }

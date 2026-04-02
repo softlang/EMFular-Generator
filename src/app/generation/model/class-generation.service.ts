@@ -1,5 +1,12 @@
 import { Injectable } from '@angular/core';
-import {EAttributeJson, EClassJson, EEnumJson, EPackageJson, EReferenceJson} from '../../parsing/ecore-json';
+import {
+  EAttributeJson,
+  EClassJson,
+  EDataTypeJson,
+  EEnumJson,
+  EPackageJson,
+  EReferenceJson
+} from '../../parsing/ecore-json';
 import { TemplateLoadService } from '../../utils/template-load.service';
 import { PlaceholderReplacerService } from '../../utils/place-holder-replacer.service';
 import { ZipService } from '../../utils/zip.service';
@@ -41,8 +48,9 @@ export class ClassGenerationService {
   ): string {
 
     const usedEnums: Set<string> = new Set(); //filled by attributes
+    // fill both at once since same usage const usedTypes: Set<string> = new Set(); //filled by attributes
 
-    const ATTRIBUTES = this.buildAttributes(cls, model.eEnums, usedEnums);
+    const ATTRIBUTES = this.buildAttributes(cls, model.eEnums, usedEnums, model.eDataTypes, usedEnums);
     const REFERENCES = this.buildReferences(cls);
 
 
@@ -145,16 +153,22 @@ export class ClassGenerationService {
   }
 
   //fills used enums
-  private buildAttributes(cls: EClassJson, enums: EEnumJson[], usedEnums: Set<string>): string {
+  private buildAttributes(cls: EClassJson, enums: EEnumJson[], usedEnums: Set<string>, types: EDataTypeJson[], usedTypes: Set<string>): string {
+    console.error('Types: ## '+types.map(t => t.name))
+
     return cls.attributes
-      .map(a => this.buildAttribute(a, enums, usedEnums) )
+      .map(a => this.buildAttribute(a, enums, usedEnums, types, usedTypes) )
       .join('\n\n');
   }
 
-  private buildAttribute(attr: EAttributeJson,  enums: EEnumJson[], usedEnums: Set<string>): string {
+  private buildAttribute(attr: EAttributeJson,  enums: EEnumJson[], usedEnums: Set<string>, eDataTypes: EDataTypeJson[], usedTypes: Set<string>): string {
       const tsType = this.mapEcoreTypeToTs(attr);
       const optional = attr.lowerBound === 0 ? "?" : "";
       const isList =  attr.upperBound === -1 || attr.upperBound > 1
+      const typeShortcut = eDataTypes.find(t => t.name == tsType)
+      if (typeShortcut) {
+        usedTypes.add(typeShortcut.name)
+      }
       const enumInfo = this.findEnum(tsType, enums);
       if (enumInfo) {
         usedEnums.add(enumInfo.name)
