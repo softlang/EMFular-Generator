@@ -1,4 +1,4 @@
-export interface CrossPackageRef {
+export interface CompleteRef {
   originalRef: string;
   resolvedRef?: ResolvedRef
 }
@@ -35,7 +35,7 @@ export interface EClassJson extends EClassifierJson {
 
   abstract: boolean;
   interfaceLike?: boolean;
-  superTypes: string[];           //raw URIs
+  superTypes2: CompleteRef[]; //both, raw plus resolved
   resolvedSuperTypes: string[];  // clean class names
   attributes: EAttributeJson[];
   references: EReferenceJson[];

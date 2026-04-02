@@ -20,9 +20,9 @@ export class Classifier2JsonService {
       kind: 'EClass',
       abstract: el.getAttribute('abstract') === 'true',
       interfaceLike: el.getAttribute('interface') === 'true',
-      superTypes: (el.getAttribute('eSuperTypes') ?? '')
+      superTypes2: (el.getAttribute('eSuperTypes') ?? '')
         .split(' ')
-        .filter(Boolean),
+        .map(value => { return {originalRef: value} }),
       resolvedSuperTypes: [],
       attributes: [],
       references: [],

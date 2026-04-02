@@ -105,9 +105,18 @@ export class Ecore2JsonService {
 
   resolveSuperTypes(pkg: EPackageJson) {
     for (const cls of pkg.eClasses) {
-      cls.resolvedSuperTypes = cls.superTypes
-        .map(uri => this.resolveSuperTypeUri(uri, pkg))
-        .filter((x): x is string => !!x);
+      cls.superTypes2.map(sup => {
+        const resolved = this.resolveSuperTypeUri(sup.originalRef, pkg)
+        if (resolved) {
+          sup.resolvedRef = {
+            name: resolved
+            //todo pkg?
+          }
+        }
+      })
+      cls.resolvedSuperTypes = cls.superTypes2
+        .filter(sup => sup.resolvedRef != undefined)
+        .map(ref => ref.resolvedRef!.name) // todo
     }
   }
 
@@ -132,7 +141,6 @@ export class Ecore2JsonService {
       const name = uri.split(':').pop()!;
       return pkg.eClasses.some(c => c.name === name) ? name : undefined;
     }
-
     return undefined;
   }
 
