@@ -12,6 +12,7 @@ export interface EPackageJson {
   eClasses: EClassJson[];
   eEnums: EEnumJson[];
   eDataTypes: EDataTypeJson[];
+  subPackages?: EPackageJson[];
 }
 
 export interface EClassJson {
