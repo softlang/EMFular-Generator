@@ -1,3 +1,9 @@
+export interface CrossPackageRef {
+  name: string;
+  pkgUri?: string;
+  originalRef: string;
+}
+
 export interface EPackageJson {
   name: string;
   pascalizedName: string;
