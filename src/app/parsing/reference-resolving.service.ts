@@ -110,13 +110,13 @@ export class ReferenceResolvingService {
 
   //we can resolve without context, since we do neither expect id-based, nor positional references
   resolveOpposite(ref: EReferenceJson) {
-    const raw = ref.opposite
+    const raw = ref.opposite?.raw
     const oppositeKind = this.classifyRefFragment(raw)
     if (oppositeKind == RefFragmentKind.IdBased || oppositeKind == RefFragmentKind.Positional ) {
       throw new Error("Id based or positional opposite relationships are not supported.")
     }
     if (!raw ) return;
     const idx = raw.lastIndexOf("/");
-    ref.resolvedOpposite =  idx >= 0 ? raw.substring(idx + 1) : raw;
+    ref.opposite!.resolved =  idx >= 0 ? raw.substring(idx + 1) : raw;
   }
 }

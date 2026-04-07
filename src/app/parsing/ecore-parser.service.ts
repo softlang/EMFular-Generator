@@ -68,10 +68,10 @@ export class EcoreParserService {
     // Now resolve opposites and infer tree-parent
     for (const cls of pkg.eClasses) {
       for (const ref of cls.references) {
-        if (!ref.opposite) {
+        if (!ref.opposite?.resolved) {
           continue;
         }
-        const oppositeRef = refIndex.get(ref.opposite);
+        const oppositeRef = refIndex.get(ref.opposite.resolved);
         // A reference is a tree parent iff its opposite is containment
         if (oppositeRef?.containment === true) {
           ref.isTreeParent = true;

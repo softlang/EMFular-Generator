@@ -88,8 +88,7 @@ export interface EReferenceJson extends EStructuralFeature {
   transient?: boolean;
   volatile?: boolean;
   changeable?: boolean;
-  opposite?: string; // name of opposite reference, if any
-  resolvedOpposite?: string;
+  opposite?: Resolvable; // name of opposite reference, if any
   isTreeParent?: boolean; //detects opposites of trees
 }
 

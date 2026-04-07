@@ -103,8 +103,8 @@ export class MetaGenerationService {
     if (ref.isTreeParent) {
       lines.push(`isParent: true`);
     }
-    if(ref.resolvedOpposite) {
-      lines.push(`opposite: "${ref.resolvedOpposite}"`);
+    if(ref.opposite) {
+      lines.push(`opposite: "${ref.opposite.resolved!!}"`);
     }
     if(ref.derived) { //todo can we use it on 10.1?
       //lines.push(`derivingMethod: Symbol("${className}.${ref.name}.compute")`);

@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
-import {EAttributeJson, EReferenceJson, EStructuralFeature} from '../ecore-json';
+import {EAttributeJson, EReferenceJson, EStructuralFeature, Resolvable} from '../ecore-json';
+import {ResolvableHandler} from '../resolvable-handler';
 
 @Injectable({
   providedIn: 'root',
@@ -24,13 +25,14 @@ export class StructuralFeature2JsonService {
     };
   }
 
-
   parseEReference(el: Element): EReferenceJson {
     const structuralF = this.parseStructuralFeature(el)
     return {
       ...structuralF,
       kind: 'EReference',
-      opposite: el.getAttribute('eOpposite') || undefined,
+      opposite: ResolvableHandler.create(
+        el.getAttribute('eOpposite')
+      ),
       containment: el.getAttribute('containment') === 'true' || undefined,
       derived: el.getAttribute('derived') === 'true' || undefined,
       transient: el.getAttribute('transient') === 'true' || undefined,
