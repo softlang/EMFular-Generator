@@ -27,24 +27,13 @@ export class EPackage2JsonService {
       eDataTypes: [],
     };
 
-    const idToName = new Map<string, string>();
-    for (const child of Array.from(root.children)) {
-      if (child.tagName === 'eClassifiers') {
-        const id = child.getAttribute('xmi:id');
-        const name = child.getAttribute('name');
-        if (id && name) {
-          idToName.set(id, name);
-        }
-      }
-    }
-
     let index = 0
     for (const child of Array.from(root.children)) {
       if (child.tagName === 'eClassifiers') {
         const type = child.getAttribute('xsi:type');
 
         if (type === 'ecore:EClass') {
-          const cls = this.classifiers2Json.parseEClass(child, index, idToName);
+          const cls = this.classifiers2Json.parseEClass(child, index);
           pkg.eClasses.push(cls);
         } else if (type === 'ecore:EEnum') {
           const en = this.classifiers2Json.parseEEnum(child, index);

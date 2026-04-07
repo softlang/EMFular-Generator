@@ -7,16 +7,13 @@ import { ReferenceResolvingService } from '../reference-resolving.service';
 })
 export class Attribute2JsonService {
 
-  constructor(private referenceResolver: ReferenceResolvingService) {}
-
-  parseEAttribute(el: Element, idToName: Map<string,string>): EAttributeJson {
+  parseEAttribute(el: Element): EAttributeJson {
     const rawType = el.getAttribute('eType') ?? ''
     const res: EAttributeJson =  {
       kind: 'EAttribute',
       name: el.getAttribute('name') ?? '',
-      type: idToName.get(
-        this.referenceResolver.normalizeIdRef(rawType)
-      ) ?? this.referenceResolver.normalizeTypeName(rawType),
+      type: rawType,
+      resolvedType: '', //resolved later
       lowerBound: Number(el.getAttribute('lowerBound') ?? '0'),
       upperBound: Number(el.getAttribute('upperBound') ?? '1'),
     };

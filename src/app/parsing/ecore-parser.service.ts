@@ -44,6 +44,7 @@ export class EcoreParserService {
 
     //now resolve ALL references (later take all as knowledge input):
     result.map((pkg: EPackageJson) => {
+      this.referenceResolver.resolveOnPkg(pkg)
       this.inferTreeParents(pkg)
       this.referenceResolver.resolveSuperTypes(pkg)
     })

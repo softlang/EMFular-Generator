@@ -8,6 +8,11 @@ export interface ResolvedRef {
   pkgUri?: string;
 }
 
+export interface Resolvable {
+  raw: string;
+  resolved?: string;
+}
+
 export interface EPackageJson {
   name: string;
   pascalizedName: string;
@@ -28,10 +33,11 @@ export interface EClassifierJson {
 
 export interface EClassJson extends EClassifierJson {
   kind: "EClass";
-  name: string;
-  _rawName: string;
+
   _index: number;
   _id?: string;
+  _rawName: string;
+  name: string;
 
   abstract: boolean;
   interfaceLike?: boolean;
@@ -44,17 +50,20 @@ export interface EClassJson extends EClassifierJson {
 export interface EAttributeJson {
   kind: "EAttribute";
   name: string;
+
   type: string;
+  resolvedType: string;
+
   lowerBound: number;
   upperBound: number;
+
   defaultValueLiteral?: string;
 }
 
 export interface EReferenceJson {
   kind: "EReference";
-
-  // identity
   name: string;
+
   type: string;
   resolvedType: string;
 

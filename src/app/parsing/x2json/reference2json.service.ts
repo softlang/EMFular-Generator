@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import {ReferenceResolvingService} from '../reference-resolving.service';
 import {EReferenceJson} from '../ecore-json';
 
 @Injectable({
@@ -7,18 +6,14 @@ import {EReferenceJson} from '../ecore-json';
 })
 export class Reference2JsonService {
 
-  constructor(private referenceResolver: ReferenceResolvingService) {}
-
-  parseEReference(el: Element, idToName: Map<string, string>): EReferenceJson {
+  parseEReference(el: Element): EReferenceJson {
     const type = el.getAttribute('eType') ?? '';
     const opposite = el.getAttribute('eOpposite') || undefined
     return {
       kind: 'EReference',
       name: el.getAttribute('name') ?? '',
       type: type,
-      resolvedType: idToName.get(
-        this.referenceResolver.normalizeIdRef(type)
-      ) ?? this.referenceResolver.normalizeTypeName(type),
+      resolvedType: '', //resolved later
       lowerBound: Number(el.getAttribute('lowerBound') ?? '0'),
       upperBound: Number(el.getAttribute('upperBound') ?? '1'),
 
@@ -35,6 +30,7 @@ export class Reference2JsonService {
     };
   }
 
+  //we can resolve here, since we do neither expect id-based, nor positional references
   private normalizeOpposite(raw: string|undefined): string|undefined {
     if (!raw ) return undefined;
     const idx = raw.lastIndexOf("/");

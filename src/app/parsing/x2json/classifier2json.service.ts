@@ -13,7 +13,7 @@ export class Classifier2JsonService {
     private reference2json: Reference2JsonService,
   ) {}
 
-  parseEClass(el: Element, index: number, idToName: Map<string,string>): EClassJson {
+  parseEClass(el: Element, index: number): EClassJson {
     const general = this.parseClassifier(el, index);
     const cls: EClassJson = {
       ...general,
@@ -32,11 +32,11 @@ export class Classifier2JsonService {
       const type = child.getAttribute('xsi:type');
       if (type === 'ecore:EAttribute') {
         cls.attributes.push(
-          this.attribute2json.parseEAttribute(child, idToName)
+          this.attribute2json.parseEAttribute(child)
         );
       } else if (type === 'ecore:EReference') {
         cls.references.push(
-          this.reference2json.parseEReference(child, idToName)
+          this.reference2json.parseEReference(child)
         );
       }
     }

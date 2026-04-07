@@ -1,12 +1,45 @@
 import { Injectable } from '@angular/core';
-import {EPackageJson} from './ecore-json';
+import {EAttributeJson, EClassJson, EPackageJson, EReferenceJson} from './ecore-json';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ReferenceResolvingService {
 
-  normalizeIdRef(raw: string): string {
+  resolveOnPkg(pkg: EPackageJson) {
+    const idToMap: Map<string, string> = new Map();
+    pkg.eClasses.forEach(eClass => {
+      if (eClass._id) {
+        idToMap.set(eClass._id, eClass.name); //todo we could have a map between cls and raw string
+      }
+    })
+
+    pkg.eClasses.forEach((cls: EClassJson) => {
+      this.resolveTypes(cls, idToMap)
+    })
+  }
+
+  private resolveTypes(cls: EClassJson, idToName: Map<string, string>) {
+    //todo collect imports?
+    cls.attributes.forEach(attr => {
+      this.resolveType(attr, idToName)
+    })
+    cls.references.forEach(reference => {
+      this.resolveType(reference, idToName)
+    })
+  }
+
+  private resolveType(attr: EAttributeJson|EReferenceJson, idToName: Map<string,string>){
+    attr.resolvedType = this.resolveByIdMap(attr.type, idToName)
+  }
+
+  private resolveByIdMap(rawType: string, idToName: Map<string,string>) {
+    return idToName.get(
+      this.normalizeIdRef(rawType)
+    ) ?? this.normalizeTypeName(rawType)
+  }
+
+  private normalizeIdRef(raw: string): string {
     if (!raw) return raw;
     let id = raw;
     if (id.startsWith('#')) {
@@ -15,7 +48,7 @@ export class ReferenceResolvingService {
     return id;
   }
 
-  normalizeTypeName(raw: string): string {
+  private normalizeTypeName(raw: string): string {
     const idx = raw.lastIndexOf("/"); //not #// to work with older models
     return idx >= 0 ? raw.substring(idx + 1) : raw;
   }
