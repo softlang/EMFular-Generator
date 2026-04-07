@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import {EAttributeJson, EClassJson, EPackageJson, EReferenceJson} from './ecore-json';
+import {EAttributeJson, EClassJson, EPackageJson, EReferenceJson, RefFragmentKind} from './ecore-json';
 
 @Injectable({
   providedIn: 'root',
@@ -15,17 +15,18 @@ export class ReferenceResolvingService {
     })
 
     pkg.eClasses.forEach((cls: EClassJson) => {
-      this.resolveTypes(cls, idToMap)
+      this.resolveOnClass(cls, idToMap)
     })
   }
 
-  private resolveTypes(cls: EClassJson, idToName: Map<string, string>) {
+  private resolveOnClass(cls: EClassJson, idToName: Map<string, string>) {
     //todo collect imports?
     cls.attributes.forEach(attr => {
       this.resolveType(attr, idToName)
     })
     cls.references.forEach(reference => {
       this.resolveType(reference, idToName)
+      this.resolveOpposite(reference)
     })
   }
 
@@ -94,4 +95,28 @@ export class ReferenceResolvingService {
     return undefined;
   }
 
+  classifyRefFragment(raw: string | undefined): RefFragmentKind | undefined {
+    if (!raw) return undefined;
+    // ID-based: starts with "#_" and has no slash
+    if (raw.startsWith("#_")) {
+      return RefFragmentKind.IdBased;
+    }
+    // Positional: contains "@eClassifiers." or "@eStructuralFeatures."
+    if (raw.includes("@eClassifiers.") || raw.includes("@eStructuralFeatures.")) {
+      return RefFragmentKind.Positional;
+    }
+    return RefFragmentKind.NameBased;
+  }
+
+  //we can resolve without context, since we do neither expect id-based, nor positional references
+  resolveOpposite(ref: EReferenceJson) {
+    const raw = ref.opposite
+    const oppositeKind = this.classifyRefFragment(raw)
+    if (oppositeKind == RefFragmentKind.IdBased || oppositeKind == RefFragmentKind.Positional ) {
+      throw new Error("Id based or positional opposite relationships are not supported.")
+    }
+    if (!raw ) return;
+    const idx = raw.lastIndexOf("/");
+    ref.resolvedOpposite =  idx >= 0 ? raw.substring(idx + 1) : raw;
+  }
 }
