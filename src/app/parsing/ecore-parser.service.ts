@@ -3,15 +3,17 @@ import {
   EPackageJson,
   EReferenceJson,
 } from './ecore-json';
-import {EPackage2JsonService} from './epackage2json.service';
+import {EPackage2JsonService} from './x2json/epackage2json.service';
+import {ReferenceResolvingService} from './reference-resolving.service';
 
 @Injectable({
   providedIn: 'root',
 })
-export class Ecore2JsonService {
+export class EcoreParserService {
 
   constructor(
     private ePackage2Json: EPackage2JsonService,
+    private referenceResolver: ReferenceResolvingService,
   ) {}
 
   parse(xml: string): EPackageJson[] {
@@ -43,7 +45,7 @@ export class Ecore2JsonService {
     //now resolve ALL references (later take all as knowledge input):
     result.map((pkg: EPackageJson) => {
       this.inferTreeParents(pkg)
-      this.resolveSuperTypes(pkg)
+      this.referenceResolver.resolveSuperTypes(pkg)
     })
     return result;
   }
@@ -53,48 +55,6 @@ export class Ecore2JsonService {
     const type = el.getAttribute('xmi:type') ?? '';
     return tag.endsWith('EPackage') || type.endsWith('EPackage');
   }
-
-  resolveSuperTypes(pkg: EPackageJson) {
-    for (const cls of pkg.eClasses) {
-      cls.superTypes2.map(sup => {
-        const resolved = this.resolveSuperTypeUri(sup.originalRef, pkg)
-        if (resolved) {
-          sup.resolvedRef = {
-            name: resolved
-            //todo pkg?
-          }
-        }
-      })
-      cls.resolvedSuperTypes = cls.superTypes2
-        .filter(sup => sup.resolvedRef != undefined)
-        .map(ref => ref.resolvedRef!.name) // todo
-    }
-  }
-
-  private resolveSuperTypeUri(uri: string, pkg: EPackageJson): string | undefined {
-    // Case 1: XMI index "#/0/@eClassifiers.1"
-    const match = uri.match(/@eClassifiers\.(\d+)/);
-    if (match) {
-      const index = Number(match[1]);
-      const cls = pkg.eClasses.find(c => c._index === index);
-      return cls?.name;
-    }
-
-    // Case 2: "#//Person" plus now also /1/Person
-    if (uri.includes('/')) {
-      const name = uri.split('/').pop()!;
-      return pkg.eClasses.some(c => c.name === name) ? name : undefined;
-    }
-    //done also remove any /? since name is the last one behind it?
-
-    // Case 3: "ecore:Person"
-    if (uri.includes(':')) {
-      const name = uri.split(':').pop()!;
-      return pkg.eClasses.some(c => c.name === name) ? name : undefined;
-    }
-    return undefined;
-  }
-
 
   inferTreeParents(pkg: EPackageJson) {
     // Build a lookup table following the opposite naming schema

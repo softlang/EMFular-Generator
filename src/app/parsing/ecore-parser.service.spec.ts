@@ -1,13 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 
-import { Ecore2JsonService } from './ecore2json.service';
+import { EcoreParserService } from './ecore-parser.service';
 
 describe('Ecore2jsonService', () => {
-  let service: Ecore2JsonService;
+  let service: EcoreParserService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(Ecore2JsonService);
+    service = TestBed.inject(EcoreParserService);
   });
 
   it('should be created', () => {

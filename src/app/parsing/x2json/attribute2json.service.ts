@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import {EAttributeJson} from './ecore-json';
-import { ReferenceResolvingService } from './reference-resolving.service';
+import {EAttributeJson} from '../ecore-json';
+import { ReferenceResolvingService } from '../reference-resolving.service';
 
 @Injectable({
   providedIn: 'root',

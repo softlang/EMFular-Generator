@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import {Classifier2JsonService} from './classifier2json.service';
-import {EPackageJson} from './ecore-json';
+import {EPackageJson} from '../ecore-json';
 
 @Injectable({
   providedIn: 'root',
@@ -36,11 +36,6 @@ export class EPackage2JsonService {
           idToName.set(id, name);
         }
       }
-    }
-
-    console.error("Map:");
-    for (const [key, value] of idToName.entries()) {
-      console.error("  " + key + " → " + value);
     }
 
     let index = 0

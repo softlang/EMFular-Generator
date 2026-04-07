@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import {EClassifierJson, EClassJson, EDataTypeJson, EEnumJson} from './ecore-json';
+import {EClassifierJson, EClassJson, EDataTypeJson, EEnumJson} from '../ecore-json';
 import {Attribute2JsonService} from './attribute2json.service';
 import {Reference2JsonService} from './reference2json.service';
 

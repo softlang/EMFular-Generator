@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { GenerationParams } from './generation-params';
 import { ProjectGenerationService } from './project/project-generation.service';
 import {ModelGenerationService} from './model/model-generation.service';
-import {Ecore2JsonService} from '../parsing/ecore2json.service';
+import {EcoreParserService} from '../parsing/ecore-parser.service';
 import {EClassJson, EPackageJson} from '../parsing/ecore-json';
 import {RootFindingService} from './root/root-finding.service';
 import {RootSelectionDialogComponent} from './root/root-selection-dialog/root-selection-dialog.component';
@@ -16,7 +16,7 @@ export class GenerationService {
   constructor(
     private projectGen: ProjectGenerationService,
     private modelGenerationService: ModelGenerationService,
-    private ecore2jsonService: Ecore2JsonService,
+    private ecoreParserService: EcoreParserService,
     private rootFindingService: RootFindingService,
     private dialog: MatDialog,
   ) {}
@@ -24,7 +24,7 @@ export class GenerationService {
   async processEcoreFile(file: File, projectName?: string, rootByUser?: string, packageByUser?: string): Promise<string> {
     const xml = await this.readFile(file);
     // multi package ecores
-    const models: EPackageJson[] = this.ecore2jsonService.parse(xml)
+    const models: EPackageJson[] = this.ecoreParserService.parse(xml)
     if(models.length == 0){
       throw new Error('No EPackages found.');
     }
