@@ -53,7 +53,16 @@ export interface EClassJson extends EClassifierJson {
   references: EReferenceJson[];
 }
 
-export interface EAttributeJson {
+export interface EStructuralFeature {
+  name: string;
+  type: string;
+  resolvedType: string;
+  // cardinality
+  lowerBound: number;
+  upperBound: number;
+}
+
+export interface EAttributeJson extends EStructuralFeature {
   kind: "EAttribute";
   name: string;
 
@@ -66,13 +75,12 @@ export interface EAttributeJson {
   defaultValueLiteral?: string;
 }
 
-export interface EReferenceJson {
+export interface EReferenceJson extends EStructuralFeature {
   kind: "EReference";
-  name: string;
 
+  name: string;
   type: string;
   resolvedType: string;
-
   // cardinality
   lowerBound: number;
   upperBound: number;
