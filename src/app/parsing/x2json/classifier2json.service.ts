@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import {EClassifierJson, EClassJson, EDataTypeJson, EEnumJson} from '../ecore-json';
-import {Attribute2JsonService} from './attribute2json.service';
-import {Reference2JsonService} from './reference2json.service';
+import {StructuralFeature2JsonService} from './structural-feature2json.service';
 
 @Injectable({
   providedIn: 'root',
@@ -9,8 +8,7 @@ import {Reference2JsonService} from './reference2json.service';
 export class Classifier2JsonService {
 
   constructor(
-    private attribute2json: Attribute2JsonService,
-    private reference2json: Reference2JsonService,
+    private structuralFeature2Json: StructuralFeature2JsonService,
   ) {}
 
   parseEClass(el: Element, index: number): EClassJson {
@@ -32,17 +30,16 @@ export class Classifier2JsonService {
       const type = child.getAttribute('xsi:type');
       if (type === 'ecore:EAttribute') {
         cls.attributes.push(
-          this.attribute2json.parseEAttribute(child)
+          this.structuralFeature2Json.parseEAttribute(child)
         );
       } else if (type === 'ecore:EReference') {
         cls.references.push(
-          this.reference2json.parseEReference(child)
+          this.structuralFeature2Json.parseEReference(child)
         );
       }
     }
     return cls;
   }
-
 
   parseEEnum(el: Element, index: number): EEnumJson {
     const general = this.parseClassifier(el, index);
