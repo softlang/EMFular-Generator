@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import {EAttributeJson, EClassJson, EPackageJson, EReferenceJson, RefFragmentKind} from './ecore-json';
+import {EClassJson, EPackageJson, EReferenceJson, RefFragmentKind, Resolvable} from './ecore-json';
 
 @Injectable({
   providedIn: 'root',
@@ -22,16 +22,16 @@ export class ReferenceResolvingService {
   private resolveOnClass(cls: EClassJson, idToName: Map<string, string>) {
     //todo collect imports?
     cls.attributes.forEach(attr => {
-      this.resolveType(attr, idToName)
+      this.resolveType(attr.type, idToName)
     })
     cls.references.forEach(reference => {
-      this.resolveType(reference, idToName)
+      this.resolveType(reference.type, idToName)
       this.resolveOpposite(reference)
     })
   }
 
-  private resolveType(attr: EAttributeJson|EReferenceJson, idToName: Map<string,string>){
-    attr.resolvedType = this.resolveByIdMap(attr.type, idToName)
+  private resolveType(attr: Resolvable, idToName: Map<string,string>){
+    attr.resolved = this.resolveByIdMap(attr.raw, idToName)
   }
 
   private resolveByIdMap(rawType: string, idToName: Map<string,string>) {

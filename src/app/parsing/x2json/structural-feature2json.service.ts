@@ -9,8 +9,7 @@ export class StructuralFeature2JsonService {
   private parseStructuralFeature(el: Element): EStructuralFeature {
     return {
       name: el.getAttribute('name') ?? '',
-      type: el.getAttribute('eType') ?? '',
-      resolvedType: '', //resolved later
+      type: {raw: el.getAttribute('eType') ?? ''},
       lowerBound: Number(el.getAttribute('lowerBound') ?? '0'),
       upperBound: Number(el.getAttribute('upperBound') ?? '1'),
     }

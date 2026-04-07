@@ -20,8 +20,8 @@ export class RootFindingService {
 
     for (const cls of model.eClasses) {
       for (const ref of cls.references ?? []) {
-        if (ref.containment && ref.resolvedType && ref.resolvedType !== cls.name) {
-          containedTargets.add(ref.resolvedType);
+        if (ref.containment && ref.type.resolved && ref.type.resolved !== cls.name) {
+          containedTargets.add(ref.type.resolved);
         }
       }
     }

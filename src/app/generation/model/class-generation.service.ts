@@ -106,9 +106,9 @@ export class ClassGenerationService {
     );
     // referenced types (type-only), but skip real parent and self
     cls.references.forEach(ref => {
-      if (ref.resolvedType === realParent) return;
-      if (ref.resolvedType === cls.name) return;
-      imports.add(`import type { ${ref.resolvedType} } from './${ref.resolvedType}';`);
+      if (ref.type.resolved === realParent) return;
+      if (ref.type.resolved === cls.name) return;
+      imports.add(`import type { ${ref.type.resolved} } from './${ref.type.resolved}';`);
     });
     //modelList if needed (type-only)
     if (cls.references.some(r => r.upperBound !== 1)) {
@@ -138,16 +138,16 @@ export class ClassGenerationService {
 
   private buildNormalRef(ref: EReferenceJson, className: string) {
     const type = ref.upperBound === 1
-      ? ref.resolvedType
-      : `ModelList<${ref.resolvedType}>`;
+      ? ref.type.resolved
+      : `ModelList<${ref.type.resolved}>`;
     return `  @reference(${className}Refs.${ref.name})\n  declare ${ref.name}: ${type};`;
   }
 
   private buildDerivedRef(ref: EReferenceJson, className: string) {
     //right now just create a getter with right type:
     const type = ref.upperBound === 1
-      ? ref.resolvedType+(ref.lowerBound!==1?"|undefined":"")
-      : ref.resolvedType+"[]"
+      ? ref.type.resolved+(ref.lowerBound!==1?"|undefined":"")
+      : ref.type.resolved+"[]"
     const notImplemented = "throw new Error('Method not implemented.'); //TODO"
     return `  get ${ref.name}(): ${type} {\n\t\t${notImplemented}\n  }\n`;
   }
@@ -181,7 +181,7 @@ export class ClassGenerationService {
   }
 
   private mapEcoreTypeToTs(attr: EAttributeJson): string {
-    const t = attr.type;
+    const t = attr.type.raw;
 
     if (t.endsWith("#//EString")) return "string";
     if (t.endsWith("#//EBoolean") || t.endsWith("#//EBooleanObject")) return "boolean";
@@ -198,6 +198,7 @@ export class ClassGenerationService {
     if (t.endsWith("#//EByteArray")) return "Uint8Array";
 
     // enum or custom datatype → short name
+    //todo why not use cleaned version all the time
     const idx = t.lastIndexOf("#//");
     return idx >= 0 ? t.substring(idx + 3) : t;
   }

@@ -55,8 +55,7 @@ export interface EClassJson extends EClassifierJson {
 
 export interface EStructuralFeature {
   name: string;
-  type: string;
-  resolvedType: string;
+  type: Resolvable;
   // cardinality
   lowerBound: number;
   upperBound: number;
@@ -66,8 +65,7 @@ export interface EAttributeJson extends EStructuralFeature {
   kind: "EAttribute";
   name: string;
 
-  type: string;
-  resolvedType: string;
+  type: Resolvable;
 
   lowerBound: number;
   upperBound: number;
@@ -79,8 +77,7 @@ export interface EReferenceJson extends EStructuralFeature {
   kind: "EReference";
 
   name: string;
-  type: string;
-  resolvedType: string;
+  type: Resolvable;
   // cardinality
   lowerBound: number;
   upperBound: number;
