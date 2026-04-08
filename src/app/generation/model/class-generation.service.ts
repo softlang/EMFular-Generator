@@ -55,17 +55,17 @@ export class ClassGenerationService {
 
 
     //distinguish interfaces and real classes on super:
-    const [interfaces, realClasses] = cls.resolvedSuperTypes.reduce(
-      ([i, r], name) => {
-        const sup = classMap.get(name)!;
-        if (sup.interfaceLike) i.push(name);
-        else r.push(name);
-        return [i, r];
-      },
-      [[], []] as [string[], string[]]
-    );
-
-
+    const [interfaces, realClasses] = cls.superTypes
+      .map(s => s.resolved!)
+      .reduce(
+        ([i, r], name) => {
+          const sup = classMap.get(name)!;
+          if (sup.interfaceLike) i.push(name);
+          else r.push(name);
+          return [i, r];
+        },
+        [[], []] as [string[], string[]]
+      );
     // implements:
     const IMPLEMENTS = interfaces.length > 0
       ? `implements ${interfaces.join(', ')}`

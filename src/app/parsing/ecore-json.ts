@@ -4,11 +4,6 @@ export enum RefFragmentKind {
   IdBased        // #_abc123
 }
 
-export interface CompleteRef {
-  originalRef: string;
-  resolvedRef?: ResolvedRef
-}
-
 export interface ResolvedRef {
   name: string;
   pkgUri?: string;
@@ -47,8 +42,7 @@ export interface EClassJson extends EClassifierJson {
 
   abstract: boolean;
   interfaceLike?: boolean;
-  superTypes2: CompleteRef[]; //both, raw plus resolved
-  resolvedSuperTypes: string[];  // clean class names
+  superTypes: Resolvable[];
   attributes: EAttributeJson[];
   references: EReferenceJson[];
 }

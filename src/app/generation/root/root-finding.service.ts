@@ -29,7 +29,7 @@ export class RootFindingService {
     // 2. Precompute immediate subtypes ("children")
     const children = new Map<string, string[]>();
     for (const cls of model.eClasses) {
-      for (const sup of cls.resolvedSuperTypes ?? []) {
+      for (const sup of cls.superTypes.map(s => s.resolved!) ?? []) {
         const arr = children.get(sup) ?? [];
         arr.push(cls.name);
         children.set(sup, arr);
@@ -43,7 +43,7 @@ export class RootFindingService {
       ctsize = containedTargets.size;
       for (const cls of model.eClasses) {
         if (
-          cls.resolvedSuperTypes.some(sup => containedTargets.has(sup))
+          cls.superTypes.map(s => s.resolved!).some(sup => containedTargets.has(sup))
         ) {
           containedTargets.add(cls.name)
         }

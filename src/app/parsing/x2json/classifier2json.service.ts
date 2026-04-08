@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import {EClassifierJson, EClassJson, EDataTypeJson, EEnumJson} from '../ecore-json';
 import {StructuralFeature2JsonService} from './structural-feature2json.service';
+import {ResolvableHandler} from '../resolvable-handler';
 
 @Injectable({
   providedIn: 'root',
@@ -18,10 +19,9 @@ export class Classifier2JsonService {
       kind: 'EClass',
       abstract: el.getAttribute('abstract') === 'true',
       interfaceLike: el.getAttribute('interface') === 'true',
-      superTypes2: (el.getAttribute('eSuperTypes') ?? '')
+      superTypes: (el.getAttribute('eSuperTypes') ?? '')
         .split(' ')
-        .map(value => { return {originalRef: value} }),
-      resolvedSuperTypes: [],
+        .map(value => { return ResolvableHandler.createNonNull(value) }),
       attributes: [],
       references: [],
     };

@@ -6,6 +6,10 @@ export class ResolvableHandler {
     return raw? {raw: raw} : undefined;
   }
 
+  static createNonNull(raw: string): Resolvable {
+    return {raw: raw} as Resolvable;
+  }
+
   static resolve(resolvable: Resolvable): string | undefined {
     return resolvable.resolved!!
   }

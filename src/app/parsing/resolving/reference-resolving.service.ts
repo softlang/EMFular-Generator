@@ -62,18 +62,14 @@ export class ReferenceResolvingService {
 
   resolveSuperTypes(pkg: EPackageJson) {
     for (const cls of pkg.eClasses) {
-      cls.superTypes2.map(sup => {
-        const resolved = this.resolveSuperTypeUri(sup.originalRef, pkg)
+      cls.superTypes.map(sup => {
+        const resolved = this.resolveSuperTypeUri(sup.raw, pkg)
         if (resolved) {
-          sup.resolvedRef = {
-            name: resolved
-            //todo pkg?
-          }
+          sup.resolved = resolved
+        } else {
+          throw new Error("Could not resolve supertype "+sup.raw+" on class "+cls.name)
         }
       })
-      cls.resolvedSuperTypes = cls.superTypes2
-        .filter(sup => sup.resolvedRef != undefined)
-        .map(ref => ref.resolvedRef!.name) // todo
     }
   }
 
@@ -115,7 +111,7 @@ export class ReferenceResolvingService {
   }
 
   //we can resolve without context, since we do neither expect id-based, nor positional references
-  resolveOpposite(ref: EReferenceJson) {
+  private resolveOpposite(ref: EReferenceJson) {
     const raw = ref.opposite?.raw
     const oppositeKind = this.classifyRefFragment(raw)
     if (oppositeKind == RefFragmentKind.IdBased || oppositeKind == RefFragmentKind.Positional ) {
