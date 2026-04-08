@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { EPackageJson } from './ecore-json';
 import { EPackage2JsonService } from './x2json/epackage2json.service';
-import { ReferenceResolvingService } from './reference-resolving.service';
+import { ReferenceResolvingService } from './resolving/reference-resolving.service';
 
 @Injectable({
   providedIn: 'root',
@@ -23,13 +23,13 @@ export class EcoreParserService {
       const el = stack.pop()!;
       if (this.isEPackage(el)) {
         result.push(this.ePackage2Json.parsePackage(el));
-      } else { // Not a package → continue scanning children
+      } else { // Not a package, continue scanning children
         for (const child of Array.from(el.children)) {
           stack.push(child);
         }
       }
     }
-    //2) now resolve ALL references/additional attributes
+    // 2) now resolve ALL references/additional attributes
     this.referenceResolver.resolveOnPkgs(result)
     return result;
   }

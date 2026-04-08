@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import {EClassJson, EPackageJson, EReferenceJson, RefFragmentKind, Resolvable} from './ecore-json';
+import {EClassJson, EPackageJson, EReferenceJson, RefFragmentKind, Resolvable} from '../ecore-json';
 
 @Injectable({
   providedIn: 'root',
