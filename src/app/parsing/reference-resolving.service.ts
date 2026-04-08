@@ -6,6 +6,10 @@ import {EClassJson, EPackageJson, EReferenceJson, RefFragmentKind, Resolvable} f
 })
 export class ReferenceResolvingService {
 
+  resolveOnPkgs(pkgs: EPackageJson[]) {
+    pkgs.map(pkg => this.resolveOnPkg(pkg))
+  }
+
   resolveOnPkg(pkg: EPackageJson) {
     const idToMap: Map<string, string> = new Map();
     pkg.eClasses.forEach(eClass => {
@@ -17,6 +21,8 @@ export class ReferenceResolvingService {
     pkg.eClasses.forEach((cls: EClassJson) => {
       this.resolveOnClass(cls, idToMap)
     })
+    this.resolveSuperTypes(pkg)
+    this.inferTreeParents(pkg)
   }
 
   private resolveOnClass(cls: EClassJson, idToName: Map<string, string>) {
@@ -118,5 +124,28 @@ export class ReferenceResolvingService {
     if (!raw ) return;
     const idx = raw.lastIndexOf("/");
     ref.opposite!.resolved =  idx >= 0 ? raw.substring(idx + 1) : raw;
+  }
+
+  private inferTreeParents(pkg: EPackageJson) {
+    // Build a lookup table following the opposite naming schema
+    const refIndex = new Map<string, EReferenceJson>();
+    for (const cls of pkg.eClasses) {
+      for (const ref of cls.references) {
+        refIndex.set(`#//${cls.name}/${ref.name}`, ref);
+      }
+    }
+    // Now resolve opposites and infer tree-parent
+    for (const cls of pkg.eClasses) {
+      for (const ref of cls.references) {
+        if (!ref.opposite?.resolved) {
+          continue;
+        }
+        const oppositeRef = refIndex.get(ref.opposite.resolved);
+        // A reference is a tree parent iff its opposite is containment
+        if (oppositeRef?.containment === true) {
+          ref.isTreeParent = true;
+        }
+      }
+    }
   }
 }
