@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { EPackageJson } from './ecore-model/package';
 import { EPackage2JsonService } from './x2json/epackage2json.service';
 import { ReferenceResolvingService } from './resolving/reference-resolving.service';
+import { Package } from  '../synthesis-model/package'
 
 @Injectable({
   providedIn: 'root',
@@ -12,6 +13,16 @@ export class EcoreParserService {
     private ePackage2Json: EPackage2JsonService,
     private referenceResolver: ReferenceResolvingService,
   ) {}
+
+  parse2(xml: string): Package[]  {
+    const pkgs: Package[] = []
+    //todo
+    return pkgs
+
+    if(pkgs.length == 0){
+      throw new Error('No EPackages found.');
+    }
+  }
 
   parse(xml: string): EPackageJson[] {
     const doc = this.parseXml(xml);

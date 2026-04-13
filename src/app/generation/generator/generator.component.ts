@@ -3,6 +3,7 @@ import {NgIf} from '@angular/common';
 import {GenerationService} from '../generation.service';
 import {ZipService} from '../../utils/zip.service';
 import {FormsModule} from '@angular/forms';
+import {ClassifierReference} from '../../synthesis-model/cross-references';
 
 @Component({
   selector: 'emfular-generator',
@@ -56,13 +57,16 @@ export class GeneratorComponent {
 
   private async processFile(file: File, projectName?: string) {
     this.errorMessage = null;
+    const todoRootName = this.sanitize(this.rootByUser)
+    const todoRoot: ClassifierReference|undefined = todoRootName?
+      {name: todoRootName, path: []}: undefined
 
     try {
       const finalProjectName =
         await this.generationService.processEcoreFile(
           file,
           projectName,
-          this.sanitize(this.rootByUser),
+          todoRoot,
           this.sanitize(this.packageByUser)
         );
       await this.zipService.downloadZip(finalProjectName);
