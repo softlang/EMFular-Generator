@@ -1,15 +1,10 @@
 import { Injectable } from '@angular/core';
-import {
-  EAttributeJson,
-  EClassJson,
-  EDataTypeJson,
-  EEnumJson,
-  EPackageJson,
-  EReferenceJson
-} from '../../parsing/ecore-json';
+import { EPackageJson } from '../../parsing/ecore-model/package';
 import { TemplateLoadService } from '../../utils/template-load.service';
 import { PlaceholderReplacerService } from '../../utils/place-holder-replacer.service';
 import { ZipService } from '../../utils/zip.service';
+import {EClassJson, EDataTypeJson, EEnumJson} from '../../parsing/ecore-model/classifier';
+import {EAttributeJson, EReferenceJson} from '../../parsing/ecore-model/structural-feature';
 
 @Injectable({
   providedIn: 'root',

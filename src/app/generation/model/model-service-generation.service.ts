@@ -2,7 +2,8 @@ import { Injectable } from '@angular/core';
 import {TemplateLoadService} from '../../utils/template-load.service';
 import {PlaceholderReplacerService} from '../../utils/place-holder-replacer.service';
 import {ZipService} from '../../utils/zip.service';
-import {EClassJson, EPackageJson} from '../../parsing/ecore-json';
+import {EPackageJson} from '../../parsing/ecore-model/package';
+import {EClassJson} from '../../parsing/ecore-model/classifier';
 
 @Injectable({
   providedIn: 'root',

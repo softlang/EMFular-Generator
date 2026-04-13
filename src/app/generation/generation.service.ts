@@ -3,12 +3,13 @@ import { GenerationParams } from './generation-params';
 import { ProjectGenerationService } from './project/project-generation.service';
 import {ModelGenerationService} from './model/model-generation.service';
 import {EcoreParserService} from '../parsing/ecore-parser.service';
-import {EClassJson, EPackageJson} from '../parsing/ecore-json';
+import { EPackageJson } from '../parsing/ecore-model/package';
 import {RootFindingService} from './root/root-finding.service';
 import {RootSelectionDialogComponent} from './root/root-selection-dialog/root-selection-dialog.component';
 import {MatDialog} from '@angular/material/dialog';
 import {firstValueFrom} from 'rxjs';
 import {PackageSelectionDialogComponent} from './package-selection-dialog/package-selection-dialog';
+import {EClassJson} from '../parsing/ecore-model/classifier';
 
 @Injectable({ providedIn: 'root' })
 export class GenerationService {

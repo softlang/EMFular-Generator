@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { EPackageJson } from './ecore-json';
+import { EPackageJson } from './ecore-model/package';
 import { EPackage2JsonService } from './x2json/epackage2json.service';
 import { ReferenceResolvingService } from './resolving/reference-resolving.service';
 

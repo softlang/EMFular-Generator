@@ -2,9 +2,10 @@ import { Injectable } from '@angular/core';
 import {MetaGenerationService} from './meta-generation.service';
 import {InterfaceGenerationService} from './interface-generation.service';
 import {ClassGenerationService} from './class-generation.service';
-import {EClassJson, EPackageJson} from '../../parsing/ecore-json';
+import { EPackageJson} from '../../parsing/ecore-model/package';
 import {ModelServiceGenerationService} from './model-service-generation.service';
 import {EditorGenerationService} from './editor-generation.service';
+import {EClassJson} from '../../parsing/ecore-model/classifier';
 
 @Injectable({
   providedIn: 'root',

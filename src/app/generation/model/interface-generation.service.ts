@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
-import { EClassJson, EPackageJson } from '../../parsing/ecore-json';
+import { EPackageJson } from '../../parsing/ecore-model/package';
 import { TemplateLoadService } from '../../utils/template-load.service';
 import { PlaceholderReplacerService } from '../../utils/place-holder-replacer.service';
 import { ZipService } from '../../utils/zip.service';
+import {EClassJson} from '../../parsing/ecore-model/classifier';
 
 @Injectable({
   providedIn: 'root',
@@ -33,7 +34,7 @@ export class InterfaceGenerationService {
     interfaceTemplate: string
   ): string {
 
-    const superInterfaces = cls.resolvedSuperTypes
+    const superInterfaces = cls.superTypes.map(r => r.resolved)
     const typeImports = superInterfaces.length > 0
       ? superInterfaces
         .map(name => `import type { ${name} } from './${name}';`)

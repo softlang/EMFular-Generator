@@ -1,5 +1,6 @@
 import {Injectable} from '@angular/core';
-import {EClassJson, EPackageJson} from '../../parsing/ecore-json';
+import {EPackageJson} from '../../parsing/ecore-model/package';
+import {EClassJson} from '../../parsing/ecore-model/classifier';
 
 @Injectable({
   providedIn: 'root',

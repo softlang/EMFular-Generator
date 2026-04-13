@@ -1,4 +1,4 @@
-import {Resolvable} from './ecore-json';
+import {Resolvable} from './ecore-model/resolvable';
 
 export class ResolvableHandler {
 

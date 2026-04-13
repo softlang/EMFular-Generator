@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import {Classifier2JsonService} from './classifier2json.service';
-import {EPackageJson} from '../ecore-json';
+import {EPackageJson} from '../ecore-model/package';
 
 @Injectable({
   providedIn: 'root',
@@ -22,6 +22,7 @@ export class EPackage2JsonService {
       pascalizedName: this.pascalCase(name),
       nsURI: root.getAttribute('nsURI') ?? '',
       nsPrefix: root.getAttribute('nsPrefix') ?? '',
+      eClassifiers: [],
       eClasses: [],
       eEnums: [],
       eDataTypes: [],
@@ -35,12 +36,15 @@ export class EPackage2JsonService {
         if (type === 'ecore:EClass') {
           const cls = this.classifiers2Json.parseEClass(child, index);
           pkg.eClasses.push(cls);
+          pkg.eClassifiers.push(cls);
         } else if (type === 'ecore:EEnum') {
           const en = this.classifiers2Json.parseEEnum(child, index);
           pkg.eEnums.push(en);
+          pkg.eClassifiers.push(en);
         } else if (type === 'ecore:EDataType') {
           const dt = this.classifiers2Json.parseEDataType(child, index);
           pkg.eDataTypes.push(dt);
+          pkg.eClassifiers.push(dt);
         }
         index++
       }
