@@ -12,6 +12,7 @@ import {EClassJson} from '../parsing/ecore-model/classifier';
 import {Package} from '../synthesis-model/package';
 import {EClass} from '../synthesis-model/classifier';
 import {ClassifierReference} from '../synthesis-model/cross-references';
+import {SynthesisModelService} from '../parsing/resolving/synthesis-model.service';
 
 @Injectable({ providedIn: 'root' })
 export class GenerationService {
@@ -20,6 +21,7 @@ export class GenerationService {
     private projectGen: ProjectGenerationService,
     private modelGenerationService: ModelGenerationService,
     private ecoreParserService: EcoreParserService,
+    private synthesisModelService: SynthesisModelService,
     private rootFindingService: RootFindingService,
     private dialog: MatDialog,
   ) {}
@@ -27,13 +29,16 @@ export class GenerationService {
   //todo now use packageByUser spot for model name
   async processEcoreFile(file: File, projectName?: string, rootByUser?: ClassifierReference, modelByUser?: string): Promise<string> {
     const xml = await this.readFile(file);
-    const pkgs: Package[] = this.ecoreParserService.parse2(xml)
+    const rawPkgs: EPackageJson[] = this.ecoreParserService.parse(xml)
 
     const params: GenerationParams = this.composeGenerationParams(file, projectName, modelByUser)
-    //now choose root here, it can be from any package
-    const root: EClass = await this.determineRoot2(pkgs, rootByUser)
+    const generationModel = this.synthesisModelService.ecoreJson2synthesisModel(rawPkgs)  //or use root here?
 
-    await this.processPackages(pkgs, params, root);
+    //now choose root here, it can be from any package -
+    // todo but we probably need the old way to reference it/raw names
+    const root: EClass = await this.determineRoot2(generationModel, rootByUser)
+
+    await this.processPackages(generationModel, params, root);
     return params.projectName
   }
 
