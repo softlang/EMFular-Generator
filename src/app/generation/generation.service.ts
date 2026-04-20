@@ -5,12 +5,7 @@ import {ModelGenerationService} from './model/model-generation.service';
 import {EcoreParserService} from '../parsing/ecore-parser.service';
 import { EPackageJson } from '../parsing/ecore-model/package';
 import {RootFindingService} from './root/root-finding.service';
-import {RootSelectionDialogComponent} from './root/root-selection-dialog/root-selection-dialog.component';
-import {MatDialog} from '@angular/material/dialog';
-import {firstValueFrom} from 'rxjs';
-import {EClassJson} from '../parsing/ecore-model/classifier';
 import {Package} from '../synthesis-model/package';
-import {EClass} from '../synthesis-model/classifier';
 import {ClassifierReference} from '../synthesis-model/cross-references';
 import {SynthesisModelService} from '../parsing/resolving/synthesis-model.service';
 
@@ -23,7 +18,6 @@ export class GenerationService {
     private ecoreParserService: EcoreParserService,
     private synthesisModelService: SynthesisModelService,
     private rootFindingService: RootFindingService,
-    private dialog: MatDialog,
   ) {}
 
   //todo now use packageByUser spot for model name
@@ -32,7 +26,7 @@ export class GenerationService {
     const rawPkgs: EPackageJson[] = this.ecoreParserService.parse(xml)
 
     //now choose root here, it can be from any package -
-    const root: ClassifierReference = await this.determineRoot2(rawPkgs, rootByUser)
+    const root: ClassifierReference = await this.rootFindingService.determineRoot(rawPkgs, rootByUser)
     const params: GenerationParams = this.composeGenerationParams(file, projectName, modelByUser)
     const generationModel = this.synthesisModelService.ecoreJson2synthesisModel(rawPkgs)  //or use root here?
 
@@ -62,14 +56,6 @@ export class GenerationService {
     };
   }
 
-  private async determineRoot2(pkgs: EPackageJson[], rootByUser?: ClassifierReference): Promise<ClassifierReference> {
-    if(rootByUser) {
-      return rootByUser;
-    } else {
-      return await this.rootByAsking(pkgs)
-    }
-  }
-
   /*
   private classFromReferences(packages: Package[], rootByUser: ClassifierReference): EClass {
     let paths = rootByUser.path
@@ -92,45 +78,6 @@ export class GenerationService {
     }
   }*/
 
-  private async rootByAsking(pkgs: EPackageJson[]): Promise<ClassifierReference> {
-    //first reduce classes on pkgs to that that are root candidates:
-    const resPkgs = pkgs.map(p => this.reduceToCandidates(p))
-    //then check if there is only one real candidate - if yes, use it, else ask the user.
-    const candidates: EClass[] = resPkgs.flatMap(p => p.classes)
-    if (candidates.length === 1) {
-      return candidates[0];
-    }
-    if (candidates.length === 0) {
-      throw new Error("No non-abstract, not interface-like class found, hence no useful generation possible")
-    }
-    const userRoot = await this.pickRoot2(resPkgs)
-    if(!userRoot) {
-      throw new Error("Please pick a root class")
-    }
-    return userRoot;
-  }
-
-  private async pickRoot2(pkgs: Package[]): Promise<EClass| null> {
-      return null; //todo
-  }
-
-  private reduceToCandidates(pkg: Package): Package {
-    const res: Package = {
-      ...pkg
-    }
-    res.classes = this.rootFindingService.allPossibleRootClasses2(pkg)
-    return res
-  }
-
-  private rootFromUser(model: EPackageJson, rootByUser: string): EClassJson {
-    const root = model.eClasses.find(c => c.name === rootByUser)
-    if (!root) {
-      throw new Error(`Given Root class ${rootByUser} not found on Package ${model.name}.\n`
-      +`Classes are ${model.eClasses.map(c => c.name).join(', ')}.`);
-    }
-    return root;
-  }
-
   private readFile(file: File): Promise<string> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -140,24 +87,6 @@ export class GenerationService {
 
       reader.readAsText(file);
     });
-  }
-
-  async determineRoot(model: EPackageJson): Promise<EClassJson | null> {
-    const candidates = this.rootFindingService.allPossibleRootClasses(model);
-    if (candidates.length === 1) {
-      return candidates[0];
-    }
-    if (candidates.length === 0) {
-      throw new Error("No non-abstract, not interface-like class found, hence no useful generation possible")
-    }
-    return await this.pickRoot(candidates);
-  }
-
-  async pickRoot(candidates: EClassJson[]): Promise<EClassJson | null> {
-    const dialogRef = this.dialog.open(RootSelectionDialogComponent, {
-      data: candidates,
-    });
-    return await firstValueFrom(dialogRef.afterClosed());
   }
 
 }
