@@ -5,6 +5,7 @@ import {PlaceholderReplacerService} from '../../utils/place-holder-replacer.serv
 import {ZipService} from '../../utils/zip.service';
 import {EClassJson} from '../../parsing/ecore-model/classifier';
 import {EReferenceJson} from '../../parsing/ecore-model/structural-feature';
+import {Package} from '../../synthesis-model/package';
 
 @Injectable({
   providedIn: 'root',
@@ -19,7 +20,7 @@ export class MetaGenerationService {
     private zip: ZipService
   ) {}
 
-  async generateMeta(model: EPackageJson) {
+  async generateMeta(model: Package) {
     const refsBlocks =  this.buildAllClassRefs(model);
     const modelMeta = await this.buildModelMeta(model, refsBlocks);
 

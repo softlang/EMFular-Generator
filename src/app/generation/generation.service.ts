@@ -45,7 +45,7 @@ export class GenerationService {
   private async processPackages(pkgs: Package[], params: GenerationParams, root: EClass): Promise<void> {
     // Generate the Angular project structure
     await this.projectGen.generateProjectFiles(params);
-    //todo:     await this.modelGenerationService.generateModelFiles(model, root)
+    await this.modelGenerationService.generateWholeModelFolder(pkgs, root)
   }
 
   private fileName(file: File): string {

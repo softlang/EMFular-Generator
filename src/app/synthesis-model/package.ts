@@ -1,9 +1,9 @@
 import {EClass, EEnum, EDataType} from './classifier';
 
 export interface Package {
-  name: string;        // clean TS name
-  path: string[];      // clean folder path segments
-  subpackages: Package[]; //better get rid of them, just use paths
+  nsURI: string;
+  nsPrefix: string;
+  path: string[];      // clean folder path segments, at least own name
   classes: EClass[];
   enums: EEnum[];
   datatypes: EDataType[];
