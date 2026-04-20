@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
-import {EPackageJson} from '../../parsing/ecore-model/package';
 import {TemplateLoadService} from '../../utils/template-load.service';
 import {PlaceholderReplacerService} from '../../utils/place-holder-replacer.service';
 import {ZipService} from '../../utils/zip.service';
-import {EClassJson} from '../../parsing/ecore-model/classifier';
-import {EReferenceJson} from '../../parsing/ecore-model/structural-feature';
 import {Package} from '../../synthesis-model/package';
+import {EClass} from '../../synthesis-model/classifier';
+import {Reference} from '../../synthesis-model/structural-feature';
+import {CrossReferenceHandler} from '../../synthesis-model/cross-reference-handler';
 
 @Injectable({
   providedIn: 'root',
@@ -20,17 +20,17 @@ export class MetaGenerationService {
     private zip: ZipService
   ) {}
 
-  async generateMeta(model: Package) {
-    const refsBlocks =  this.buildAllClassRefs(model);
-    const modelMeta = await this.buildModelMeta(model, refsBlocks);
+  async generateMeta(model: Package, modelName: string) {
+    const refsBlocks = this.buildAllClassRefs(model);
+    const modelMeta = await this.buildModelMeta(model, modelName, refsBlocks);
 
-    const outputFolder = `src/app/${model.name}/core/`
+    const outputFolder = `@core/`
 
     this.zip.addFile(`${outputFolder}/_meta_.ts`, modelMeta);
   }
 
-  private buildEnums(model: EPackageJson): string {
-    return model.eEnums
+  private buildEnums(model: Package): string {
+    return model.enums
       .map(e =>
         `export enum ${e.name} {\n` +
         e.literals.map(lit => `  ${lit} = "${lit}",`).join("\n") +
@@ -39,18 +39,17 @@ export class MetaGenerationService {
       .join("\n");
   }
 
-  private buildTypes(model: EPackageJson): string {
-    return model.eDataTypes
+  private buildTypes(model: Package): string {
+    return model.datatypes
       .map(e =>
         `export type ${e.name} = any;`  //todo just aliases, currently all to any = Object
       ).join("\n");
   }
 
 
-  private buildAllClassRefs(model: EPackageJson): string {
-
+  private buildAllClassRefs(model: Package): string {
     let refs_list = [];
-    for (const classEntry of model.eClasses) {
+    for (const classEntry of model.classes) {
       refs_list.push(
         this.buildClassRef(classEntry)
       )
@@ -58,13 +57,11 @@ export class MetaGenerationService {
     return refs_list.join('\n');
   }
 
-  private buildClassRef(classDef: EClassJson): string {
-    //const classRefsTemplate = await this.loader.loadTemplate("CLASS_REFS.template.ts");
-
+  private buildClassRef(classDef: EClass): string {
     let REFS_list: string[] = []
     for (const refEntry of classDef.references) {
       REFS_list.push(
-        this.buildRefEntry(refEntry, classDef.name)
+        this.buildRefEntry(refEntry)
       )
     }
     let REFS = REFS_list.join(",\n")
@@ -80,7 +77,7 @@ export class MetaGenerationService {
       })
   }
 
-  private buildRefEntry(ref: EReferenceJson, className: string): string {
+  private buildRefEntry(ref: Reference): string {
     //needs inlining since empty last lines cause strange look
     return this.replacer.applyPlaceholders(
       '\t%%refName%%: {\n' +
@@ -88,14 +85,14 @@ export class MetaGenerationService {
       '\t} satisfies ReferenceMeta',
       {
         refName: ref.name,
-        CONTENT: this.buildCONTENT(ref, className)
+        CONTENT: this.buildCONTENT(ref)
       })
   }
 
   //indented
-  private buildCONTENT(ref: EReferenceJson, className: string): string {
+  private buildCONTENT(ref: Reference): string {
     const lines: string[] = [];
-    lines.push(`\ttarget: "${ref.type.resolved!.replace(/^ecore:/, "")}"`);
+    lines.push(`\ttarget: ${CrossReferenceHandler.createEClass(ref.type)}`);
     lines.push(`max: ${ref.upperBound?ref.upperBound:1}`)
     if (ref.lowerBound !== undefined && ref.lowerBound !== 0) {
       lines.push(`min: ${ref.lowerBound}`);
@@ -107,7 +104,7 @@ export class MetaGenerationService {
       lines.push(`isParent: true`);
     }
     if(ref.opposite) {
-      lines.push(`opposite: "${ref.opposite.resolved!!}"`);
+      lines.push(`opposite: "${ref.opposite}"`);
     }
     if(ref.derived) { //todo can we use it on 10.1?
       //lines.push(`derivingMethod: Symbol("${className}.${ref.name}.compute")`);
@@ -116,15 +113,15 @@ export class MetaGenerationService {
     return lines.join(",\n\t\t"); //hence first entry needs extra indentation
   }
 
-  private async buildModelMeta(model: EPackageJson, CLASS_REFS: string): Promise<string> {
+  private async buildModelMeta(model: Package, modelName: string, CLASS_REFS: string): Promise<string> {
     const modelMetaTemplate = await this.loader.loadTemplate(this.srcFolder+"model-meta.ts.template.ts");
 
-    const classEntries = model.eClasses
+    const classEntries = model.classes
       .map(cls => `${cls.name}: { references: ${cls.name}Refs },`)
       .join("\n\t\t");
 
     return this.replacer.applyPlaceholders(modelMetaTemplate, {
-      ModelName: model.name,
+      modelName: modelName,
       prefix: model.nsPrefix,
       uri: model.nsURI,
       CLASS_ENTRIES: "\t"+classEntries,

@@ -1,9 +1,8 @@
 import { Injectable } from '@angular/core';
-import {EPackageJson} from '../../parsing/ecore-model/package';
 import {TemplateLoadService} from '../../utils/template-load.service';
 import {PlaceholderReplacerService} from '../../utils/place-holder-replacer.service';
 import {ZipService} from '../../utils/zip.service';
-import {EClassJson} from '../../parsing/ecore-model/classifier';
+import {ClassifierReference} from '../../synthesis-model/cross-references';
 
 @Injectable({
   providedIn: 'root',
@@ -18,37 +17,37 @@ export class EditorGenerationService {
     private zip: ZipService
   ) {}
 
-  async generateEditorFiles(model: EPackageJson, root: EClassJson, realClasses: string[]) {
-    const outputFolder = `src/app/${model.name}/editor/`
+  async generateEditorFiles(modelName: string, root: ClassifierReference, realClasses: ClassifierReference[]) {
+    const outputFolder = `src/app/${modelName}/editor/`
 
     //empty css
     this.zip.addFile(
-      outputFolder+`${model.pascalizedName}-editor.component.css`,
+      outputFolder+`${modelName}-editor.component.css`,
       ""//empty but existing styles
     )
 
     //unchanged html
     const htmlFile = await this.loader.loadTemplate(this.srcFolder+'editor.component.html');
     this.zip.addFile(
-      outputFolder+`${model.pascalizedName}-editor.component.html`,
+      outputFolder+`${modelName}-editor.component.html`,
       htmlFile
     )
 
     //real work: the component ts:
     const componentTsTemplate = await this.loader.loadTemplate(this.srcFolder+'editor.component.ts.template.ts');
     this.zip.addFile(
-      outputFolder+`${model.pascalizedName}-editor.component.ts`,
-      this.createComponent(componentTsTemplate, model, root, realClasses)
+      outputFolder+`${modelName}-editor.component.ts`,
+      this.createComponent(componentTsTemplate, modelName, root, realClasses)
     )
   }
 
-  private createComponent(componentTemplate: string, model: EPackageJson, root: EClassJson, realClasses: string[]): string {
+  private createComponent(componentTemplate: string, modelName: string, root: ClassifierReference, realClasses: ClassifierReference[]): string {
     return this.replacer.applyPlaceholders(
       componentTemplate,
       {
-        modelName: model.pascalizedName,
+        modelName: modelName,
         root: root.name,
-        BUTTONS: this.createButtons(realClasses)
+        BUTTONS: this.createButtons(realClasses.map(c => c.name))
       }
     )
   }

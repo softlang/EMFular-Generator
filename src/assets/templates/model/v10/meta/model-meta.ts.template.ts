@@ -4,7 +4,7 @@ import { ModelDefinition, ReferenceMeta } from "emfular";
 %%ENUMS%%
 %%CLASS_REFS%%
 
-export const %%ModelName%%Meta: ModelDefinition = {
+export const %%modelName%%Meta: ModelDefinition = {
   name: "%%prefix%%",
   prefix: "%%prefix%%",
   uri: "%%uri%%#//", //because emfular expects complete uri

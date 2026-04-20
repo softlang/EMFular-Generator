@@ -5,7 +5,7 @@ import {ClassGenerationService} from './class-generation.service';
 import {ModelServiceGenerationService} from './model-service-generation.service';
 import {EditorGenerationService} from './editor-generation.service';
 import {Package} from '../../synthesis-model/package';
-import {EClass} from '../../synthesis-model/classifier';
+import {ClassifierReference} from '../../synthesis-model/cross-references';
 
 @Injectable({
   providedIn: 'root',
@@ -19,17 +19,17 @@ export class ModelGenerationService {
     private editorGenerationService: EditorGenerationService,
   ) {}
 
-  async generateWholeModelFolder(model: Package[], root: EClass) {
+  async generateWholeModelFolder(modelName: string, model: Package[], root: ClassifierReference) {
     for(const pkg of model) {
-      await this.generatePackage(pkg)
+      await this.generatePackage(pkg, modelName)
     }
-    const creatableClasses: string[] = [] //todo
-    await this.modelServiceGenerationService.generateServices(model, root, creatableClasses)
-    await this.editorGenerationService.generateEditorFiles(model, root, creatableClasses)
+    const creatableClasses: ClassifierReference[] = [] //todo
+    await this.modelServiceGenerationService.generateServices(modelName, root, creatableClasses)
+    await this.editorGenerationService.generateEditorFiles(modelName, root, creatableClasses)
   }
 
-  async generatePackage(pkg: Package) {
-    await this.metaGenerationService.generateMeta(pkg);
+  async generatePackage(pkg: Package, modelName: string) {
+    await this.metaGenerationService.generateMeta(pkg, modelName);
     await this.interfaceGenerationService.generateInterfaces(pkg);
     await this.classGenerationService.generateClasses(pkg)
   }

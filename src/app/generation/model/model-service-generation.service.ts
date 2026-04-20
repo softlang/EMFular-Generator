@@ -2,8 +2,7 @@ import { Injectable } from '@angular/core';
 import {TemplateLoadService} from '../../utils/template-load.service';
 import {PlaceholderReplacerService} from '../../utils/place-holder-replacer.service';
 import {ZipService} from '../../utils/zip.service';
-import {EPackageJson} from '../../parsing/ecore-model/package';
-import {EClassJson} from '../../parsing/ecore-model/classifier';
+import {ClassifierReference} from '../../synthesis-model/cross-references';
 
 @Injectable({
   providedIn: 'root',
@@ -18,29 +17,29 @@ export class ModelServiceGenerationService {
     private zip: ZipService
   ) {}
 
-  async generateServices(model: EPackageJson, root: EClassJson, realClasses: string[]) {
-    const outputFolder = `src/app/${model.name}/edit/`
+  async generateServices(modelName: string, root: ClassifierReference, realClasses: ClassifierReference[]) {
+    const outputFolder = `src/app/${modelName}/edit/`
 
     const historyTemplate = await this.loader.loadTemplate(this.srcFolder+'model-history.service.ts.template.ts')
     this.zip.addFile(
-      outputFolder+`${model.pascalizedName}-history.service.ts`,
-      this.createHistoryService(historyTemplate, model, root)
+      outputFolder+`${modelName}-history.service.ts`,
+      this.createHistoryService(historyTemplate, modelName, root)
     )
 
     const modelServiceTemplate = await this.loader.loadTemplate(this.srcFolder+'model.service.ts.template.ts')
     this.zip.addFile(
-      outputFolder+`${model.pascalizedName}.service.ts`,
-      this.createModelService(modelServiceTemplate, model, root, realClasses)
+      outputFolder+`${modelName}.service.ts`,
+      this.createModelService(modelServiceTemplate, modelName, root, realClasses)
     )
   }
 
-  createModelService(modelServiceTemplate: string, model: EPackageJson, root: EClassJson, realClasses: string[]): string {
-    const classesToInstantiate= realClasses
+  createModelService(modelServiceTemplate: string, modelName: string, root: ClassifierReference, realClasses: ClassifierReference[]): string {
+    const classesToInstantiate = realClasses
 
     return this.replacer.applyPlaceholders(
       modelServiceTemplate,
       {
-        modelName: model.pascalizedName,
+        modelName: modelName,
         root: root.name,
         ALL_REAL_CLASSES_IMPORTS: this.createImports(classesToInstantiate),
         MODEL_CREATION_METHODS: this.addCreationMethods(classesToInstantiate),
@@ -48,28 +47,23 @@ export class ModelServiceGenerationService {
     )
   }
 
-  private createImports(classes: string[]): string {
-    return classes.map(cls => `import { ${cls} } from "../core/${cls}";`)
+  private createImports(classes: ClassifierReference[]): string {
+    return classes.map(cls => `import { ${cls.name} } from "../core/${cls.path.join("/")}";`)
       .join('\n');
   }
 
-  private initializeClasses(classes: string[]): string {
-    const comment = '  // explicitly use modeling classes to avoid tree-shaking them away:\n'
-    return comment+classes.map(cls => `againstExtinction${cls} = new ${cls}()`)
-      .join('\n');
-  }
-
-  private addCreationMethods(classes: string[]): string {
-    return "\t"+classes.map(cls => `create${cls} () {\n\t\treturn new ${cls}()\n\t}\n`)
+  private addCreationMethods(classes: ClassifierReference[]): string {
+    return "\t"+classes.map(cls => `create${cls.name} () {\n\t\treturn new ${cls.name}()\n\t}\n`)
       .join('\n\t');
   }
 
-  createHistoryService(historyTemplate: string, model: EPackageJson, root: EClassJson): string {
+  createHistoryService(historyTemplate: string, modelName: string, root: ClassifierReference): string {
     return this.replacer.applyPlaceholders(
       historyTemplate,
       {
-        modelName: model.pascalizedName,
-        root: root.name
+        modelName: modelName,
+        root: root.name,
+        rootPath: root.path.join('/'),
       }
     )
   }

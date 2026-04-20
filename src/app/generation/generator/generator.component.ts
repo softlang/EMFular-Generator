@@ -59,7 +59,7 @@ export class GeneratorComponent {
     this.errorMessage = null;
     const todoRootName = this.sanitize(this.rootByUser)
     const todoRoot: ClassifierReference|undefined = todoRootName?
-      {name: todoRootName, path: []}: undefined
+      {name: todoRootName, path: [], uri_prefix: ""}: undefined
 
     try {
       const finalProjectName =

@@ -31,21 +31,19 @@ export class GenerationService {
     const xml = await this.readFile(file);
     const rawPkgs: EPackageJson[] = this.ecoreParserService.parse(xml)
 
+    //now choose root here, it can be from any package -
+    const root: ClassifierReference = await this.determineRoot2(rawPkgs, rootByUser)
     const params: GenerationParams = this.composeGenerationParams(file, projectName, modelByUser)
     const generationModel = this.synthesisModelService.ecoreJson2synthesisModel(rawPkgs)  //or use root here?
-
-    //now choose root here, it can be from any package -
-    // todo but we probably need the old way to reference it/raw names
-    const root: EClass = await this.determineRoot2(generationModel, rootByUser)
 
     await this.processPackages(generationModel, params, root);
     return params.projectName
   }
 
-  private async processPackages(pkgs: Package[], params: GenerationParams, root: EClass): Promise<void> {
+  private async processPackages(pkgs: Package[], params: GenerationParams, root: ClassifierReference): Promise<void> {
     // Generate the Angular project structure
     await this.projectGen.generateProjectFiles(params);
-    await this.modelGenerationService.generateWholeModelFolder(pkgs, root)
+    await this.modelGenerationService.generateWholeModelFolder(params.modelName, pkgs, root)
   }
 
   private fileName(file: File): string {
@@ -64,41 +62,15 @@ export class GenerationService {
     };
   }
 
-  private async processEPackage(model: EPackageJson, projectName?: string, rootByUser?: string): Promise<string> {
-    const params: GenerationParams = {
-      projectName : projectName ? projectName : model.name+"-graphical-editor",
-      modelName : model.pascalizedName,
-      modelFileName: model.name, //for folders
-      emfularVersion: '10.1.0',
-    };
-
-    // Generate the Angular project structure
-    await this.projectGen.generateProjectFiles(params);
-
-    // choose root:
-    let root : EClassJson | null;
+  private async determineRoot2(pkgs: EPackageJson[], rootByUser?: ClassifierReference): Promise<ClassifierReference> {
     if(rootByUser) {
-      root = this.rootFromUser(model, rootByUser)
-    } else {
-      root = await this.determineRoot(model);
-      if (root == null) {
-        throw new Error(
-          'Auto-detection for Root failed: No root candidate found - please choose one explicitly.'
-        ); //todo we could generate all but services
-      }
-    }
-    await this.modelGenerationService.generateModelFiles(model, root)
-    return params.projectName
-  }
-
-  private async determineRoot2(pkgs: Package[], rootByUser?: ClassifierReference): Promise<EClass> {
-    if(rootByUser) {
-      return this.classFromReferences(pkgs, rootByUser);
+      return rootByUser;
     } else {
       return await this.rootByAsking(pkgs)
     }
   }
 
+  /*
   private classFromReferences(packages: Package[], rootByUser: ClassifierReference): EClass {
     let paths = rootByUser.path
     let pkgs = packages
@@ -118,9 +90,9 @@ export class GenerationService {
     } else {
       return res;
     }
-  }
+  }*/
 
-  private async rootByAsking(pkgs: Package[]): Promise<EClass> {
+  private async rootByAsking(pkgs: EPackageJson[]): Promise<ClassifierReference> {
     //first reduce classes on pkgs to that that are root candidates:
     const resPkgs = pkgs.map(p => this.reduceToCandidates(p))
     //then check if there is only one real candidate - if yes, use it, else ask the user.

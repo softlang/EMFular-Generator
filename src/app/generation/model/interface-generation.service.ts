@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
-import { EPackageJson } from '../../parsing/ecore-model/package';
 import { TemplateLoadService } from '../../utils/template-load.service';
 import { PlaceholderReplacerService } from '../../utils/place-holder-replacer.service';
 import { ZipService } from '../../utils/zip.service';
-import {EClassJson} from '../../parsing/ecore-model/classifier';
+import {Package} from '../../synthesis-model/package';
+import {EClass} from '../../synthesis-model/classifier';
 
 @Injectable({
   providedIn: 'root',
@@ -18,11 +18,11 @@ export class InterfaceGenerationService {
     private zip: ZipService
   ) {}
 
-  async generateInterfaces(model: EPackageJson) {
+  async generateInterfaces(model: Package) {
     const interfaceTemplate = await this.loader.loadTemplate(this.srcFolder + 'interface.ts.template.ts');
-    const targetFolder = `src/app/${model.name}/core/`
+    const targetFolder = `@core/`+ model.path.join("/")
 
-    for (const cls of model.eClasses) {
+    for (const cls of model.classes) {
       if (!cls.interfaceLike) continue;
       const fileContent = this.buildInterfaceFile(cls, interfaceTemplate);
       this.zip.addFile(`${targetFolder}/${cls.name}.ts`, fileContent);
@@ -30,19 +30,18 @@ export class InterfaceGenerationService {
   }
 
   private buildInterfaceFile(
-    cls: EClassJson,
+    cls: EClass,
     interfaceTemplate: string
   ): string {
 
-    const superInterfaces = cls.superTypes.map(r => r.resolved)
-    const typeImports = superInterfaces.length > 0
-      ? superInterfaces
-        .map(name => `import type { ${name} } from './${name}';`)
+    const typeImports = cls.superTypes.length > 0
+      ? cls.superTypes
+        .map(ref => `import type { ${ref.name} } from './${ref.path.join("/")}';`)
         .join('\n')
       : '';
 
-    const extendsClause = superInterfaces.length > 0
-      ? `extends ${superInterfaces.join(', ')}`
+    const extendsClause = cls.superTypes.length > 0
+      ? `extends ${cls.superTypes.map(c => c.name).join(', ')}`
       : '';
 
     return this.replacer.applyPlaceholders(

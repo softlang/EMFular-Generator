@@ -5,6 +5,7 @@ import { PlaceholderReplacerService } from '../../utils/place-holder-replacer.se
 import { ZipService } from '../../utils/zip.service';
 import {EClassJson, EDataTypeJson, EEnumJson} from '../../parsing/ecore-model/classifier';
 import {EAttributeJson, EReferenceJson} from '../../parsing/ecore-model/structural-feature';
+import {Package} from '../../synthesis-model/package';
 
 @Injectable({
   providedIn: 'root',
@@ -19,11 +20,11 @@ export class ClassGenerationService {
     private zip: ZipService
   ) {}
 
-  async generateClasses(model: EPackageJson) {
+  async generateClasses(model: Package) {
     const classTemplate = await this.loader.loadTemplate(
       this.srcFolder + 'class.ts.template.ts'
     );
-    const targetFolder = `src/app/${model.name}/core/`
+    const targetFolder = `@core/`
 
     const classMap = new Map(model.eClasses.map(c => [c.name, c]));
 
