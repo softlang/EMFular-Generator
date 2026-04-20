@@ -29,15 +29,15 @@ export class RootFindingService {
     //first reduce classes on pkgs to that that are root candidates:
     const resPkgs = pkgs.map(p => this.reduceToCandidates(p))
     //then check if there is only one real candidate - if yes, use it, else ask the user.
-    const candidates: EClass[] = []
-    /*  resPkgs.flatMap(p => p.classes)
+    const candidates: EClassJson[] = resPkgs.flatMap(p => p.eClasses)
     if (candidates.length === 1) {
-      return candidates[0];
-    }*/
+      throw new Error('Not implemented yet');
+      //return candidates[0];
+    }
     if (candidates.length === 0) {
       throw new Error("No non-abstract, not interface-like class found, hence no useful generation possible")
     }
-    const userRoot = await this.pickRoot2(resPkgs)
+    const userRoot = null//await this.pickRoot2(resPkgs)
     if(!userRoot) {
       throw new Error("Please pick a root class")
     }
@@ -48,11 +48,11 @@ export class RootFindingService {
     return null; //todo
   }
 
-  private reduceToCandidates(pkg: Package): Package {
-    const res: Package = {
+  private reduceToCandidates(pkg: EPackageJson): EPackageJson {
+    const res: EPackageJson = {
       ...pkg
     }
-    res.classes = this.allPossibleRootClasses2(pkg)
+    res.eClasses = this.allPossibleRootClasses(pkg)
     return res
   }
 
