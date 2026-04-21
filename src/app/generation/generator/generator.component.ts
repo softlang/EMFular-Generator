@@ -1,7 +1,7 @@
 import {ChangeDetectorRef, Component} from '@angular/core';
 import {NgIf} from '@angular/common';
 import {GenerationService} from '../generation.service';
-import {ZipService} from '../../utils/zip.service';
+import {ZipService} from '../utils/zip.service';
 import {FormsModule} from '@angular/forms';
 import {ClassifierReference} from '../../generation-model/cross-references';
 

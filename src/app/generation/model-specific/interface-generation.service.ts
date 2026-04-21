@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { TemplateLoadService } from '../../utils/template-load.service';
-import { PlaceholderReplacerService } from '../../utils/place-holder-replacer.service';
-import { ZipService } from '../../utils/zip.service';
+import { TemplateLoadService } from '../utils/template-load.service';
+import { PlaceholderReplacerService } from '../utils/place-holder-replacer.service';
+import { ZipService } from '../utils/zip.service';
 import {Package} from '../../generation-model/package';
 import {EClass} from '../../generation-model/classifier';
 
@@ -10,7 +10,7 @@ import {EClass} from '../../generation-model/classifier';
 })
 export class InterfaceGenerationService {
 
-  private srcFolder = 'assets/templates/model-specific/v10/core/';
+  private srcFolder = 'assets/utils/model-specific/v10/core/';
 
   constructor(
     private loader: TemplateLoadService,

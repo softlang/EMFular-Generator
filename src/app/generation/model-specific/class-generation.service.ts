@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { TemplateLoadService } from '../../utils/template-load.service';
-import { PlaceholderReplacerService } from '../../utils/place-holder-replacer.service';
-import { ZipService } from '../../utils/zip.service';
+import { TemplateLoadService } from '../utils/template-load.service';
+import { PlaceholderReplacerService } from '../utils/place-holder-replacer.service';
+import { ZipService } from '../utils/zip.service';
 import {EEnumJson} from '../../parsing-model/classifier';
 import {EAttributeJson} from '../../parsing-model/structural-feature';
 import {Package} from '../../generation-model/package';
@@ -14,7 +14,7 @@ import {Attribute, Reference} from '../../generation-model/structural-feature';
 })
 export class ClassGenerationService {
 
-  private srcFolder = 'assets/templates/model-specific/v10/core/';
+  private srcFolder = 'assets/utils/model-specific/v10/core/';
 
   constructor(
     private loader: TemplateLoadService,

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import {TemplateLoadService} from '../../utils/template-load.service';
-import {PlaceholderReplacerService} from '../../utils/place-holder-replacer.service';
-import {ZipService} from '../../utils/zip.service';
+import {TemplateLoadService} from '../utils/template-load.service';
+import {PlaceholderReplacerService} from '../utils/place-holder-replacer.service';
+import {ZipService} from '../utils/zip.service';
 import {ClassifierReference} from '../../generation-model/cross-references';
 
 @Injectable({
@@ -9,7 +9,7 @@ import {ClassifierReference} from '../../generation-model/cross-references';
 })
 export class ModelServiceGenerationService {
 
-  private srcFolder = 'assets/templates/model-specific/services/';
+  private srcFolder = 'assets/utils/model-specific/services/';
 
   constructor(
     private loader: TemplateLoadService,

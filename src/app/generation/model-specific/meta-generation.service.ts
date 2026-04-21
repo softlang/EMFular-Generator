@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import {TemplateLoadService} from '../../utils/template-load.service';
-import {PlaceholderReplacerService} from '../../utils/place-holder-replacer.service';
-import {ZipService} from '../../utils/zip.service';
+import {TemplateLoadService} from '../utils/template-load.service';
+import {PlaceholderReplacerService} from '../utils/place-holder-replacer.service';
+import {ZipService} from '../utils/zip.service';
 import {Package} from '../../generation-model/package';
 import {EClass} from '../../generation-model/classifier';
 import {Reference} from '../../generation-model/structural-feature';
@@ -12,7 +12,7 @@ import {CrossReferenceHandler} from '../../generation-model/cross-reference-hand
 })
 export class MetaGenerationService {
 
-  private srcFolder = 'assets/templates/model-specific/v10/meta/';
+  private srcFolder = 'assets/utils/model-specific/v10/meta/';
 
   constructor(
     private loader: TemplateLoadService,

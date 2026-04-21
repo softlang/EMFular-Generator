@@ -7,7 +7,7 @@ import { EPackageJson } from '../parsing-model/package';
 import {RootFindingService} from './root/root-finding.service';
 import {Package} from '../generation-model/package';
 import {ClassifierReference} from '../generation-model/cross-references';
-import {SynthesisModelService} from '../parsing/resolving/synthesis-model.service';
+import {Parsing2GenerationService} from '../parsing2generation/parsing2generation.service';
 
 @Injectable({ providedIn: 'root' })
 export class GenerationService {
@@ -16,7 +16,7 @@ export class GenerationService {
     private projectGen: ProjectGenerationService,
     private modelGenerationService: ModelGenerationService,
     private ecoreParserService: EcoreParserService,
-    private synthesisModelService: SynthesisModelService,
+    private parsing2GenerationService: Parsing2GenerationService,
     private rootFindingService: RootFindingService,
   ) {}
 
@@ -28,7 +28,7 @@ export class GenerationService {
     //now choose root here, it can be from any package -
     const root: ClassifierReference = await this.rootFindingService.determineRoot(rawPkgs, rootByUser)
     const params: GenerationParams = this.composeGenerationParams(file, projectName, modelByUser)
-    const generationModel = this.synthesisModelService.ecoreJson2synthesisModel(rawPkgs)  //or use root here?
+    const generationModel = this.parsing2GenerationService.transform(rawPkgs)  //or use root here?
 
     await this.processPackages(generationModel, params, root);
     return params.projectName

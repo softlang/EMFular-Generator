@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { EPackageJson } from '../parsing-model/package';
 import { EPackage2JsonService } from './x2json/epackage2json.service';
-import { ReferenceResolvingService } from './resolving/reference-resolving.service';
+import { ReferenceResolvingService } from '../parsing2generation/reference-resolving/reference-resolving.service';
 import { Package } from '../generation-model/package'
 
 @Injectable({
@@ -29,7 +29,7 @@ export class EcoreParserService {
     const stack: Element[] = [doc.documentElement];
     const result: EPackageJson[] = [];
 
-    //1) parse as raw, no reference resolving yet:
+    //1) parse as raw, no reference reference-resolving yet:
     while (stack.length > 0) {
       const el = stack.pop()!;
       if (this.isEPackage(el)) {

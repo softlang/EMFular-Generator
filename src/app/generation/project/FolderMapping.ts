@@ -6,7 +6,7 @@ export interface FolderMapping {
 
 export const PROJECT_FOLDER_MAPPINGS: FolderMapping[] = [
   // Angular workspace files
-  { srcFolder: 'assets/templates/angular',   targetFolder: '',
+  { srcFolder: 'assets/utils/angular',   targetFolder: '',
     fileNames: [
       "angular.json.template.json",
       "tsconfig.app.json",
@@ -16,7 +16,7 @@ export const PROJECT_FOLDER_MAPPINGS: FolderMapping[] = [
   },
 
   // Root-level Angular files
-  { srcFolder: 'assets/templates/src',      targetFolder: 'src',
+  { srcFolder: 'assets/utils/src',      targetFolder: 'src',
     fileNames: [
       "index.html.template.html",
       "main.ts",
@@ -25,7 +25,7 @@ export const PROJECT_FOLDER_MAPPINGS: FolderMapping[] = [
   },
 
   // Root Angular app shell
-  { srcFolder: 'assets/templates/app',      targetFolder: 'src/app',
+  { srcFolder: 'assets/utils/app',      targetFolder: 'src/app',
     fileNames: [
       "app.component.html.template.html",
       "app.component.scss",
