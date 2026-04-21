@@ -24,10 +24,16 @@ export interface EClass extends Classifier {
   name: string;
   path: string[];
 
-  superTypes: ClassifierReference[];
+  superTypes: SuperTypes;
   attributes: Attribute[];
   references: Reference[];
 
   abstract: boolean;
   interfaceLike?: boolean;
+}
+
+//distinguish interfaces and real classes on super:
+export interface SuperTypes {
+  realParent?: ClassifierReference;
+  interfaces: ClassifierReference[];
 }

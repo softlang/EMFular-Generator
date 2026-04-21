@@ -6,6 +6,26 @@ export class CrossReferenceHandler {
     return cRef.path.join("/")
   }
 
+  static corePath(cRef: ClassifierReference): string {
+    return this.corePathFromPath(cRef.path)
+  }
+
+  static corePathFromPath(path: string[]): string {
+    return "@core/"+path.join("/")
+  }
+
+  static importCompletely(cRef: ClassifierReference): string {
+    return this.importTypeOrNot(cRef, false)
+  }
+  static typeImport(cRef: ClassifierReference): string {
+    return this.importTypeOrNot(cRef, true)
+  }
+
+  static importTypeOrNot(cRef: ClassifierReference, isType: boolean): string {
+    return `import ${isType?'type ':''}{ ${cRef.name} } from '${CrossReferenceHandler.corePath(cRef)}';`
+
+  }
+
   static createEClass(cRef: ClassifierReference): string {
     return cRef.uri_prefix+cRef.name
   }

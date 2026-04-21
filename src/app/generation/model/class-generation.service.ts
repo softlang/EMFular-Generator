@@ -1,11 +1,13 @@
 import { Injectable } from '@angular/core';
-import { EPackageJson } from '../../parsing/ecore-model/package';
 import { TemplateLoadService } from '../../utils/template-load.service';
 import { PlaceholderReplacerService } from '../../utils/place-holder-replacer.service';
 import { ZipService } from '../../utils/zip.service';
-import {EClassJson, EDataTypeJson, EEnumJson} from '../../parsing/ecore-model/classifier';
-import {EAttributeJson, EReferenceJson} from '../../parsing/ecore-model/structural-feature';
+import {EEnumJson} from '../../parsing/ecore-model/classifier';
+import {EAttributeJson} from '../../parsing/ecore-model/structural-feature';
 import {Package} from '../../synthesis-model/package';
+import {EClass, EDataType, EEnum} from '../../synthesis-model/classifier';
+import {CrossReferenceHandler} from '../../synthesis-model/cross-reference-handler';
+import {Attribute, Reference} from '../../synthesis-model/structural-feature';
 
 @Injectable({
   providedIn: 'root',
@@ -20,63 +22,43 @@ export class ClassGenerationService {
     private zip: ZipService
   ) {}
 
-  async generateClasses(model: Package) {
+  async generateClasses(model: Package, modelName: string) {
     const classTemplate = await this.loader.loadTemplate(
       this.srcFolder + 'class.ts.template.ts'
     );
-    const targetFolder = `@core/`
+    const targetFolder = CrossReferenceHandler.corePathFromPath(model.path)
 
-    const classMap = new Map(model.eClasses.map(c => [c.name, c]));
-
-    for (const cls of model.eClasses) {
+    for (const cls of model.classes) {
       if (cls.interfaceLike) continue; // interfaces handled on interface service
-
-      const fileContent = this.buildClassFile(cls, classMap, model, classTemplate);
+      const fileContent = this.buildClassFile(cls, model, modelName, classTemplate);
       this.zip.addFile(`${targetFolder}/${cls.name}.ts`, fileContent);
     }
   }
 
   private buildClassFile(
-    cls: EClassJson,
-    classMap: Map<string, EClassJson>,
-    model: EPackageJson,
+    cls: EClass,
+    model: Package,
+    modelName: string,
     template: string
   ): string {
 
     const usedEnums: Set<string> = new Set(); //filled by attributes
     // fill both at once since same usage const usedTypes: Set<string> = new Set(); //filled by attributes
 
-    const ATTRIBUTES = this.buildAttributes(cls, model.eEnums, usedEnums, model.eDataTypes, usedEnums);
+    const ATTRIBUTES = this.buildAttributes(cls, model.enums, usedEnums, model.datatypes, usedEnums);
     const REFERENCES = this.buildReferences(cls);
 
-
-    //distinguish interfaces and real classes on super:
-    const [interfaces, realClasses] = cls.superTypes
-      .map(s => s.resolved!)
-      .reduce(
-        ([i, r], name) => {
-          const sup = classMap.get(name)!;
-          if (sup.interfaceLike) i.push(name);
-          else r.push(name);
-          return [i, r];
-        },
-        [[], []] as [string[], string[]]
-      );
-    // implements:
-    const IMPLEMENTS = interfaces.length > 0
-      ? `implements ${interfaces.join(', ')}`
+    const EXTENDS = cls.superTypes.realParent?.name ?? 'Referencable<any>';
+    const IMPLEMENTS = cls.superTypes.interfaces.length > 0
+      ? `implements ${cls.superTypes.interfaces.join(', ')}`
       : '';
 
-    // real parent (extends)
-    const realParent = realClasses[0] ?? null;
-    const EXTENDS = realParent ?? 'Referencable<any>';
-
-    const IMPORTS = this.buildImports(cls, interfaces, realParent, usedEnums, model);
+    const IMPORTS = this.buildImports(cls, usedEnums, modelName);
 
 
     return this.replacer.applyPlaceholders(template, {
       IMPORTS,
-      modelMeta: `${model.name}Meta`,
+      modelMeta: `${modelName}Meta`,
       className: cls.name,
       abstract: this.asAbstract(cls),
       EXTENDS,
@@ -87,69 +69,71 @@ export class ClassGenerationService {
   }
 
   private buildImports(
-    cls: EClassJson,
-    interfaces: string[],
-    realParent: string|null,
+    cls: EClass,
     usedEnums: Set<string>,
-    model: EPackageJson): string {
-    const imports = new Set<string>();
-    //basic import: eClass and attribuets and reference decorators if needed from emfular:
-    imports.add(`import { eClass${cls.references.length>0? ', reference': ''}${cls.attributes.length>0? ', attribute': ''} } from 'emfular'`)
+    modelName: string
+  ): string {
 
-    // interface supertypes (type-only)
-    interfaces.forEach(i =>
-      imports.add(`import type { ${i} } from './${i}';`)
-    );
-    // referenced types (type-only), but skip real parent and self
-    cls.references.forEach(ref => {
-      if (ref.type.resolved === realParent) return;
-      if (ref.type.resolved === cls.name) return;
-      imports.add(`import type { ${ref.type.resolved} } from './${ref.type.resolved}';`);
-    });
+    const imports = new Set<string>();
+
+    //basic import: eClass and attributes and reference decorators if needed from emfular:
+    imports.add(`import { eClass${cls.references.length>0? ', reference': ''}${cls.attributes.length>0? ', attribute': ''} } from 'emfular'`)
     //modelList if needed (type-only)
     if (cls.references.some(r => r.upperBound !== 1)) {
       imports.add(`import type { ModelList } from 'emfular';`);
     }
-    // meta:
-    imports.add(`import { ${model.name}Meta${cls.references.length> 0?`, ${cls.name}Refs`:'' }${usedEnums.size>0?", "+Array.from(usedEnums).join(", "):''} } from './_meta_';`)
 
+    const realParent = cls.superTypes.realParent;
     if (realParent) {
-      imports.add(`import { ${realParent} } from './${realParent}';`);
+      imports.add(`import { ${realParent.name} } from '${CrossReferenceHandler.corePath(realParent)}';`);
     } else {
       imports.add(`import { Referencable } from 'emfular';`);
     }
 
+    // meta:
+    imports.add(`import { ${modelName}Meta${cls.references.length> 0?`, ${cls.name}Refs`:'' }${usedEnums.size>0?", "+Array.from(usedEnums).join(", "):''} } from './_meta_';`)
+
+    // interface supertypes (type-only)
+    cls.superTypes.interfaces.forEach(i =>
+      imports.add(CrossReferenceHandler.typeImport(i))
+    );
+    // referenced types (type-only), but skip real parent and self
+    cls.references.forEach(ref => {
+      if (ref.type === realParent) return;
+      if (ref.type.name === cls.name) return; //todo if multiple same names allowed, use alias then
+      imports.add(CrossReferenceHandler.typeImport(ref.type));
+    });
     return Array.from(imports).join('\n');
   }
 
-  private buildReferences(cls: EClassJson): string {
+  private buildReferences(cls: EClass): string {
     return cls.references
       .map(ref => {
         if(ref.derived)
-          return this.buildDerivedRef(ref, cls.name)
+          return this.buildDerivedRef(ref)
         else
           return this.buildNormalRef(ref, cls.name)
       }).join('\n\n');
   }
 
-  private buildNormalRef(ref: EReferenceJson, className: string) {
+  private buildNormalRef(ref: Reference, className: string) {
     const type = ref.upperBound === 1
-      ? ref.type.resolved
-      : `ModelList<${ref.type.resolved}>`;
+      ? ref.type.name
+      : `ModelList<${ref.type.name}>`;
     return `  @reference(${className}Refs.${ref.name})\n  declare ${ref.name}: ${type};`;
   }
 
-  private buildDerivedRef(ref: EReferenceJson, className: string) {
+  private buildDerivedRef(ref: Reference) {
     //right now just create a getter with right type:
     const type = ref.upperBound === 1
-      ? ref.type.resolved+(ref.lowerBound!==1?"|undefined":"")
-      : ref.type.resolved+"[]"
+      ? ref.type.name+(ref.lowerBound!==1?"|undefined":"")
+      : ref.type.name+"[]"
     const notImplemented = "throw new Error('Method not implemented.'); //TODO"
     return `  get ${ref.name}(): ${type} {\n\t\t${notImplemented}\n  }\n`;
   }
 
   //fills used enums
-  private buildAttributes(cls: EClassJson, enums: EEnumJson[], usedEnums: Set<string>, types: EDataTypeJson[], usedTypes: Set<string>): string {
+  private buildAttributes(cls: EClass, enums: EEnum[], usedEnums: Set<string>, types: EDataType[], usedTypes: Set<string>): string {
     console.error('Types: ## '+types.map(t => t.name))
 
     return cls.attributes
@@ -157,7 +141,7 @@ export class ClassGenerationService {
       .join('\n\n');
   }
 
-  private buildAttribute(attr: EAttributeJson,  enums: EEnumJson[], usedEnums: Set<string>, eDataTypes: EDataTypeJson[], usedTypes: Set<string>): string {
+  private buildAttribute(attr: Attribute,  enums: EEnum[], usedEnums: Set<string>, eDataTypes: EDataType[], usedTypes: Set<string>): string {
       const tsType = this.mapEcoreTypeToTs(attr);
       const optional = attr.lowerBound === 0 ? "?" : "";
       const isList =  attr.upperBound === -1 || attr.upperBound > 1
@@ -286,7 +270,7 @@ export class ClassGenerationService {
     return ` = ${e.name}.${value}`; //todo could sanitize/check
   }
 
-  asAbstract(meta:EClassJson): string {
+  asAbstract(meta:EClass): string {
     return meta.abstract?" abstract ": " "
   }
 }

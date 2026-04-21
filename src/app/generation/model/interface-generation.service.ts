@@ -33,15 +33,19 @@ export class InterfaceGenerationService {
     cls: EClass,
     interfaceTemplate: string
   ): string {
+    const superTypes = cls.superTypes.realParent !== undefined
+      ? [cls.superTypes.realParent, ...cls.superTypes.interfaces]
+      : [...cls.superTypes.interfaces];
 
-    const typeImports = cls.superTypes.length > 0
-      ? cls.superTypes
+
+    const typeImports = superTypes.length > 0
+      ? superTypes
         .map(ref => `import type { ${ref.name} } from './${ref.path.join("/")}';`)
         .join('\n')
       : '';
 
-    const extendsClause = cls.superTypes.length > 0
-      ? `extends ${cls.superTypes.map(c => c.name).join(', ')}`
+    const extendsClause = superTypes.length > 0
+      ? `extends ${superTypes.map(c => c.name).join(', ')}`
       : '';
 
     return this.replacer.applyPlaceholders(

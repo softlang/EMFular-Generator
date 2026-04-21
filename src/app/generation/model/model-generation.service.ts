@@ -31,7 +31,7 @@ export class ModelGenerationService {
   async generatePackage(pkg: Package, modelName: string) {
     await this.metaGenerationService.generateMeta(pkg, modelName);
     await this.interfaceGenerationService.generateInterfaces(pkg);
-    await this.classGenerationService.generateClasses(pkg)
+    await this.classGenerationService.generateClasses(pkg, modelName)
   }
 
 }
