@@ -4,7 +4,7 @@ import { ProjectGenerationService } from './project/project-generation.service';
 import {ModelGenerationService} from './model-specific/model-generation.service';
 import {EcoreParserService} from '../parsing/ecore-parser.service';
 import { EPackageJson } from '../parsing-model/package';
-import {RootFindingService} from './root/root-finding.service';
+import {RootFindingService} from '../parsing2generation/root/root-finding.service';
 import {Package} from '../generation-model/package';
 import {ClassifierReference} from '../generation-model/cross-references';
 import {Parsing2GenerationService} from '../parsing2generation/parsing2generation.service';
