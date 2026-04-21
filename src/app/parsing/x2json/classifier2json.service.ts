@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import {EClassifierJson, EClassJson, EDataTypeJson, EEnumJson} from '../ecore-model/classifier';
+import {EClassifierJson, EClassJson, EDataTypeJson, EEnumJson} from '../../parsing-model/classifier';
 import {StructuralFeature2JsonService} from './structural-feature2json.service';
 import {ResolvableHandler} from '../resolvable-handler';
 

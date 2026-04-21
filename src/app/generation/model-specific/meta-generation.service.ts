@@ -2,17 +2,17 @@ import { Injectable } from '@angular/core';
 import {TemplateLoadService} from '../../utils/template-load.service';
 import {PlaceholderReplacerService} from '../../utils/place-holder-replacer.service';
 import {ZipService} from '../../utils/zip.service';
-import {Package} from '../../synthesis-model/package';
-import {EClass} from '../../synthesis-model/classifier';
-import {Reference} from '../../synthesis-model/structural-feature';
-import {CrossReferenceHandler} from '../../synthesis-model/cross-reference-handler';
+import {Package} from '../../generation-model/package';
+import {EClass} from '../../generation-model/classifier';
+import {Reference} from '../../generation-model/structural-feature';
+import {CrossReferenceHandler} from '../../generation-model/cross-reference-handler';
 
 @Injectable({
   providedIn: 'root',
 })
 export class MetaGenerationService {
 
-  private srcFolder = 'assets/templates/model/v10/meta/';
+  private srcFolder = 'assets/templates/model-specific/v10/meta/';
 
   constructor(
     private loader: TemplateLoadService,
@@ -114,7 +114,7 @@ export class MetaGenerationService {
   }
 
   private async buildModelMeta(model: Package, modelName: string, CLASS_REFS: string): Promise<string> {
-    const modelMetaTemplate = await this.loader.loadTemplate(this.srcFolder+"model-meta.ts.template.ts");
+    const modelMetaTemplate = await this.loader.loadTemplate(this.srcFolder+"model-specific-meta.ts.template.ts");
 
     const classEntries = model.classes
       .map(cls => `${cls.name}: { references: ${cls.name}Refs },`)

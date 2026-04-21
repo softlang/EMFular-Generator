@@ -9,7 +9,7 @@ import {
 import { MatRadioModule } from '@angular/material/radio';
 import { MatButtonModule } from '@angular/material/button';
 
-import {EPackageJson} from '../../parsing/ecore-model/package';
+import {EPackageJson} from '../../parsing-model/package';
 
 @Component({
   selector: 'package-selection-dialog',

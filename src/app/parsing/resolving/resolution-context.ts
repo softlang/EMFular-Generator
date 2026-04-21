@@ -1,5 +1,5 @@
-import { EPackageJson } from '../ecore-model/package';
-import {EClassifierJson, EClassJson, EDataTypeJson, EEnumJson} from '../ecore-model/classifier';
+import { EPackageJson } from '../../parsing-model/package';
+import {EClassifierJson, EClassJson, EDataTypeJson, EEnumJson} from '../../parsing-model/classifier';
 
 export class ResolutionContext {
   // ID-based lookup

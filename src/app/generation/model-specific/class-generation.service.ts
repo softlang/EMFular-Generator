@@ -2,19 +2,19 @@ import { Injectable } from '@angular/core';
 import { TemplateLoadService } from '../../utils/template-load.service';
 import { PlaceholderReplacerService } from '../../utils/place-holder-replacer.service';
 import { ZipService } from '../../utils/zip.service';
-import {EEnumJson} from '../../parsing/ecore-model/classifier';
-import {EAttributeJson} from '../../parsing/ecore-model/structural-feature';
-import {Package} from '../../synthesis-model/package';
-import {EClass, EDataType, EEnum} from '../../synthesis-model/classifier';
-import {CrossReferenceHandler} from '../../synthesis-model/cross-reference-handler';
-import {Attribute, Reference} from '../../synthesis-model/structural-feature';
+import {EEnumJson} from '../../parsing-model/classifier';
+import {EAttributeJson} from '../../parsing-model/structural-feature';
+import {Package} from '../../generation-model/package';
+import {EClass, EDataType, EEnum} from '../../generation-model/classifier';
+import {CrossReferenceHandler} from '../../generation-model/cross-reference-handler';
+import {Attribute, Reference} from '../../generation-model/structural-feature';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ClassGenerationService {
 
-  private srcFolder = 'assets/templates/model/v10/core/';
+  private srcFolder = 'assets/templates/model-specific/v10/core/';
 
   constructor(
     private loader: TemplateLoadService,

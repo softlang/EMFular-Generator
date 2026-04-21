@@ -4,8 +4,8 @@ import {InterfaceGenerationService} from './interface-generation.service';
 import {ClassGenerationService} from './class-generation.service';
 import {ModelServiceGenerationService} from './model-service-generation.service';
 import {EditorGenerationService} from './editor-generation.service';
-import {Package} from '../../synthesis-model/package';
-import {ClassifierReference} from '../../synthesis-model/cross-references';
+import {Package} from '../../generation-model/package';
+import {ClassifierReference} from '../../generation-model/cross-references';
 
 @Injectable({
   providedIn: 'root',

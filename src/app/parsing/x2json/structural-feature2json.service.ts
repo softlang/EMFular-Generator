@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import {EAttributeJson, EReferenceJson, EStructuralFeature} from '../ecore-model/structural-feature';
+import {EAttributeJson, EReferenceJson, EStructuralFeature} from '../../parsing-model/structural-feature';
 import {ResolvableHandler} from '../resolvable-handler';
 
 @Injectable({

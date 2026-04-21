@@ -8,7 +8,7 @@ import {
 } from '@angular/material/dialog';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatButtonModule } from '@angular/material/button';
-import {EClassJson} from '../../../parsing/ecore-model/classifier';
+import {EClassJson} from '../../../parsing-model/classifier';
 
 
 @Component({

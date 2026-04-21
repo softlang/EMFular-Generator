@@ -1,12 +1,12 @@
 import { Injectable } from '@angular/core';
 import { GenerationParams } from './generation-params';
 import { ProjectGenerationService } from './project/project-generation.service';
-import {ModelGenerationService} from './model/model-generation.service';
+import {ModelGenerationService} from './model-specific/model-generation.service';
 import {EcoreParserService} from '../parsing/ecore-parser.service';
-import { EPackageJson } from '../parsing/ecore-model/package';
+import { EPackageJson } from '../parsing-model/package';
 import {RootFindingService} from './root/root-finding.service';
-import {Package} from '../synthesis-model/package';
-import {ClassifierReference} from '../synthesis-model/cross-references';
+import {Package} from '../generation-model/package';
+import {ClassifierReference} from '../generation-model/cross-references';
 import {SynthesisModelService} from '../parsing/resolving/synthesis-model.service';
 
 @Injectable({ providedIn: 'root' })
@@ -20,7 +20,7 @@ export class GenerationService {
     private rootFindingService: RootFindingService,
   ) {}
 
-  //todo now use packageByUser spot for model name
+  //todo now use packageByUser spot for model-specific name
   async processEcoreFile(file: File, projectName?: string, rootByUser?: ClassifierReference, modelByUser?: string): Promise<string> {
     const xml = await this.readFile(file);
     const rawPkgs: EPackageJson[] = this.ecoreParserService.parse(xml)
@@ -45,7 +45,7 @@ export class GenerationService {
   }
 
   private composeGenerationParams(file: File, projectName?: string, modelByUser?: string): GenerationParams {
-    //use the filename as default for project and model, in case user specified nothing:
+    //use the filename as default for project and model-specific, in case user specified nothing:
     const modelName = modelByUser ?? this.fileName(file);
     const pascalizedModel = modelName
     return {

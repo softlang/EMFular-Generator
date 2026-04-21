@@ -2,14 +2,14 @@ import { Injectable } from '@angular/core';
 import {TemplateLoadService} from '../../utils/template-load.service';
 import {PlaceholderReplacerService} from '../../utils/place-holder-replacer.service';
 import {ZipService} from '../../utils/zip.service';
-import {ClassifierReference} from '../../synthesis-model/cross-references';
+import {ClassifierReference} from '../../generation-model/cross-references';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ModelServiceGenerationService {
 
-  private srcFolder = 'assets/templates/model/services/';
+  private srcFolder = 'assets/templates/model-specific/services/';
 
   constructor(
     private loader: TemplateLoadService,
@@ -20,13 +20,13 @@ export class ModelServiceGenerationService {
   async generateServices(modelName: string, root: ClassifierReference, realClasses: ClassifierReference[]) {
     const outputFolder = `src/app/${modelName}/edit/`
 
-    const historyTemplate = await this.loader.loadTemplate(this.srcFolder+'model-history.service.ts.template.ts')
+    const historyTemplate = await this.loader.loadTemplate(this.srcFolder+'model-specific-history.service.ts.template.ts')
     this.zip.addFile(
       outputFolder+`${modelName}-history.service.ts`,
       this.createHistoryService(historyTemplate, modelName, root)
     )
 
-    const modelServiceTemplate = await this.loader.loadTemplate(this.srcFolder+'model.service.ts.template.ts')
+    const modelServiceTemplate = await this.loader.loadTemplate(this.srcFolder+'model-specific.service.ts.template.ts')
     this.zip.addFile(
       outputFolder+`${modelName}.service.ts`,
       this.createModelService(modelServiceTemplate, modelName, root, realClasses)

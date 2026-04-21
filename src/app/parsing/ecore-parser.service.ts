@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { EPackageJson } from './ecore-model/package';
+import { EPackageJson } from '../parsing-model/package';
 import { EPackage2JsonService } from './x2json/epackage2json.service';
 import { ReferenceResolvingService } from './resolving/reference-resolving.service';
-import { Package } from  '../synthesis-model/package'
+import { Package } from '../generation-model/package'
 
 @Injectable({
   providedIn: 'root',

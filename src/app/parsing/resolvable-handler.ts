@@ -1,4 +1,4 @@
-import {Resolvable} from './ecore-model/resolvable';
+import {Resolvable} from '../parsing-model/resolvable';
 
 export class ResolvableHandler {
 

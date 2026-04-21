@@ -2,15 +2,15 @@ import { Injectable } from '@angular/core';
 import { TemplateLoadService } from '../../utils/template-load.service';
 import { PlaceholderReplacerService } from '../../utils/place-holder-replacer.service';
 import { ZipService } from '../../utils/zip.service';
-import {Package} from '../../synthesis-model/package';
-import {EClass} from '../../synthesis-model/classifier';
+import {Package} from '../../generation-model/package';
+import {EClass} from '../../generation-model/classifier';
 
 @Injectable({
   providedIn: 'root',
 })
 export class InterfaceGenerationService {
 
-  private srcFolder = 'assets/templates/model/v10/core/';
+  private srcFolder = 'assets/templates/model-specific/v10/core/';
 
   constructor(
     private loader: TemplateLoadService,

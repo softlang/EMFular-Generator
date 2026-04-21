@@ -2,14 +2,14 @@ import { Injectable } from '@angular/core';
 import {TemplateLoadService} from '../../utils/template-load.service';
 import {PlaceholderReplacerService} from '../../utils/place-holder-replacer.service';
 import {ZipService} from '../../utils/zip.service';
-import {ClassifierReference} from '../../synthesis-model/cross-references';
+import {ClassifierReference} from '../../generation-model/cross-references';
 
 @Injectable({
   providedIn: 'root',
 })
 export class EditorGenerationService {
 
-  private srcFolder = 'assets/templates/model/editor/';
+  private srcFolder = 'assets/templates/model-specific/editor/';
 
   constructor(
     private loader: TemplateLoadService,

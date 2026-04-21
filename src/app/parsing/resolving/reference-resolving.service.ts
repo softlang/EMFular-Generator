@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { EPackageJson } from '../ecore-model/package';
-import {EClassJson} from '../ecore-model/classifier';
-import {RefFragmentKind, Resolvable} from '../ecore-model/resolvable';
-import {EReferenceJson} from '../ecore-model/structural-feature';
+import { EPackageJson } from '../../parsing-model/package';
+import {EClassJson} from '../../parsing-model/classifier';
+import {RefFragmentKind, Resolvable} from '../../parsing-model/resolvable';
+import {EReferenceJson} from '../../parsing-model/structural-feature';
 
 @Injectable({
   providedIn: 'root',
