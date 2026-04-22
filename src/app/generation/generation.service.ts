@@ -30,11 +30,11 @@ export class GenerationService {
     const params: GenerationParams = this.composeGenerationParams(file, projectName, modelByUser)
     const generationModel = this.parsing2GenerationService.transform(rawPkgs)  //or use root here?
 
-    await this.processPackages(generationModel, params, root);
+    await this.generate(generationModel, params, root);
     return params.projectName
   }
 
-  private async processPackages(pkgs: Package[], params: GenerationParams, root: ClassifierReference): Promise<void> {
+  private async generate(pkgs: Package[], params: GenerationParams, root: ClassifierReference): Promise<void> {
     // Generate the Angular model-agnostic structure
     await this.projectGen.generateProjectFiles(params);
     await this.modelGenerationService.generateWholeModelFolder(params.modelName, pkgs, root)
