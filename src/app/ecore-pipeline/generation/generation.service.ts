@@ -2,12 +2,8 @@ import { Injectable } from '@angular/core';
 import { GenerationParams } from './generation-params';
 import { ProjectGenerationService } from './model-agnostic/project-generation.service';
 import {ModelGenerationService} from './model-specific/model-generation.service';
-import {EcoreParserService} from '../parsing/ecore-parser.service';
-import { EPackageJson } from '../parsing-model/package';
-import {RootFindingService} from '../parsing2generation/root/root-finding.service';
 import {Package} from '../generation-model/package';
 import {ClassifierReference} from '../generation-model/cross-references';
-import {Parsing2GenerationService} from '../parsing2generation/parsing2generation.service';
 
 @Injectable({ providedIn: 'root' })
 export class GenerationService {
@@ -15,56 +11,13 @@ export class GenerationService {
   constructor(
     private projectGen: ProjectGenerationService,
     private modelGenerationService: ModelGenerationService,
-    private ecoreParserService: EcoreParserService,
-    private parsing2GenerationService: Parsing2GenerationService,
-    private rootFindingService: RootFindingService,
   ) {}
 
-  //todo now use packageByUser spot for model-specific name
-  async processEcoreFile(file: File, projectName?: string, rootByUser?: ClassifierReference, modelByUser?: string): Promise<string> {
-    const xml = await this.readFile(file);
-    const rawPkgs: EPackageJson[] = this.ecoreParserService.parse(xml)
 
-    //now choose root here, it can be from any package -
-    const root: ClassifierReference = await this.rootFindingService.determineRoot(rawPkgs, rootByUser)
-    const params: GenerationParams = this.composeGenerationParams(file, projectName, modelByUser)
-    const generationModel = this.parsing2GenerationService.transform(rawPkgs)  //or use root here?
-
-    await this.generate(generationModel, params, root);
-    return params.projectName
-  }
-
-  private async generate(pkgs: Package[], params: GenerationParams, root: ClassifierReference): Promise<void> {
+  async generate(pkgs: Package[], params: GenerationParams, root: ClassifierReference): Promise<void> {
     // Generate the Angular model-agnostic structure
     await this.projectGen.generateProjectFiles(params);
     await this.modelGenerationService.generateWholeModelFolder(params.modelName, pkgs, root)
-  }
-
-  private fileName(file: File): string {
-    return file.name.replace(/\.[^/.]+$/, "");
-  }
-
-  private composeGenerationParams(file: File, projectName?: string, modelByUser?: string): GenerationParams {
-    //use the filename as default for model-agnostic and model-specific, in case user specified nothing:
-    const modelName = modelByUser ?? this.fileName(file);
-    const pascalizedModel = modelName
-    return {
-      projectName : projectName ? projectName : pascalizedModel +"-graphical-editor",
-      modelName : pascalizedModel,
-      modelFileName: modelName, //for folders
-      emfularVersion: '10.1.0',
-    };
-  }
-
-  private readFile(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = () => reject(new Error('Failed to read file'));
-
-      reader.readAsText(file);
-    });
   }
 
 }

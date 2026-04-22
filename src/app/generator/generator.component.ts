@@ -1,9 +1,9 @@
 import {ChangeDetectorRef, Component} from '@angular/core';
 import {NgIf} from '@angular/common';
-import {GenerationService} from '../ecore-pipeline/generation/generation.service';
 import {ZipService} from '../ecore-pipeline/generation/utils/zip.service';
 import {FormsModule} from '@angular/forms';
 import {ClassifierReference} from '../ecore-pipeline/generation-model/cross-references';
+import {GeneratorService} from '../ecore-pipeline/generator.service';
 
 @Component({
   selector: 'emfular-generator',
@@ -23,7 +23,7 @@ export class GeneratorComponent {
   packageByUser: string="";
 
   constructor(
-    private generationService: GenerationService,
+    private generatorService: GeneratorService,
     private zipService: ZipService,
     private cdr: ChangeDetectorRef,
     ) {
@@ -63,7 +63,7 @@ export class GeneratorComponent {
 
     try {
       const finalProjectName =
-        await this.generationService.processEcoreFile(
+        await this.generatorService.processEcoreFile(
           file,
           projectName,
           todoRoot,
