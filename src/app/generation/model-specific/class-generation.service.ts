@@ -3,9 +3,10 @@ import { TemplateLoadService } from '../utils/template-load.service';
 import { PlaceholderReplacerService } from '../utils/place-holder-replacer.service';
 import { ZipService } from '../utils/zip.service';
 import {Package} from '../../generation-model/package';
-import {EClass, EDataType, EEnum} from '../../generation-model/classifier';
+import {EClass} from '../../generation-model/classifier';
 import {CrossReferenceHandler} from '../../generation-model/cross-reference-handler';
 import {Attribute, Reference} from '../../generation-model/structural-feature';
+import {BuiltInTypeReference, ClassifierReference} from '../../generation-model/cross-references';
 
 @Injectable({
   providedIn: 'root',
@@ -28,37 +29,31 @@ export class ClassGenerationService {
 
     for (const cls of model.classes) {
       if (cls.interfaceLike) continue; // interfaces handled on interface service
-      const fileContent = this.buildClassFile(cls, model, modelName, classTemplate);
+      const fileContent = this.buildClassFile(cls, modelName, classTemplate);
       this.zip.addFile(`${targetFolder}/${cls.name}.ts`, fileContent);
     }
   }
 
   private buildClassFile(
     cls: EClass,
-    model: Package,
     modelName: string,
     template: string
   ): string {
 
-    const usedEnums: Set<string> = new Set(); //filled by attributes
-    // fill both at once since same usage const usedTypes: Set<string> = new Set(); //filled by attributes
-
-    const ATTRIBUTES = this.buildAttributes(cls, model.enums, usedEnums, model.datatypes, usedEnums);
+    const ATTRIBUTES = this.buildAttributes(cls);
     const REFERENCES = this.buildReferences(cls);
 
     const EXTENDS = cls.superTypes.realParent?.name ?? 'Referencable<any>';
     const IMPLEMENTS = cls.superTypes.interfaces.length > 0
       ? `implements ${cls.superTypes.interfaces.join(', ')}`
       : '';
-
-    const IMPORTS = this.buildImports(cls, usedEnums, modelName);
-
+    const IMPORTS = this.buildImports(cls, modelName);
 
     return this.replacer.applyPlaceholders(template, {
       IMPORTS,
       modelMeta: `${modelName}Meta`,
       className: cls.name,
-      abstract: this.asAbstract(cls),
+      abstract: cls.abstract?" abstract ": " ",
       EXTENDS,
       IMPLEMENTS,
       ATTRIBUTES,
@@ -68,10 +63,8 @@ export class ClassGenerationService {
 
   private buildImports(
     cls: EClass,
-    usedEnums: Set<string>,
     modelName: string
   ): string {
-
     const imports = new Set<string>();
 
     //basic import: eClass and attributes and reference decorators if needed from emfular:
@@ -89,7 +82,8 @@ export class ClassGenerationService {
     }
 
     // meta:
-    imports.add(`import { ${modelName}Meta${cls.references.length> 0?`, ${cls.name}Refs`:'' }${usedEnums.size>0?", "+Array.from(usedEnums).join(", "):''} } from './_meta_';`)
+    imports.add(
+      `import { ${modelName}Meta${cls.references.length> 0?`, ${cls.name}Refs`:'' } } from './_meta_';`)
 
     // interface supertypes (type-only)
     cls.superTypes.interfaces.forEach(i =>
@@ -98,9 +92,16 @@ export class ClassGenerationService {
     // referenced types (type-only), but skip real parent and self
     cls.references.forEach(ref => {
       if (ref.type === realParent) return;
-      if (ref.type.name === cls.name) return; //todo if multiple same names allowed, use alias then
+      if (ref.type.name === cls.name) return;
       imports.add(CrossReferenceHandler.typeImport(ref.type));
     });
+    // attribute imports
+    cls.attributes.forEach(attr => {
+      const ref: ClassifierReference | BuiltInTypeReference = attr.type.reference
+      if(!('isBuiltIn' in ref) ) {
+        imports.add(CrossReferenceHandler.typeImport(ref));
+      }
+    })
     return Array.from(imports).join('\n');
   }
 
@@ -131,9 +132,7 @@ export class ClassGenerationService {
   }
 
   //fills used enums
-  private buildAttributes(cls: EClass, enums: EEnum[], usedEnums: Set<string>, types: EDataType[], usedTypes: Set<string>): string {
-    console.error('Types: ## '+types.map(t => t.name))
-
+  private buildAttributes(cls: EClass): string {
     return cls.attributes
       .map(a => this.buildAttribute(a))
       .join('\n\n');
@@ -145,7 +144,4 @@ export class ClassGenerationService {
       return `  @attribute()\n  ${attr.name}${optional}: ${attr.type}${initializer};`;
   }
 
-  asAbstract(meta:EClass): string {
-    return meta.abstract?" abstract ": " "
-  }
 }
