@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { GenerationParams } from './generation-params';
-import { ProjectGenerationService } from './project/project-generation.service';
+import { ProjectGenerationService } from './model-agnostic/project-generation.service';
 import {ModelGenerationService} from './model-specific/model-generation.service';
 import {EcoreParserService} from '../parsing/ecore-parser.service';
 import { EPackageJson } from '../parsing-model/package';
@@ -35,7 +35,7 @@ export class GenerationService {
   }
 
   private async processPackages(pkgs: Package[], params: GenerationParams, root: ClassifierReference): Promise<void> {
-    // Generate the Angular project structure
+    // Generate the Angular model-agnostic structure
     await this.projectGen.generateProjectFiles(params);
     await this.modelGenerationService.generateWholeModelFolder(params.modelName, pkgs, root)
   }
@@ -45,7 +45,7 @@ export class GenerationService {
   }
 
   private composeGenerationParams(file: File, projectName?: string, modelByUser?: string): GenerationParams {
-    //use the filename as default for project and model-specific, in case user specified nothing:
+    //use the filename as default for model-agnostic and model-specific, in case user specified nothing:
     const modelName = modelByUser ?? this.fileName(file);
     const pascalizedModel = modelName
     return {
