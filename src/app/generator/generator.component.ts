@@ -1,9 +1,9 @@
 import {ChangeDetectorRef, Component} from '@angular/core';
 import {NgIf} from '@angular/common';
-import {GenerationService} from '../generation/generation.service';
-import {ZipService} from '../generation/utils/zip.service';
+import {GenerationService} from '../ecore-pipeline/generation/generation.service';
+import {ZipService} from '../ecore-pipeline/generation/utils/zip.service';
 import {FormsModule} from '@angular/forms';
-import {ClassifierReference} from '../generation-model/cross-references';
+import {ClassifierReference} from '../ecore-pipeline/generation-model/cross-references';
 
 @Component({
   selector: 'emfular-generator',
