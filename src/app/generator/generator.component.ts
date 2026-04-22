@@ -1,6 +1,5 @@
 import {ChangeDetectorRef, Component} from '@angular/core';
 import {NgIf} from '@angular/common';
-import {ZipService} from '../ecore-pipeline/generation/utils/zip.service';
 import {FormsModule} from '@angular/forms';
 import {ClassifierReference} from '../ecore-pipeline/generation-model/cross-references';
 import {GeneratorService} from '../ecore-pipeline/generator.service';
@@ -24,7 +23,6 @@ export class GeneratorComponent {
 
   constructor(
     private generatorService: GeneratorService,
-    private zipService: ZipService,
     private cdr: ChangeDetectorRef,
     ) {
   }
@@ -37,7 +35,6 @@ export class GeneratorComponent {
     this.processFile(file).finally(() => {
       input.value = ""; // reset AFTER async work
     });
-
   }
 
   onDrop(event: DragEvent) {
@@ -62,15 +59,12 @@ export class GeneratorComponent {
       {name: todoRootName, path: [], uri_prefix: ""}: undefined
 
     try {
-      const finalProjectName =
-        await this.generatorService.processEcoreFile(
+      await this.generatorService.processEcoreFile(
           file,
           projectName,
           todoRoot,
           this.sanitize(this.packageByUser)
-        );
-      await this.zipService.downloadZip(finalProjectName);
-
+      );
     } catch (e) {
       console.error("PROCESSING ERROR:", e);
       this.errorMessage = e instanceof Error ? e.message : String(e);

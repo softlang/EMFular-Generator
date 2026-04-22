@@ -6,6 +6,7 @@ import {GenerationService} from './generation/generation.service';
 import {EcoreParserService} from './parsing/ecore-parser.service';
 import {Parsing2GenerationService} from './parsing2generation/parsing2generation.service';
 import {RootFindingService} from './parsing2generation/root/root-finding.service';
+import {ZipService} from './generation/utils/zip.service';
 
 @Injectable({
   providedIn: 'root',
@@ -16,22 +17,28 @@ export class GeneratorService {
     private ecoreParserService: EcoreParserService,
     private parsing2GenerationService: Parsing2GenerationService,
     private rootFindingService: RootFindingService,
-    private generationService: GenerationService
-    ) {
+    private generationService: GenerationService,
+    private zipService: ZipService,
+  ) {
   }
 
   //todo now use packageByUser spot for model-specific name
-  async processEcoreFile(file: File, projectName?: string, rootByUser?: ClassifierReference, modelByUser?: string): Promise<string> {
+  async processEcoreFile(file: File, projectName?: string, rootByUser?: ClassifierReference, modelByUser?: string): Promise<void> {
+    //1) parsing:
     const xml = await this.readFile(file);
     const rawPkgs: EPackageJson[] = this.ecoreParserService.parse(xml)
 
+    // 2) synthesis:
     //now choose root here, it can be from any package -
     const root: ClassifierReference = await this.rootFindingService.determineRoot(rawPkgs, rootByUser)
     const params: GenerationParams = this.composeGenerationParams(file, projectName, modelByUser)
     const generationModel = this.parsing2GenerationService.transform(rawPkgs)  //or use root here?
 
+    // 3) generation:
     await this.generationService.generate(generationModel, params, root);
-    return params.projectName
+
+    // 4) download:
+    await this.zipService.downloadZip(params.projectName);
   }
 
 
