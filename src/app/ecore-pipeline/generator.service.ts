@@ -22,8 +22,8 @@ export class GeneratorService {
   ) {
   }
 
-  //todo now use packageByUser spot for model-specific name
-  async processEcoreFile(file: File, projectName?: string, rootByUser?: ClassifierReference, modelByUser?: string): Promise<void> {
+  //todo now use mainFolderByUser spot for model-specific name
+  async processEcoreFile(file: File, projectName?: string, rootByUser?: string, modelByUser?: string): Promise<void> {
     //1) parsing:
     const xml = await this.readFile(file);
     const rawPkgs: EPackageJson[] = this.ecoreParserService.parse(xml)

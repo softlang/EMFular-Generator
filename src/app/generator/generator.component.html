@@ -15,25 +15,30 @@
     <div class="generator-options">
       <h3>Generator Options</h3>
 
-      <label for="packageOverride">Package selection:</label>
+      <label for="projectOverride">Project name:</label>
       <input
-        id="packageOverride"
+        id="projectOverride"
         type="text"
-        [(ngModel)]="packageByUser"
-        placeholder="Optional: choose package"
+        [(ngModel)]="projectByUser"
+        placeholder="Optional: choose project name"
       />
-
-      <label for="rootOverride">Root class:</label>
+      <label for="folderOverride">Folder name:</label>
+      <input
+        id="folderOverride"
+        type="text"
+        [(ngModel)]="mainFolderByUser"
+        placeholder="Optional: choose main folder name"
+      />
+      <label for="rootOverride">Root Eclass:</label>
       <input
         id="rootOverride"
         type="text"
         [(ngModel)]="rootByUser"
-        placeholder="Optional: choose root class"
+        placeholder="Optional: choose root Eclass"
       />
 
       <p class="hint">
-        Leave empty to auto-detect.
-        Fill in to override detection.
+        Leave empty to auto-detect/prompt.
       </p>
     </div>
 

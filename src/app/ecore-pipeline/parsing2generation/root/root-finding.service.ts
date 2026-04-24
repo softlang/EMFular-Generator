@@ -17,12 +17,12 @@ export class RootFindingService {
     private dialog: MatDialog,
   ) {}
 
-  public async determineRoot(pkgs: EPackageJson[], rootByUser?: ClassifierReference): Promise<ClassifierReference> {
-    if(rootByUser) {
+  public async determineRoot(pkgs: EPackageJson[], rootEclassByUser?: string): Promise<ClassifierReference> {
+    /*if(rootEclassByUser) {
       return rootByUser;
-    } else {
+    } else {*/
       return await this.rootByAsking(pkgs)
-    }
+
   }
 
   private async rootByAsking(pkgs: EPackageJson[]): Promise<ClassifierReference> {

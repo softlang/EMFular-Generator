@@ -1,7 +1,6 @@
 import {ChangeDetectorRef, Component} from '@angular/core';
 import {NgIf} from '@angular/common';
 import {FormsModule} from '@angular/forms';
-import {ClassifierReference} from '../ecore-pipeline/generation-model/cross-references';
 import {GeneratorService} from '../ecore-pipeline/generator.service';
 
 @Component({
@@ -18,8 +17,9 @@ export class GeneratorComponent {
   fileName: string | null = null;
   errorMessage: string | null = null;
 
+  projectByUser: string ="";
   rootByUser: string ="";
-  packageByUser: string="";
+  mainFolderByUser: string="";
 
   constructor(
     private generatorService: GeneratorService,
@@ -52,18 +52,15 @@ export class GeneratorComponent {
     event.preventDefault();
   }
 
-  private async processFile(file: File, projectName?: string) {
+  private async processFile(file: File) {
     this.errorMessage = null;
-    const todoRootName = this.sanitize(this.rootByUser)
-    const todoRoot: ClassifierReference|undefined = todoRootName?
-      {name: todoRootName, path: [], uri_prefix: ""}: undefined
 
     try {
       await this.generatorService.processEcoreFile(
-          file,
-          projectName,
-          todoRoot,
-          this.sanitize(this.packageByUser)
+        file,
+        this.sanitize(this.projectByUser),
+        this.sanitize(this.rootByUser),
+        this.sanitize(this.mainFolderByUser)
       );
     } catch (e) {
       console.error("PROCESSING ERROR:", e);
