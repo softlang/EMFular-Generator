@@ -3,7 +3,6 @@ import {EPackageJson} from '../../parsing-model/package';
 import {EClassJson} from '../../parsing-model/classifier';
 import {Package} from '../../generation-model/package';
 import {EClass} from '../../generation-model/classifier';
-import {ClassifierReference} from '../../generation-model/cross-references';
 import {RootSelectionDialogComponent} from './root-selection-dialog/root-selection-dialog.component';
 import {firstValueFrom} from 'rxjs';
 import {MatDialog} from '@angular/material/dialog';
@@ -17,15 +16,15 @@ export class RootFindingService {
     private dialog: MatDialog,
   ) {}
 
-  public async determineRoot(pkgs: EPackageJson[], rootEclassByUser?: string): Promise<ClassifierReference> {
-    /*if(rootEclassByUser) {
-      return rootByUser;
-    } else {*/
+  public async determineRoot(pkgs: EPackageJson[], rootEclassByUser?: string): Promise<string> {
+    if(rootEclassByUser) {
+      return rootEclassByUser;
+    } else {
       return await this.rootByAsking(pkgs)
-
+    }
   }
 
-  private async rootByAsking(pkgs: EPackageJson[]): Promise<ClassifierReference> {
+  private async rootByAsking(pkgs: EPackageJson[]): Promise<string> {
     //first reduce classes on pkgs to that that are root candidates:
     const resPkgs = pkgs.map(p => this.reduceToCandidates(p))
     //then check if there is only one real candidate - if yes, use it, else ask the user.

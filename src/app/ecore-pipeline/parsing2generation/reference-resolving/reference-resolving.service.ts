@@ -3,11 +3,42 @@ import { EPackageJson } from '../../parsing-model/package';
 import {EClassJson} from '../../parsing-model/classifier';
 import {RefFragmentKind, Resolvable} from '../../parsing-model/resolvable';
 import {EReferenceJson} from '../../parsing-model/structural-feature';
+import {Package} from '../../generation-model/package';
+import {ClassifierReference} from '../../generation-model/cross-references';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ReferenceResolvingService {
+
+  classReferenceFromPkgAndClsName(pkg: Package, clsName: string): ClassifierReference {
+    return {
+      name: clsName,
+      path: pkg.path,
+      uri_prefix: pkg.nsURI
+    }
+  }
+
+  classReferenceFromEClass(eClass: string, pkgs: Package[]): ClassifierReference {
+    const separationPoint = eClass.lastIndexOf("#//")
+    if (separationPoint === -1) {
+      throw new Error(`Not an EMF EClass URI: ${eClass}`);
+    }
+    const uriPrefix: string = eClass.substring(0, separationPoint);
+    const clsName: string = eClass.substring(separationPoint+3);
+
+    const pkg = this.determinePkg(uriPrefix, pkgs)
+    return this.classReferenceFromPkgAndClsName(pkg, clsName)
+  }
+
+  private determinePkg(nsURI: string, pkgs: Package[]): Package {
+    const res = pkgs.find(pkg => pkg.nsURI === nsURI)
+    if (res) {
+      return res;
+    } else {
+      throw new Error('No packages found for ns URI '+nsURI);
+    }
+  }
 
   resolveOnPkgs(pkgs: EPackageJson[]) {
     pkgs.map(pkg => this.resolveOnPkg(pkg))

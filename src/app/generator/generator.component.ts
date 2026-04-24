@@ -59,8 +59,8 @@ export class GeneratorComponent {
       await this.generatorService.processEcoreFile(
         file,
         this.sanitize(this.projectByUser),
-        this.sanitize(this.rootByUser),
-        this.sanitize(this.mainFolderByUser)
+        this.sanitize(this.mainFolderByUser),
+        this.sanitize(this.rootByUser)
       );
     } catch (e) {
       console.error("PROCESSING ERROR:", e);
