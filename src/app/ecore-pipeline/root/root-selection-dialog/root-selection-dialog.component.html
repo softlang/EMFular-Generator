@@ -15,6 +15,10 @@
 
       <h3>{{ pkg.name }}</h3>
 
+      @if(pkg.classesWithUri.length == 0) {
+        <span>no suitable classes detected</span>
+      }
+
       @for (item of pkg.classesWithUri; track item.cls.name) {
         <mat-radio-button
           class="root-option"
