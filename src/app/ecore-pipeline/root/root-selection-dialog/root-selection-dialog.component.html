@@ -1,5 +1,5 @@
 <h2 mat-dialog-title>
-  Multiple Root Classes Detected
+  Root Class Selection
 </h2>
 
 <mat-dialog-content>
@@ -7,37 +7,27 @@
     EMFular found several possible root classes. Please choose one.
   </p>
 
-
-
   <mat-radio-group [(ngModel)]="selectedEclass">
 
-    @for (pkg of packages; track pkg.name) {
-
+    @for (pkg of pkgs; track pkg.name) {
       <h3>{{ pkg.name }}</h3>
-
-      @if(pkg.classesWithUri.length == 0) {
+      @if(pkg.classes.length == 0) {
         <span>no suitable classes detected</span>
       }
-
-      @for (item of pkg.classesWithUri; track item.cls.name) {
+      @for (item of pkg.classes; track item.name) {
         <mat-radio-button
           class="root-option"
-          [value]="item.uri"
+          [value]="item.eClass"
         >
-          <strong>{{ item.cls.name }}</strong>
-
+          <strong>{{ item.name }}</strong>
           <div class="meta">
-            @if (item.cls.abstract) { <span>abstract</span> }
-            @if (item.cls.interfaceLike) { <span>interface</span> }
-            @if (hasContainment(item.cls)) { <span>contains children</span> }
-            @if (allFeaturesTransient(item.cls)) { <span>all features transient</span> }
+            @if (item.abstract) { <span>abstract</span> }
+            @if (item.hasContainment) { <span>contains children</span> }
+            @if (item.allFeaturesTransient) { <span>all features transient</span> }
           </div>
         </mat-radio-button>
-
       }
-
     }
-
   </mat-radio-group>
 
 </mat-dialog-content>
