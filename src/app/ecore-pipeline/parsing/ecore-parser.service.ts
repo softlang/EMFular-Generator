@@ -1,8 +1,6 @@
 import { Injectable } from '@angular/core';
 import { EPackageJson } from '../parsing-model/package';
 import { EPackage2JsonService } from './x2json/epackage2json.service';
-import { ReferenceResolvingService } from '../parsing2generation/reference-resolving/reference-resolving.service';
-import { Package } from '../generation-model/package'
 
 @Injectable({
   providedIn: 'root',
@@ -11,25 +9,14 @@ export class EcoreParserService {
 
   constructor(
     private ePackage2Json: EPackage2JsonService,
-    private referenceResolver: ReferenceResolvingService,
   ) {}
-
-  parse2(xml: string): Package[]  {
-    const pkgs: Package[] = []
-    //todo
-    return pkgs
-
-    if(pkgs.length == 0){
-      throw new Error('No EPackages found.');
-    }
-  }
 
   parse(xml: string): EPackageJson[] {
     const doc = this.parseXml(xml);
     const stack: Element[] = [doc.documentElement];
     const result: EPackageJson[] = [];
 
-    //1) parse as raw, no reference reference-resolving yet:
+    // parse as raw, no reference reference-resolving yet:
     while (stack.length > 0) {
       const el = stack.pop()!;
       if (this.isEPackage(el)) {
@@ -40,8 +27,6 @@ export class EcoreParserService {
         }
       }
     }
-    // 2) now resolve ALL references/additional attributes
-    this.referenceResolver.resolveOnPkgs(result)
     return result;
   }
 

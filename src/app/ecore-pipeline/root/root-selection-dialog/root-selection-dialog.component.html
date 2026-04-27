@@ -15,7 +15,7 @@
 
       <h3>{{ pkg.name }}</h3>
 
-      @for (item of pkg.eClasses; track item.cls.name) {
+      @for (item of pkg.classesWithUri; track item.cls.name) {
         <mat-radio-button
           class="root-option"
           [value]="item.uri"

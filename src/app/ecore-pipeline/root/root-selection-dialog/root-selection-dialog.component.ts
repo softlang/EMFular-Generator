@@ -28,8 +28,6 @@ export class RootSelectionDialogComponent implements OnInit {
   packages: any[] = [];
   selectedEclass: string|null = null;
 
-
-
   constructor(
     @Inject(MAT_DIALOG_DATA) public pkgs: EPackageJson[],
     private dialogRef: MatDialogRef<RootSelectionDialogComponent>
@@ -39,7 +37,7 @@ export class RootSelectionDialogComponent implements OnInit {
     this.packages = this.pkgs.map(pkg => ({
       ...pkg,
       classesWithUri: pkg.eClasses.map(cls => ({
-        cls,
+        cls: cls,
         uri: EClassManager.createEClass(pkg, cls)
       }))
     }));
