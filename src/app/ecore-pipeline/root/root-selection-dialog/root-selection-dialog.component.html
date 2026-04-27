@@ -7,41 +7,40 @@
     EMFular found several possible root classes. Please choose one.
   </p>
 
-  <mat-radio-group [(ngModel)]="selected">
-    @for (cls of candidates; track cls.name) {
-      <mat-radio-button
-        [value]="cls"
-        class="root-option"
-      >
-        <strong>{{ cls.name }}</strong>
 
-        <div class="meta">
 
-          @if (cls.abstract) {
-            <span>abstract</span>
-          }
+  <mat-radio-group [(ngModel)]="selectedEclass">
 
-          @if (cls.interfaceLike) {
-            <span>interface</span>
-          }
+    @for (pkg of packages; track pkg.name) {
 
-          @if (hasContainment(cls)) {
-            <span>contains children</span>
-          }
+      <h3>{{ pkg.name }}</h3>
 
-          @if (allFeaturesTransient(cls)) {
-            <span>all features transient</span>
-          }
+      @for (item of pkg.eClasses; track item.cls.name) {
+        <mat-radio-button
+          class="root-option"
+          [value]="item.uri"
+        >
+          <strong>{{ item.cls.name }}</strong>
 
-        </div>
-      </mat-radio-button>
+          <div class="meta">
+            @if (item.cls.abstract) { <span>abstract</span> }
+            @if (item.cls.interfaceLike) { <span>interface</span> }
+            @if (hasContainment(item.cls)) { <span>contains children</span> }
+            @if (allFeaturesTransient(item.cls)) { <span>all features transient</span> }
+          </div>
+        </mat-radio-button>
+
+      }
+
     }
+
   </mat-radio-group>
+
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
   <button mat-button (click)="cancel()">Cancel</button>
-  <button mat-raised-button color="primary" [disabled]="!selected" (click)="confirm()">
+  <button mat-raised-button color="primary" [disabled]="!selectedEclass" (click)="confirm()">
     Use Selected Root
   </button>
 </mat-dialog-actions>

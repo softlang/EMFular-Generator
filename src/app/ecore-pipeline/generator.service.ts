@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import {ClassifierReference} from './generation-model/cross-references';
 import {GenerationParams} from './generation/generation-params';
 import {EPackageJson} from './parsing-model/package';
 import {GenerationService} from './generation/generation.service';

@@ -1,4 +1,4 @@
-import { Component, Inject } from '@angular/core';
+import {Component, Inject, OnInit} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import {
@@ -9,6 +9,8 @@ import {
 import { MatRadioModule } from '@angular/material/radio';
 import { MatButtonModule } from '@angular/material/button';
 import {EClassJson} from '../../parsing-model/classifier';
+import {EPackageJson} from '../../parsing-model/package';
+import {EClassManager} from '../../../eclass/eclass-manager';
 
 
 @Component({
@@ -22,16 +24,29 @@ import {EClassJson} from '../../parsing-model/classifier';
   templateUrl: './root-selection-dialog.component.html',
   styleUrl: './root-selection-dialog.component.css',
 })
-export class RootSelectionDialogComponent {
-  selected: EClassJson | null = null;
+export class RootSelectionDialogComponent implements OnInit {
+  packages: any[] = [];
+  selectedEclass: string|null = null;
+
+
 
   constructor(
-    @Inject(MAT_DIALOG_DATA) public candidates: EClassJson[],
+    @Inject(MAT_DIALOG_DATA) public pkgs: EPackageJson[],
     private dialogRef: MatDialogRef<RootSelectionDialogComponent>
   ) {}
 
+  ngOnInit() {
+    this.packages = this.pkgs.map(pkg => ({
+      ...pkg,
+      classesWithUri: pkg.eClasses.map(cls => ({
+        cls,
+        uri: EClassManager.createEClass(pkg, cls)
+      }))
+    }));
+  }
+
   confirm() {
-    this.dialogRef.close(this.selected);
+    this.dialogRef.close(this.selectedEclass);
   }
 
   cancel() {
