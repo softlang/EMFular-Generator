@@ -5,7 +5,7 @@ import {EPackageJson} from './parsing-model/package';
 import {GenerationService} from './generation/generation.service';
 import {EcoreParserService} from './parsing/ecore-parser.service';
 import {Parsing2GenerationService} from './parsing2generation/parsing2generation.service';
-import {RootFindingService} from './parsing2generation/root/root-finding.service';
+import {RootFindingService} from './root/root-finding.service';
 import {ZipService} from './generation/utils/zip.service';
 import {ReferenceResolvingService} from './parsing2generation/reference-resolving/reference-resolving.service';
 
