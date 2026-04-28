@@ -5,6 +5,7 @@ import {RefFragmentKind, Resolvable} from '../../parsing-model/resolvable';
 import {EReferenceJson} from '../../parsing-model/structural-feature';
 import {Package} from '../../generation-model/package';
 import {ClassifierReference} from '../../generation-model/cross-references';
+import {ResolutionContext} from '../resolution-context';
 
 @Injectable({
   providedIn: 'root',
@@ -40,10 +41,8 @@ export class ReferenceResolvingService {
     }
   }
 
-  resolveOnPkgs(pkgs: EPackageJson[]) {
-    pkgs.map(pkg => this.resolveOnPkg(pkg))
-  }
 
+/*
   resolveOnPkg(pkg: EPackageJson) {
     const idToMap: Map<string, string> = new Map();
     pkg.eClasses.forEach(eClass => {
@@ -58,6 +57,7 @@ export class ReferenceResolvingService {
     this.resolveSuperTypes(pkg)
     this.inferTreeParents(pkg)
   }
+ */
 
   private resolveOnClass(cls: EClassJson, idToName: Map<string, string>) {
     //todo collect imports?
@@ -94,18 +94,6 @@ export class ReferenceResolvingService {
     return idx >= 0 ? raw.substring(idx + 1) : raw;
   }
 
-  resolveSuperTypes(pkg: EPackageJson) {
-    for (const cls of pkg.eClasses) {
-      cls.superTypes.map(sup => {
-        const resolved = this.resolveSuperTypeUri(sup.raw, pkg)
-        if (resolved) {
-          sup.resolved = resolved
-        } else {
-          throw new Error("Could not resolve supertype "+sup.raw+" on class "+cls.name)
-        }
-      })
-    }
-  }
 
   private resolveSuperTypeUri(uri: string, pkg: EPackageJson): string | undefined {
     // Case 1: XMI index "#/0/@eClassifiers.1"
@@ -131,23 +119,10 @@ export class ReferenceResolvingService {
     return undefined;
   }
 
-  classifyRefFragment(raw: string | undefined): RefFragmentKind | undefined {
-    if (!raw) return undefined;
-    // ID-based: starts with "#_" and has no slash
-    if (raw.startsWith("#_")) {
-      return RefFragmentKind.IdBased;
-    }
-    // Positional: contains "@eClassifiers." or "@eStructuralFeatures."
-    if (raw.includes("@eClassifiers.") || raw.includes("@eStructuralFeatures.")) {
-      return RefFragmentKind.Positional;
-    }
-    return RefFragmentKind.NameBased;
-  }
-
   //we can resolve without context, since we do neither expect id-based, nor positional references
   private resolveOpposite(ref: EReferenceJson) {
     const raw = ref.opposite?.raw
-    const oppositeKind = this.classifyRefFragment(raw)
+    const oppositeKind = ResolutionContext.classifyRefFragment(raw)
     if (oppositeKind == RefFragmentKind.IdBased || oppositeKind == RefFragmentKind.Positional ) {
       throw new Error("Id based or positional opposite relationships are not supported.")
     }
@@ -156,6 +131,7 @@ export class ReferenceResolvingService {
     ref.opposite!.resolved =  idx >= 0 ? raw.substring(idx + 1) : raw;
   }
 
+  /*
   private inferTreeParents(pkg: EPackageJson) {
     // Build a lookup table following the opposite naming schema
     const refIndex = new Map<string, EReferenceJson>();
@@ -177,5 +153,5 @@ export class ReferenceResolvingService {
         }
       }
     }
-  }
+  }*/
 }
