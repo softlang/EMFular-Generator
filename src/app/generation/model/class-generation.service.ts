@@ -183,6 +183,8 @@ export class ClassGenerationService {
   private mapEcoreTypeToTs(attr: EAttributeJson): string {
     const t = attr.type;
 
+    if (t.length == 0) return "any"
+
     if (t == "EString") return "string";
     if (t == "EBoolean" || t == "EBooleanObject") return "boolean";
 
