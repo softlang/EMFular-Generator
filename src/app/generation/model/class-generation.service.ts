@@ -183,19 +183,19 @@ export class ClassGenerationService {
   private mapEcoreTypeToTs(attr: EAttributeJson): string {
     const t = attr.type;
 
-    if (t.endsWith("#//EString")) return "string";
-    if (t.endsWith("#//EBoolean") || t.endsWith("#//EBooleanObject")) return "boolean";
+    if (t == "EString") return "string";
+    if (t == "EBoolean" || t == "EBooleanObject") return "boolean";
 
     if (
-      t.endsWith("#//EInt") || t.endsWith("#//EIntegerObject") ||
-      t.endsWith("#//ELong") || t.endsWith('#//ELongObject') ||
-      t.endsWith("#//EShort") || t.endsWith("#//EShortObject") ||
-      t.endsWith("#//EFloat") || t.endsWith("#//EFloatObject") ||
-      t.endsWith("#//EDouble") || t.endsWith("#//EDoubleObject")
+      t == "EInt" || t == "EIntegerObject" ||
+      t == "ELong" || t == "ELongObject" ||
+      t == "EShort" || t == "EShortObject" ||
+      t == "EFloat" || t == "EFloatObject" ||
+      t == "EDouble" || t == "EDoubleObject"
     ) return "number";
 
-    if (t.endsWith("#//EDate")) return "Date";
-    if (t.endsWith("#//EByteArray")) return "Uint8Array";
+    if (t == "EDate") return "Date";
+    if (t == "EByteArray") return "Uint8Array";
 
     // enum or custom datatype → short name
     const idx = t.lastIndexOf("#//");
