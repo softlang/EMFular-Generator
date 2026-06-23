@@ -1,0 +1,40 @@
+<h2 mat-dialog-title>
+  Root Class Selection
+</h2>
+
+<mat-dialog-content>
+  <p>
+    EMFular found several possible root classes. Please choose one.
+  </p>
+
+  <mat-radio-group [(ngModel)]="selectedEclass">
+
+    @for (pkg of pkgs; track pkg.name) {
+      <h3>{{ pkg.name }}</h3>
+      @if(pkg.classes.length == 0) {
+        <span>no suitable classes detected</span>
+      }
+      @for (item of pkg.classes; track item.name) {
+        <mat-radio-button
+          class="root-option"
+          [value]="item.eClass"
+        >
+          <strong>{{ item.name }}</strong>
+          <div class="meta">
+            @if (item.abstract) { <span>abstract</span> }
+            @if (item.hasContainment) { <span>contains children</span> }
+            @if (item.allFeaturesTransient) { <span>all features transient</span> }
+          </div>
+        </mat-radio-button>
+      }
+    }
+  </mat-radio-group>
+
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancel()">Cancel</button>
+  <button mat-raised-button color="primary" [disabled]="!selectedEclass" (click)="confirm()">
+    Use Selected Root
+  </button>
+</mat-dialog-actions>
