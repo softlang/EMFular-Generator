@@ -41,7 +41,9 @@
                   "maximumError": "8kB"
                 }
               ],
-              "outputHashing": "all"
+              "outputHashing": "all",
+              "baseHref": "/EMFular-Generator/",
+              "deployUrl": "/EMFular-Generator/"
             },
             "development": {
               "optimization": false,
