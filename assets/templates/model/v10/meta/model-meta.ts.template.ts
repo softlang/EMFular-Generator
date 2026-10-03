@@ -1,4 +1,4 @@
-import { ModelDefinition, ReferenceMeta } from "emfular";
+import { ModelDefinition, ReferenceMeta } from "emfular-core";
 
 %%TYPES%%
 %%ENUMS%%

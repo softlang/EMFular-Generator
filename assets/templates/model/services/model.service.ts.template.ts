@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ModelService } from 'ngx-emfular-integration';
-import { IoService } from 'ngx-emfular-helper';
+import { IoService } from 'ngx-emfular-tool';
 
 import { %%modelName%%HistoryService } from './%%modelName%%-history.service';
 %%ALL_REAL_CLASSES_IMPORTS%%
