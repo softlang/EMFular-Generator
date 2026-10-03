@@ -24,10 +24,10 @@ import { %%root%% } from "../core/%%root%%";
 })
 export class %%modelName%%EditorComponent{
 
-  svgwidth = 1500;
-  svgheigth = 1000;
-  initialBBox : BoundingBox = {x: this.svgwidth/2, y: 20, w: 200, h: 25}
-  sidebarButtons: Array<ActionButtonDef> | null = null;
+  svgwidth = 750;
+  svgheigth = 500;
+  initialBBox : BoundingBox = {x: this.svgwidth/2-100, y: 20, w: 200, h: 50}
+  sidebarButtons: ActionButtonDef[] = [];
 
   constructor(
     public treeDetailsService: GraphicalTreeDetailsService<%%root%%>,
