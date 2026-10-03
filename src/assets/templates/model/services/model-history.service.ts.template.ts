@@ -1,6 +1,6 @@
 import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
-import { HistoryService } from 'ngx-emfular-helper';
-import { JsonOf } from 'emfular';
+import { HistoryService } from 'ngx-emfular-tool';
+import { JsonOf } from 'emfular-core';
 import { %%root%% } from '../core/%%root%%';
 
 @Injectable({
