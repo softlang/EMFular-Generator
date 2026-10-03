@@ -1,13 +1,13 @@
 import {Component} from '@angular/core';
 import {
-  TreeModelDetailsService,
-  EditButtonDef,
-  ModelEditingBarComponent,
+  ActionButtonDef,
   BasicEditorComponent,
-  ReferencableBoxComponent
+  GraphicalTreeDetailsService,
+  ModelSpecificPaletteComponent,
+  TreeModelElementComponent
 } from "ngx-emfular-integration";
-import { BoundingBox } from 'ngx-svg-graphics';
-import { Referencable} from "emfular";
+import { BoundingBox } from "ngx-emfular-diagram";
+import { Referencable} from "emfular-core";
 
 import { %%modelName%%Service } from "../edit/%%modelName%%.service";
 import { %%root%% } from "../core/%%root%%";
@@ -15,9 +15,9 @@ import { %%root%% } from "../core/%%root%%";
 @Component({
   selector: '%%modelName%%-editor',
   imports: [
-    ModelEditingBarComponent,
+    ModelSpecificPaletteComponent,
     BasicEditorComponent,
-    ReferencableBoxComponent
+    TreeModelElementComponent
   ],
   templateUrl: './%%modelName%%-editor.component.html',
   styleUrl: './%%modelName%%-editor.component.css'
@@ -27,10 +27,10 @@ export class %%modelName%%EditorComponent{
   svgwidth = 1500;
   svgheigth = 1000;
   initialBBox : BoundingBox = {x: this.svgwidth/2, y: 20, w: 200, h: 25}
-  sidebarButtons: Array<EditButtonDef> | null = null;
+  sidebarButtons: Array<ActionButtonDef> | null = null;
 
   constructor(
-    public treeDetailsService: TreeModelDetailsService<%%root%%>,
+    public treeDetailsService: GraphicalTreeDetailsService<%%root%%>,
     public modelService: %%modelName%%Service,
   ) {
     this.sidebarButtons = [
