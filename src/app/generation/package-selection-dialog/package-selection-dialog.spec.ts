@@ -1,17 +1,17 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { PackageSelectionDialog } from './package-selection-dialog';
+import {PackageSelectionDialogComponent} from './package-selection-dialog';
 
 describe('PackageSelectionDialog', () => {
-  let component: PackageSelectionDialog;
-  let fixture: ComponentFixture<PackageSelectionDialog>;
+  let component: PackageSelectionDialogComponent;
+  let fixture: ComponentFixture<PackageSelectionDialogComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [PackageSelectionDialog],
+      imports: [PackageSelectionDialogComponent],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(PackageSelectionDialog);
+    fixture = TestBed.createComponent(PackageSelectionDialogComponent);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });
