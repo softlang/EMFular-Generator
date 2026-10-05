@@ -24,7 +24,7 @@ import { %%root%% } from "../core/%%root%%";
 })
 export class %%modelName%%EditorComponent{
 
-  svgwidth = 750;
+  svgwidth = 1500;
   svgheigth = 500;
   initialBBox : BoundingBox = {x: this.svgwidth/2-100, y: 20, w: 200, h: 50}
   sidebarButtons: ActionButtonDef[] = [];
