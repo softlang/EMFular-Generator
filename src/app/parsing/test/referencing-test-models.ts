@@ -127,3 +127,42 @@ export const MIXED_REFERENCES_ECORE = `<?xml version="1.0" encoding="UTF-8"?>
   </eClassifiers>
 
 </ecore:EPackage>`;
+
+export const NAME_CONFLICTS_ECORE = `<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0"
+               xmlns:xmi="http://www.omg.org/XMI"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore"
+               name="system"
+               nsURI="http://example.org/system"
+               nsPrefix="sys">
+
+  <!-- Subpackage 1: Auth -->
+  <eSubpackages name="auth" nsURI="http://example.org/system/auth" nsPrefix="auth">
+    <!-- Colliding class name 'Account' -->
+    <eClassifiers xsi:type="ecore:EClass" name="Account">
+      <eStructuralFeatures xsi:type="ecore:EAttribute" name="username"
+                           eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    </eClassifiers>
+  </eSubpackages>
+
+  <!-- Subpackage 2: Billing -->
+  <eSubpackages name="billing" nsURI="http://example.org/system/billing" nsPrefix="billing">
+    <!-- Colliding class name 'Account' -->
+    <eClassifiers xsi:type="ecore:EClass" name="Account">
+      <eStructuralFeatures xsi:type="ecore:EAttribute" name="balance"
+                           eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDouble"/>
+    </eClassifiers>
+
+    <eClassifiers xsi:type="ecore:EClass" name="Invoice">
+      <!-- 1. Local reference to billing's own Account -->
+      <eStructuralFeatures xsi:type="ecore:EReference" name="billingAccount"
+                           eType="#//billing/Account"/>
+
+      <!-- 2. Explicit cross-package reference to auth's Account -->
+      <eStructuralFeatures xsi:type="ecore:EReference" name="userAuthAccount"
+                           eType="#//auth/Account"/>
+    </eClassifiers>
+  </eSubpackages>
+
+</ecore:EPackage>`;

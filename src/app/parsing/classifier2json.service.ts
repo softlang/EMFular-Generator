@@ -1,29 +1,34 @@
 import { Injectable } from '@angular/core';
-import {EClassifierJson, EClassJson, EDataTypeJson, EEnumJson} from './ecore-json';
-import {Attribute2JsonService} from './attribute2json.service';
-import {Reference2JsonService} from './reference2json.service';
+import { EClassifierJson, EClassJson, EDataTypeJson, EEnumJson } from './ecore-json';
+import { Attribute2JsonService } from './attribute2json.service';
+import { Reference2JsonService } from './reference2json.service';
+import { ReferenceResolvingService } from './reference-resolving.service';
+import { SymbolTable } from './symbol-table';
 
 @Injectable({
   providedIn: 'root',
 })
 export class Classifier2JsonService {
-
   constructor(
     private attribute2json: Attribute2JsonService,
     private reference2json: Reference2JsonService,
+    private referenceResolver: ReferenceResolvingService,
   ) {}
 
-  parseEClass(el: Element, index: number, idToName: Map<string,string>): EClassJson {
+  parseEClass(el: Element, index: number, table: SymbolTable): EClassJson {
     const general = this.parseClassifier(el, index);
+    const superTypes = (el.getAttribute('eSuperTypes') ?? '').split(' ').filter(Boolean);
+
     const cls: EClassJson = {
       ...general,
       kind: 'EClass',
       abstract: el.getAttribute('abstract') === 'true',
       interfaceLike: el.getAttribute('interface') === 'true',
-      superTypes: (el.getAttribute('eSuperTypes') ?? '')
-        .split(' ')
-        .filter(Boolean),
-      resolvedSuperTypes: [],
+      superTypes,
+      resolvedSuperTypes: superTypes
+        .map((s) => this.referenceResolver.resolveClassifier(s, table))
+        .filter((r) => r.origin === 'local')
+        .map((r) => r.name),
       attributes: [],
       references: [],
     };
@@ -32,17 +37,16 @@ export class Classifier2JsonService {
       const type = child.getAttribute('xsi:type');
       if (type === 'ecore:EAttribute') {
         cls.attributes.push(
-          this.attribute2json.parseEAttribute(child, idToName)
+          this.attribute2json.parseEAttribute(child, table)
         );
       } else if (type === 'ecore:EReference') {
         cls.references.push(
-          this.reference2json.parseEReference(child, idToName)
+          this.reference2json.parseEReference(child, table)
         );
       }
     }
     return cls;
   }
-
 
   parseEEnum(el: Element, index: number): EEnumJson {
     const general = this.parseClassifier(el, index);
@@ -57,7 +61,7 @@ export class Classifier2JsonService {
 
   parseEDataType(el: Element, index: number): EDataTypeJson {
     const general = this.parseClassifier(el, index);
-    return{
+    return {
       ...general,
       kind: 'EDataType',
       instanceTypeName: el.getAttribute('instanceTypeName') ?? '',
@@ -69,13 +73,12 @@ export class Classifier2JsonService {
     const res: EClassifierJson = {
       _index: index,
       _rawName: name ?? '',
-      name: name??'', //todo
-    }
-    const id: string | null = el.getAttribute('xmi:id')
+      name: name ?? '', //todo
+    };
+    const id: string | null = el.getAttribute('xmi:id');
     if (id) {
-      res._id = id
+      res._id = id;
     }
     return res;
   }
-
 }

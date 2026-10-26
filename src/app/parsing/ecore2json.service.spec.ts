@@ -5,7 +5,7 @@ import {
   SUBPACKAGES_ECORE,
   MULTI_ROOT_ECORE,
   ID_REFERENCES_ECORE,
-  MIXED_REFERENCES_ECORE,
+  MIXED_REFERENCES_ECORE, NAME_CONFLICTS_ECORE,
 } from './test/referencing-test-models';
 
 describe('Ecore2JsonService - Reference Resolution Suite', () => {
@@ -60,7 +60,7 @@ describe('Ecore2JsonService - Reference Resolution Suite', () => {
       const packages = service.parse(SUBPACKAGES_ECORE);
 
       // Locate domain package and types package
-      const domainPkg = packages.find((p) => p.name === 'domain') ?? packages[0];
+      const domainPkg = packages[0].subPackages?.find((p) => p.name === 'domain');
       const orderClass = domainPkg?.eClasses.find((c) => c.name === 'Order');
       expect(orderClass).toBeDefined();
 
@@ -155,6 +155,53 @@ describe('Ecore2JsonService - Reference Resolution Suite', () => {
       // 3. Tree Parent inference (Library contains books -> Library is tree parent of Book)
       expect(libRef?.isTreeParent).toBeTruthy();
       expect(booksRef?.isTreeParent).toBeFalsy();
+    });
+  });
+
+  // =========================================================================
+  // 6. NAME CONFLICTS ACROSS SUBPACKAGES TEST
+  // =========================================================================
+  describe('Naming Conflicts (same classifier name in different subpackages)', () => {
+    it('should keep both Account classes apart and resolve each reference to the right one', () => {
+      const packages = service.parse(NAME_CONFLICTS_ECORE);
+      expect(packages.length).toBe(1);
+
+      const system = packages[0];
+      const authPkg = system.subPackages?.find((p) => p.name === 'auth');
+      const billingPkg = system.subPackages?.find((p) => p.name === 'billing');
+      expect(authPkg).toBeDefined();
+      expect(billingPkg).toBeDefined();
+
+      // 1. Each subpackage owns its own Account class
+      const authAccount = authPkg?.eClasses.find((c) => c.name === 'Account');
+      const billingAccount = billingPkg?.eClasses.find((c) => c.name === 'Account');
+      expect(authAccount).toBeDefined();
+      expect(billingAccount).toBeDefined();
+      expect(authAccount).not.toBe(billingAccount);
+      expect(authAccount?.attributes.map((a) => a.name)).toEqual(['username']);
+      expect(billingAccount?.attributes.map((a) => a.name)).toEqual(['balance']);
+
+      // 2. Built-in Ecore datatypes still resolve as external references
+      const username = authAccount?.attributes[0];
+      const balance = billingAccount?.attributes[0];
+      expect(username?.type).toBe('EString');
+      expect(balance?.type).toBe('EDouble');
+      expect(username?.resolvedTypeRef?.origin).toBe('external');
+
+      // 3. Both Invoice references have the same simple type name ...
+      const invoice = billingPkg?.eClasses.find((c) => c.name === 'Invoice');
+      expect(invoice).toBeDefined();
+      const billingRef = invoice?.references.find((r) => r.name === 'billingAccount');
+      const authRef = invoice?.references.find((r) => r.name === 'userAuthAccount');
+      expect(billingRef?.resolvedType).toBe('Account');
+      expect(authRef?.resolvedType).toBe('Account');
+
+      // 4. ... but resolvedTypeRef tells them apart
+      expect(billingRef?.resolvedTypeRef?.origin).toBe('local');
+      expect(billingRef?.resolvedTypeRef?.pkgPath).toEqual(['system', 'billing']);
+
+      expect(authRef?.resolvedTypeRef?.origin).toBe('local');
+      expect(authRef?.resolvedTypeRef?.pkgPath).toEqual(['system', 'auth']);
     });
   });
 });

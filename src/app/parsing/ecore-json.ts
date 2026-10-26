@@ -1,6 +1,8 @@
+import { ClassifierRef } from './symbol-table';
+
 export interface CrossPackageRef {
   originalRef: string;
-  resolvedRef?: ResolvedRef
+  resolvedRef?: ResolvedRef;
 }
 
 export interface ResolvedRef {
@@ -27,7 +29,7 @@ export interface EClassifierJson {
 }
 
 export interface EClassJson extends EClassifierJson {
-  kind: "EClass";
+  kind: 'EClass';
   name: string;
   _rawName: string;
   _index: number;
@@ -35,28 +37,30 @@ export interface EClassJson extends EClassifierJson {
 
   abstract: boolean;
   interfaceLike?: boolean;
-  superTypes: string[];           //raw URIs
-  resolvedSuperTypes: string[];  // clean class names
+  superTypes: string[]; //raw URIs
+  resolvedSuperTypes: string[]; // clean class names
   attributes: EAttributeJson[];
   references: EReferenceJson[];
 }
 
 export interface EAttributeJson {
-  kind: "EAttribute";
+  kind: 'EAttribute';
   name: string;
   type: string;
+  resolvedTypeRef?: ClassifierRef; // qualifiedName disambiguates same-named classifiers
   lowerBound: number;
   upperBound: number;
   defaultValueLiteral?: string;
 }
 
 export interface EReferenceJson {
-  kind: "EReference";
+  kind: 'EReference';
 
   // identity
   name: string;
   type: string;
   resolvedType: string;
+  resolvedTypeRef?: ClassifierRef;
 
   // cardinality
   lowerBound: number;
@@ -73,9 +77,8 @@ export interface EReferenceJson {
   isTreeParent?: boolean; //detects opposites of trees
 }
 
-
 export interface EEnumJson extends EClassifierJson {
-  kind: "EEnum";
+  kind: 'EEnum';
   name: string;
   _rawName: string;
   _index: number;
@@ -85,7 +88,7 @@ export interface EEnumJson extends EClassifierJson {
 }
 
 export interface EDataTypeJson extends EClassifierJson {
-  kind: "EDataType";
+  kind: 'EDataType';
   name: string;
   _rawName: string;
   _index: number;
@@ -93,4 +96,3 @@ export interface EDataTypeJson extends EClassifierJson {
 
   instanceTypeName: string;
 }
-
