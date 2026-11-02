@@ -26,9 +26,7 @@ export class Classifier2JsonService {
       interfaceLike: el.getAttribute('interface') === 'true',
       superTypes,
       resolvedSuperTypes: superTypes
-        .map((s) => this.referenceResolver.resolveClassifier(s, table))
-        .filter((r) => r.origin === 'local')
-        .map((r) => r.name),
+        .map((s) => this.referenceResolver.resolveClassifier(s, table).name),
       attributes: [],
       references: [],
     };

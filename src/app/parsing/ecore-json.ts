@@ -1,15 +1,5 @@
 import { ClassifierRef } from './symbol-table';
 
-export interface CrossPackageRef {
-  originalRef: string;
-  resolvedRef?: ResolvedRef;
-}
-
-export interface ResolvedRef {
-  name: string;
-  pkgUri?: string;
-}
-
 export interface EPackageJson {
   name: string;
   pascalizedName: string;
