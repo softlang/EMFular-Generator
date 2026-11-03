@@ -32,8 +32,8 @@ describe('Ecore2JsonService - Reference Resolution Suite', () => {
       expect(department).toBeDefined();
 
       // 1. Positional eSuperTypes resolution (#//@eClassifiers.0 -> NamedElement)
-      expect(employee?.resolvedSuperTypes).toContain('NamedElement');
-      expect(department?.resolvedSuperTypes).toContain('NamedElement');
+      expect(employee?.superTypes.map((r) => r.name)).toContain('NamedElement');
+      expect(department?.superTypes.map((r) => r.name)).toContain('NamedElement');
 
       // 2. Positional eType on EReference (#//@eClassifiers.2 -> Department)
       const deptRef = employee?.references.find((r) => r.name === 'department');

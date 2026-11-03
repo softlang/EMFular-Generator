@@ -27,8 +27,7 @@ export interface EClassJson extends EClassifierJson {
 
   abstract: boolean;
   interfaceLike?: boolean;
-  superTypes: string[]; //raw URIs
-  resolvedSuperTypes: string[]; // clean class names
+  superTypes: ClassifierRef[];
   attributes: EAttributeJson[];
   references: EReferenceJson[];
 }
@@ -37,7 +36,7 @@ export interface EAttributeJson {
   kind: 'EAttribute';
   name: string;
   type: string;
-  resolvedTypeRef?: ClassifierRef; // qualifiedName disambiguates same-named classifiers
+  resolvedTypeRef?: ClassifierRef;
   lowerBound: number;
   upperBound: number;
   defaultValueLiteral?: string;

@@ -38,16 +38,16 @@ export class Ecore2JsonService {
     let index = 0;
     for (const child of Array.from(root.children)) {
       if (child.tagName === 'eClassifiers') {
-        const type = child.getAttribute('xsi:type');
-        if (type === 'ecore:EClass') {
-          const cls = this.classifiers2Json.parseEClass(child, index, table);
-          pkg.eClasses.push(cls);
-        } else if (type === 'ecore:EEnum') {
-          const en = this.classifiers2Json.parseEEnum(child, index);
-          pkg.eEnums.push(en);
-        } else if (type === 'ecore:EDataType') {
-          const dt = this.classifiers2Json.parseEDataType(child, index);
-          pkg.eDataTypes.push(dt);
+        switch (this.referenceResolver.typeOf(child)) {
+          case 'EClass':
+            pkg.eClasses.push(this.classifiers2Json.parseEClass(child, index, table));
+            break;
+          case 'EEnum':
+            pkg.eEnums.push(this.classifiers2Json.parseEEnum(child, index));
+            break;
+          case 'EDataType':
+            pkg.eDataTypes.push(this.classifiers2Json.parseEDataType(child, index));
+            break;
         }
         index++;
       } else if (child.tagName === 'eSubpackages') {

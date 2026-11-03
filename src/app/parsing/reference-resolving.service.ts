@@ -50,7 +50,7 @@ export class ReferenceResolvingService {
     const table = createSymbolTable();
     for (const { element, rootIndex } of this.rootPackages(doc)) {
       const base = rootIndex === undefined ? '//' : `/${rootIndex}/`;
-      this.indexPackage(element, table, base, base, [], rootIndex !== undefined);
+      this.indexPackage(element, table, base, base, []);
     }
     return table;
   }
@@ -60,8 +60,7 @@ export class ReferenceResolvingService {
     table: SymbolTable,
     posBase: string,
     nameBase: string,
-    parentPath: string[],
-    rootIndexed: boolean,
+    parentPath: string[]
   ): void {
     const pkgPath = [...parentPath, pkg.getAttribute('name') ?? ''];
     let classifierIdx = 0;
@@ -84,8 +83,7 @@ export class ReferenceResolvingService {
           table,
           `${posBase}@eSubpackages.${subpackageIdx++}/`,
           `${nameBase}${name}/`,
-          pkgPath,
-          rootIndexed,
+          pkgPath
         );
       }
     }
@@ -194,14 +192,31 @@ export class ReferenceResolvingService {
     return { fragment: hash === 0 ? token.substring(1) : token };
   }
 
+  public splitRefList(raw: string): string[] {
+    const tokens = raw.split(/\s+/).filter(Boolean);
+    const result: string[] = [];
+    for (let i = 0; i < tokens.length; i++) {
+      const isTypePrefix =
+        tokens[i].includes(':') &&
+        !tokens[i].includes('#') &&
+        !tokens[i].includes('/') &&
+        tokens[i + 1]?.includes('#');
+      if (isTypePrefix) {
+        result.push(`${tokens[i]} ${tokens[i + 1]}`); // "ecore:EClass http://…#//EObject"
+        i++;
+      } else {
+        result.push(tokens[i]);
+      }
+    }
+    return result;
+  }
+
   private isEPackage(el: Element): boolean {
-    return (
-      el.tagName.endsWith('EPackage') || (el.getAttribute('xmi:type') ?? '').endsWith('EPackage')
-    );
+    return el.tagName.endsWith('EPackage') || this.typeOf(el) === 'EPackage';
   }
 
   /** "ecore:EClass" -> "EClass" */
-  private typeOf(el: Element): string | undefined {
+  public typeOf(el: Element): string | undefined {
     const t = el.getAttribute('xsi:type') ?? el.getAttribute('xmi:type');
     return t ? t.substring(t.indexOf(':') + 1) : undefined;
   }

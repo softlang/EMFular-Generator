@@ -19,10 +19,6 @@ export class RefIndex<T> {
   get(key: string): T | undefined {
     return this.map.get(RefIndex.key(key));
   }
-
-  has(key: string): boolean {
-    return this.map.has(RefIndex.key(key));
-  }
 }
 
 export interface ClassifierSymbol {

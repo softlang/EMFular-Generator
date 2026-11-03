@@ -17,30 +17,27 @@ export class Classifier2JsonService {
 
   parseEClass(el: Element, index: number, table: SymbolTable): EClassJson {
     const general = this.parseClassifier(el, index);
-    const superTypes = (el.getAttribute('eSuperTypes') ?? '').split(' ').filter(Boolean);
+    const superTypes = this.referenceResolver.splitRefList(el.getAttribute('eSuperTypes') ?? '').map((s) => this.referenceResolver.resolveClassifier(s, table));
 
     const cls: EClassJson = {
       ...general,
       kind: 'EClass',
       abstract: el.getAttribute('abstract') === 'true',
       interfaceLike: el.getAttribute('interface') === 'true',
-      superTypes,
-      resolvedSuperTypes: superTypes
-        .map((s) => this.referenceResolver.resolveClassifier(s, table).name),
+      superTypes: superTypes,
       attributes: [],
       references: [],
     };
 
     for (const child of Array.from(el.children)) {
-      const type = child.getAttribute('xsi:type');
-      if (type === 'ecore:EAttribute') {
-        cls.attributes.push(
-          this.attribute2json.parseEAttribute(child, table)
-        );
-      } else if (type === 'ecore:EReference') {
-        cls.references.push(
-          this.reference2json.parseEReference(child, table)
-        );
+      if (child.tagName !== 'eStructuralFeatures') continue;
+      switch (this.referenceResolver.typeOf(child)) {
+        case 'EAttribute':
+          cls.attributes.push(this.attribute2json.parseEAttribute(child,table));
+          break;
+        case 'EReference':
+          cls.references.push(this.reference2json.parseEReference(child,table));
+          break;
       }
     }
     return cls;
