@@ -33,7 +33,7 @@ export class InterfaceGenerationService {
     interfaceTemplate: string
   ): string {
 
-    const superInterfaces = cls.resolvedSuperTypes
+    const superInterfaces = cls.superTypes.map((r) => r.name);
     const typeImports = superInterfaces.length > 0
       ? superInterfaces
         .map(name => `import type { ${name} } from './${name}';`)

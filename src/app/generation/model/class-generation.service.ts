@@ -55,7 +55,7 @@ export class ClassGenerationService {
 
 
     //distinguish interfaces and real classes on super:
-    const [interfaces, realClasses] = cls.resolvedSuperTypes.reduce(
+    const [interfaces, realClasses] = cls.superTypes.map((r) => r.name).reduce(
       ([i, r], name) => {
         const sup = classMap.get(name)!;
         if (sup.interfaceLike) i.push(name);

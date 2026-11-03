@@ -1,22 +1,21 @@
 import { Injectable } from '@angular/core';
-import {EAttributeJson} from './ecore-json';
+import { EAttributeJson } from './ecore-json';
 import { ReferenceResolvingService } from './reference-resolving.service';
+import { SymbolTable } from './symbol-table';
 
 @Injectable({
   providedIn: 'root',
 })
 export class Attribute2JsonService {
-
   constructor(private referenceResolver: ReferenceResolvingService) {}
 
-  parseEAttribute(el: Element, idToName: Map<string,string>): EAttributeJson {
-    const rawType = el.getAttribute('eType') ?? ''
-    const res: EAttributeJson =  {
+  parseEAttribute(el: Element, table: SymbolTable): EAttributeJson {
+    const typeRef = this.referenceResolver.resolveClassifier(el.getAttribute('eType') ?? '', table);
+    const res: EAttributeJson = {
       kind: 'EAttribute',
       name: el.getAttribute('name') ?? '',
-      type: idToName.get(
-        this.referenceResolver.normalizeIdRef(rawType)
-      ) ?? this.referenceResolver.normalizeTypeName(rawType),
+      type: typeRef.name,
+      resolvedTypeRef: typeRef,
       lowerBound: Number(el.getAttribute('lowerBound') ?? '0'),
       upperBound: Number(el.getAttribute('upperBound') ?? '1'),
     };
