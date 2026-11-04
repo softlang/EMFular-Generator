@@ -14,8 +14,8 @@ export class Reference2JsonService {
     const typeRef = this.referenceResolver.resolveClassifier(type, table);
 
     const opposite = el.getAttribute('eOpposite') || undefined;
-    const oppositeSym = opposite
-      ? this.referenceResolver.resolveFeature(opposite, table)
+    const oppositeRef = opposite
+      ? this.referenceResolver.resolveFeature(opposite, table, el)
       : undefined;
 
     return {
@@ -34,10 +34,10 @@ export class Reference2JsonService {
       changeable: el.getAttribute('changeable') === 'true' || undefined,
 
       opposite,
-      resolvedOpposite:
-        oppositeSym?.name ?? (opposite ? this.referenceResolver.lastSegment(opposite) : undefined),
+      resolvedOpposite: oppositeRef?.name || undefined,
+      resolvedOppositeRef: oppositeRef,
       // a reference is a tree parent iff its opposite is the containment side
-      isTreeParent: oppositeSym?.containment || undefined,
+      isTreeParent: oppositeRef?.containment || undefined,
     };
   }
 }

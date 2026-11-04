@@ -17,27 +17,35 @@ export class Classifier2JsonService {
 
   parseEClass(el: Element, index: number, table: SymbolTable): EClassJson {
     const general = this.parseClassifier(el, index);
-    const superTypes = this.referenceResolver.splitRefList(el.getAttribute('eSuperTypes') ?? '').map((s) => this.referenceResolver.resolveClassifier(s, table));
+    const superTypes = this.referenceResolver.splitRefList(el.getAttribute('eSuperTypes') ?? '').map((s) => this.referenceResolver.resolveClassifier(s, table, el));
 
     const cls: EClassJson = {
       ...general,
       kind: 'EClass',
       abstract: el.getAttribute('abstract') === 'true',
       interfaceLike: el.getAttribute('interface') === 'true',
-      superTypes: superTypes,
+      superTypes,
       attributes: [],
       references: [],
     };
 
     for (const child of Array.from(el.children)) {
       if (child.tagName !== 'eStructuralFeatures') continue;
-      switch (this.referenceResolver.typeOf(child)) {
+      const type = this.referenceResolver.typeOf(child);
+      switch (type) {
         case 'EAttribute':
           cls.attributes.push(this.attribute2json.parseEAttribute(child,table));
           break;
         case 'EReference':
           cls.references.push(this.reference2json.parseEReference(child,table));
           break;
+        default:
+          this.referenceResolver.addWarning(
+            table,
+            'unknown-element-type',
+            `Skipped feature with unsupported type '${type ?? 'none'}'`,
+            child
+          );
       }
     }
     return cls;

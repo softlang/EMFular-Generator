@@ -1,5 +1,6 @@
 export type ClassifierKind = 'EClass' | 'EEnum' | 'EDataType';
 export type FeatureKind = 'EAttribute' | 'EReference';
+export type RefOrigin = 'local' | 'external' | 'unresolved';
 
 /**
  * Map that ignores a single leading '#', so "#//@eClassifiers.1" and
@@ -12,8 +13,11 @@ export class RefIndex<T> {
     return raw.startsWith('#') ? raw.substring(1) : raw;
   }
 
-  set(key: string, value: T): void {
-    this.map.set(RefIndex.key(key), value);
+  set(key: string, value: T): boolean {
+    const k = RefIndex.key(key);
+    const isNew = !this.map.has(k);
+    this.map.set(k, value);
+    return isNew;
   }
 
   get(key: string): T | undefined {
@@ -41,17 +45,30 @@ export interface FeatureSymbol {
 }
 
 export interface IndexSet<T> {
-  /** positional XPath: "//@eClassifiers.1", "/0/@eClassifiers.1" (+ "/0/URL" for multi-root) */
+  /** positional XPath: "//@eClassifiers.1", "/0/@eClassifiers.1"  */
   byIndex: RefIndex<T>;
-  /** name path: "//types/OrderStatus", "//Book/library" */
+  /** name path: "//types/OrderStatus", "//Book/library" (+ "/0/URL" for multi-root) */
   byPath: RefIndex<T>;
   /** xmi:id */
   byId: RefIndex<T>;
 }
 
+export interface ParseWarning {
+  code:
+    | 'unresolved-reference'
+    | 'missing-reference'
+    | 'duplicate-key'
+    | 'unknown-element-type'
+    | 'no-package';
+  message: string;
+  location?: string;
+}
+
 export interface SymbolTable {
   classifiers: IndexSet<ClassifierSymbol>;
   features: IndexSet<FeatureSymbol>;
+  nsUris: Set<string>;
+  warnings: ParseWarning[];
 }
 
 export function createSymbolTable(): SymbolTable {
@@ -60,7 +77,7 @@ export function createSymbolTable(): SymbolTable {
     byPath: new RefIndex<T>(),
     byId: new RefIndex<T>(),
   });
-  return { classifiers: set(), features: set() };
+  return { classifiers: set(), features: set(), nsUris: new Set<string>(), warnings: [] };
 }
 
 /** Result of resolving a raw eType / eSuperTypes entry. */
@@ -70,6 +87,15 @@ export interface ClassifierRef {
   /** set for classifiers living in another metamodel (e.g. Ecore's EString) */
   pkgUri?: string;
   origin: 'local' | 'external' | 'unresolved';
+}
+
+export interface FeatureRef {
+  name: string;
+  ownerClassName?: string;
+  ownerPkgPath?: string[];
+  containment?: boolean;
+  pkgUri?: string;
+  origin: RefOrigin;
 }
 
 export interface RootPackage {

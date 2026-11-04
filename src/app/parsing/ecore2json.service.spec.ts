@@ -5,7 +5,13 @@ import {
   SUBPACKAGES_ECORE,
   MULTI_ROOT_ECORE,
   ID_REFERENCES_ECORE,
-  MIXED_REFERENCES_ECORE, NAME_CONFLICTS_ECORE,
+  MIXED_REFERENCES_ECORE,
+  NAME_CONFLICTS_ECORE,
+  SUPERTYPES_ECORE,
+  XMI_TYPE_ECORE,
+  EXTERNAL_REFERENCES_ECORE,
+  UNRESOLVED_AND_UNKNOWN_ECORE,
+  EMPTY_DOCUMENT_XML,
 } from './test/referencing-test-models';
 
 describe('Ecore2JsonService - Reference Resolution Suite', () => {
@@ -202,6 +208,87 @@ describe('Ecore2JsonService - Reference Resolution Suite', () => {
 
       expect(authRef?.resolvedTypeRef?.origin).toBe('local');
       expect(authRef?.resolvedTypeRef?.pkgPath).toEqual(['system', 'auth']);
+    });
+  });
+
+  // =========================================================================
+  // 7. SUPERTYPES ACROSS PACKAGES & EXTERNAL SUPERTYPES
+  // =========================================================================
+  describe('Supertype resolution', () => {
+    it('should resolve supertypes across subpackages and keep external ones', () => {
+      const { packages, warnings } = service.parseWithDiagnostics(SUPERTYPES_ECORE);
+      const billing = packages[0].subPackages?.find((p) => p.name === 'billing');
+      const premium = billing?.eClasses.find((c) => c.name === 'PremiumAccount');
+      const audited = billing?.eClasses.find((c) => c.name === 'AuditedAccount');
+
+      // same simple name, but the supertype lives in the auth subpackage
+      expect(premium?.superTypes.length).toBe(1);
+      expect(premium?.superTypes[0].name).toBe('Account');
+      expect(premium?.superTypes[0].pkgPath).toEqual(['inherit', 'auth']);
+      expect(premium?.superTypes[0].origin).toBe('local');
+
+      // local supertype + type-prefixed external supertype
+      expect(audited?.superTypes.length).toBe(2);
+      expect(audited?.superTypes[0].pkgPath).toEqual(['inherit', 'billing']);
+      expect(audited?.superTypes[1].name).toBe('EObject');
+      expect(audited?.superTypes[1].origin).toBe('external');
+      expect(audited?.superTypes[1].pkgUri).toBe('http://www.eclipse.org/emf/2002/Ecore');
+
+      expect(warnings).toEqual([]);
+    });
+  });
+
+  // =========================================================================
+  // 8. xmi:type INSTEAD OF xsi:type
+  // =========================================================================
+  describe('Elements typed with xmi:type', () => {
+    it('should parse them into the JSON just like xsi:type', () => {
+      const { packages, warnings } = service.parseWithDiagnostics(XMI_TYPE_ECORE);
+      const person = packages[0].eClasses.find((c) => c.name === 'Person');
+
+      expect(person).toBeDefined();
+      expect(person?.attributes.map((a) => a.name)).toEqual(['name']);
+      expect(person?.references.map((r) => r.name)).toEqual(['friend']);
+      expect(person?.references[0].resolvedType).toBe('Person');
+      expect(warnings).toEqual([]);
+    });
+  });
+
+  // =========================================================================
+  // 9. DIAGNOSTICS & EXTERNAL REFERENCES
+  // =========================================================================
+  describe('Diagnostics and external references', () => {
+    it('should produce no warnings for a clean model', () => {
+      const { packages, warnings } = service.parseWithDiagnostics(POSITIONAL_ECORE);
+      expect(packages.length).toBe(1);
+      expect(warnings).toEqual([]);
+    });
+
+    it('should keep references (type and opposite) that live in another resource', () => {
+      const { packages, warnings } = service.parseWithDiagnostics(EXTERNAL_REFERENCES_ECORE);
+      const bar = packages[0].eClasses[0].references[0];
+
+      expect(bar.resolvedType).toBe('Bar');
+      expect(bar.resolvedOpposite).toBe('foo');
+      expect(bar.resolvedOppositeRef?.origin).toBe('external');
+      expect(bar.resolvedOppositeRef?.pkgUri).toBe('http://other.org/model');
+      expect(warnings).toEqual([]);
+    });
+
+    it('should report unresolved references and skipped elements', () => {
+      const { warnings } = service.parseWithDiagnostics(UNRESOLVED_AND_UNKNOWN_ECORE);
+
+      expect(warnings.map((w) => w.code).sort()).toEqual([
+        'unknown-element-type',
+        'unresolved-reference',
+      ]);
+      expect(warnings.find((w) => w.code === 'unresolved-reference')?.location).toBe('diag.Foo.x');
+    });
+
+    it('should warn when the document contains no package', () => {
+      const { packages, warnings } = service.parseWithDiagnostics(EMPTY_DOCUMENT_XML);
+      expect(packages).toEqual([]);
+      expect(warnings.map((w) => w.code)).toEqual(['no-package']);
     });
   });
 });
