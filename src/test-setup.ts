@@ -1,10 +1,10 @@
 import { TestBed } from '@angular/core/testing';
 import {
-    BrowserDynamicTestingModule,
-    platformBrowserDynamicTesting
-} from '@angular/platform-browser-dynamic/testing';
+    BrowserTestingModule,
+} from '@angular/platform-browser/testing';
+import {platformBrowser} from '@angular/platform-browser';
 
 TestBed.initTestEnvironment(
-    BrowserDynamicTestingModule,
-    platformBrowserDynamicTesting()
+    BrowserTestingModule,
+    platformBrowser()
 );
