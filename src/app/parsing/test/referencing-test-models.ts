@@ -166,3 +166,110 @@ export const NAME_CONFLICTS_ECORE = `<?xml version="1.0" encoding="UTF-8"?>
   </eSubpackages>
 
 </ecore:EPackage>`;
+
+/** Supertypes across subpackages with colliding names, and an external supertype (type-prefixed). */
+export const SUPERTYPES_ECORE = `<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0"
+               xmlns:xmi="http://www.omg.org/XMI"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore"
+               name="inherit"
+               nsURI="http://example.org/inherit"
+               nsPrefix="inherit">
+
+  <eSubpackages name="auth" nsURI="http://example.org/inherit/auth" nsPrefix="auth">
+    <eClassifiers xsi:type="ecore:EClass" name="Account"/>
+  </eSubpackages>
+
+  <eSubpackages name="billing" nsURI="http://example.org/inherit/billing" nsPrefix="billing">
+    <eClassifiers xsi:type="ecore:EClass" name="Account"/>
+
+    <!-- supertype with the same simple name, but from another subpackage -->
+    <eClassifiers xsi:type="ecore:EClass" name="PremiumAccount"
+                  eSuperTypes="#//auth/Account"/>
+
+    <!-- local supertype plus an external one written with its type prefix -->
+    <eClassifiers xsi:type="ecore:EClass" name="AuditedAccount"
+                  eSuperTypes="#//billing/Account ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EObject"/>
+  </eSubpackages>
+
+</ecore:EPackage>`;
+
+/** Elements typed with xmi:type instead of xsi:type. */
+export const XMI_TYPE_ECORE = `<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0"
+               xmlns:xmi="http://www.omg.org/XMI"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore"
+               name="xmitype"
+               nsURI="http://example.org/xmitype"
+               nsPrefix="xmitype">
+
+  <eClassifiers xmi:type="ecore:EClass" name="Person">
+    <eStructuralFeatures xmi:type="ecore:EAttribute" name="name"
+                         eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xmi:type="ecore:EReference" name="friend"
+                         eType="#//Person"/>
+  </eClassifiers>
+
+</ecore:EPackage>`;
+
+/** EReference whose eType and eOpposite point into another resource. */
+export const EXTERNAL_REFERENCES_ECORE = `<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0"
+               xmlns:xmi="http://www.omg.org/XMI"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore"
+               name="ext"
+               nsURI="http://example.org/ext"
+               nsPrefix="ext">
+
+  <eClassifiers xsi:type="ecore:EClass" name="Foo">
+    <!-- type and opposite both live in another resource -->
+    <eStructuralFeatures xsi:type="ecore:EReference" name="bar"
+                         eType="http://other.org/model#//Bar"
+                         eOpposite="http://other.org/model#//Bar/foo"/>
+  </eClassifiers>
+
+</ecore:EPackage>`;
+
+/** Unresolvable reference and an unsupported classifier type (should produce warnings). */
+export const UNRESOLVED_AND_UNKNOWN_ECORE = `<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0"
+               xmlns:xmi="http://www.omg.org/XMI"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore"
+               name="diag"
+               nsURI="http://example.org/diag"
+               nsPrefix="diag">
+
+  <eClassifiers xsi:type="ecore:EClass" name="Foo">
+    <!-- target does not exist -->
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="x" eType="#//Missing"/>
+  </eClassifiers>
+
+  <!-- unsupported classifier type -->
+  <eClassifiers xsi:type="ecore:EFoo" name="Weird"/>
+
+</ecore:EPackage>`;
+
+/** Invalid model: the same classifier name twice in one package. */
+export const DUPLICATE_NAMES_ECORE = `<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0"
+               xmlns:xmi="http://www.omg.org/XMI"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore"
+               name="dup"
+               nsURI="http://example.org/dup"
+               nsPrefix="dup">
+
+  <eClassifiers xsi:type="ecore:EClass" name="A"/>
+  <eClassifiers xsi:type="ecore:EClass" name="A"/>
+
+</ecore:EPackage>`;
+
+/** Valid XML that contains no EPackage. */
+export const EMPTY_DOCUMENT_XML = `<?xml version="1.0" encoding="UTF-8"?>
+<root/>`;
+
+

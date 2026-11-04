@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { EPackageJson } from './ecore-json';
+import { EPackageJson, ParseResult } from './ecore-json';
 import { Classifier2JsonService } from './classifier2json.service';
 import { ReferenceResolvingService } from './reference-resolving.service';
 import { SymbolTable } from './symbol-table';
@@ -13,13 +13,21 @@ export class Ecore2JsonService {
     private referenceResolver: ReferenceResolvingService,
   ) {}
 
-  /** Returns the root packages; subpackages are nested in `subPackages`. */
   parse(xml: string): EPackageJson[] {
+    return this.parseWithDiagnostics(xml).packages;
+  }
+
+  /** Returns the root packages; subpackages are nested in `subPackages`. */
+  parseWithDiagnostics(xml: string): ParseResult {
     const doc = this.parseXml(xml);
     const table = this.referenceResolver.buildSymbolTable(doc);
-    return this.referenceResolver
-      .rootPackages(doc)
-      .map((root) => this.parsePackage(root.element, table));
+    const roots = this.referenceResolver.rootPackages(doc);
+
+    if (roots.length === 0) {
+      this.referenceResolver.addWarning(table, 'no-package', 'The document contains no EPackage.');
+    }
+    const packages = roots.map((root) => this.parsePackage(root.element, table));
+    return { packages, warnings: table.warnings };
   }
 
   parsePackage(root: Element, table: SymbolTable): EPackageJson {
@@ -38,7 +46,8 @@ export class Ecore2JsonService {
     let index = 0;
     for (const child of Array.from(root.children)) {
       if (child.tagName === 'eClassifiers') {
-        switch (this.referenceResolver.typeOf(child)) {
+        const type = this.referenceResolver.typeOf(child);
+        switch (type) {
           case 'EClass':
             pkg.eClasses.push(this.classifiers2Json.parseEClass(child, index, table));
             break;
@@ -48,6 +57,13 @@ export class Ecore2JsonService {
           case 'EDataType':
             pkg.eDataTypes.push(this.classifiers2Json.parseEDataType(child, index));
             break;
+          default:
+            this.referenceResolver.addWarning(
+              table,
+              'unknown-element-type',
+              `Skipped classifier with unsupported type '${type ?? 'none'}'`,
+              child
+            );
         }
         index++;
       } else if (child.tagName === 'eSubpackages') {

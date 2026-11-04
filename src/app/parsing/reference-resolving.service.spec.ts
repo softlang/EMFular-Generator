@@ -6,6 +6,8 @@ import {
   MULTI_ROOT_ECORE,
   ID_REFERENCES_ECORE,
   NAME_CONFLICTS_ECORE,
+  DUPLICATE_NAMES_ECORE,
+  XMI_TYPE_ECORE,
 } from './test/referencing-test-models';
 
 describe('ReferenceResolvingService - buildSymbolTable()', () => {
@@ -126,7 +128,6 @@ describe('ReferenceResolvingService - buildSymbolTable()', () => {
     });
   });
 
-
   describe('Naming Conflicts Resolution', () => {
     it('should distinguish classifiers with identical names in different subpackages', () => {
       const doc = parseXml(NAME_CONFLICTS_ECORE);
@@ -150,4 +151,103 @@ describe('ReferenceResolvingService - buildSymbolTable()', () => {
     });
   });
 
+  // =========================================================================
+  // 5. RESOLVING: EXTERNAL / LOCAL-NSURI / UNRESOLVED
+  // =========================================================================
+  describe('resolveClassifier() and resolveFeature()', () => {
+    it('should mark Ecore built-ins as external without a warning', () => {
+      const table = service.buildSymbolTable(parseXml(POSITIONAL_ECORE));
+      const ref = service.resolveClassifier(
+        'ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString',
+        table,
+      );
+      expect(ref).toEqual({
+        name: 'EString',
+        pkgUri: 'http://www.eclipse.org/emf/2002/Ecore',
+        origin: 'external',
+      });
+      expect(table.warnings).toEqual([]);
+    });
+
+    it('should return an external FeatureRef instead of undefined for a URI', () => {
+      const table = service.buildSymbolTable(parseXml(POSITIONAL_ECORE));
+      const ref = service.resolveFeature('http://other.org/model#//Foo/bar', table);
+      expect(ref.origin).toBe('external');
+      expect(ref.name).toBe('bar');
+      expect(ref.pkgUri).toBe('http://other.org/model');
+    });
+
+    it('should treat a URI that is the nsURI of a local package as local', () => {
+      const table = service.buildSymbolTable(parseXml(SUBPACKAGES_ECORE));
+
+      const store = service.resolveClassifier('http://example.org/shop#//Store', table);
+      expect(store.origin).toBe('local');
+      expect(store.name).toBe('Store');
+      expect(store.pkgPath).toEqual(['shop']);
+
+      const orders = service.resolveFeature('http://example.org/shop#//Store/orders', table);
+      expect(orders.origin).toBe('local');
+      expect(orders.containment).toBe(true);
+      expect(table.warnings).toEqual([]);
+    });
+
+    it('should warn about unresolved references and not invent a name from a positional path', () => {
+      const table = service.buildSymbolTable(parseXml(POSITIONAL_ECORE));
+
+      const positional = service.resolveClassifier('#//@eClassifiers.9', table);
+      expect(positional.origin).toBe('unresolved');
+      expect(positional.name).toBe('');
+
+      const named = service.resolveClassifier('#//Nope', table);
+      expect(named.origin).toBe('unresolved');
+      expect(named.name).toBe('Nope');
+
+      expect(table.warnings.map((w) => w.code)).toEqual([
+        'unresolved-reference',
+        'unresolved-reference',
+      ]);
+    });
+
+    it('should report an empty reference as missing', () => {
+      const table = service.buildSymbolTable(parseXml(POSITIONAL_ECORE));
+      service.resolveClassifier('', table);
+      expect(table.warnings.map((w) => w.code)).toEqual(['missing-reference']);
+    });
+  });
+
+  describe('splitRefList()', () => {
+    it('should split plain lists and keep type-prefixed entries together', () => {
+      expect(service.splitRefList('')).toEqual([]);
+      expect(service.splitRefList('#//@eClassifiers.0  #//Foo')).toEqual([
+        '#//@eClassifiers.0',
+        '#//Foo',
+      ]);
+      expect(
+        service.splitRefList(
+          '#//@eClassifiers.0 ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EObject',
+        ),
+      ).toEqual([
+        '#//@eClassifiers.0',
+        'ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EObject',
+      ]);
+    });
+  });
+
+  describe('Indexing diagnostics', () => {
+    it('should warn about duplicate names in one package', () => {
+      const table = service.buildSymbolTable(parseXml(DUPLICATE_NAMES_ECORE));
+      const dups = table.warnings.filter((w) => w.code === 'duplicate-key');
+      expect(dups.length).toBe(1);
+      expect(dups[0].location).toBe('dup.A');
+    });
+
+    it('should index and recognise elements typed via xmi:type', () => {
+      const doc = parseXml(XMI_TYPE_ECORE);
+      const table = service.buildSymbolTable(doc);
+
+      expect(table.classifiers.byPath.get('#//Person')?.kind).toBe('EClass');
+      expect(table.features.byPath.get('#//Person/friend')?.kind).toBe('EReference');
+      expect(service.typeOf(doc.querySelector('eStructuralFeatures')!)).toBe('EAttribute');
+    });
+  });
 });

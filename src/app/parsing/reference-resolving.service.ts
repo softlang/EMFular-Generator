@@ -5,7 +5,11 @@ import {
   ClassifierSymbol,
   createSymbolTable,
   FeatureKind,
+  FeatureRef,
   FeatureSymbol,
+  IndexSet,
+  ParseWarning,
+  RefIndex,
   RootPackage,
   SymbolTable,
 } from './symbol-table';
@@ -63,6 +67,9 @@ export class ReferenceResolvingService {
     parentPath: string[]
   ): void {
     const pkgPath = [...parentPath, pkg.getAttribute('name') ?? ''];
+    const nsUri = pkg.getAttribute('nsURI');
+    if (nsUri) table.nsUris.add(nsUri);
+
     let classifierIdx = 0;
     let subpackageIdx = 0;
 
@@ -113,9 +120,9 @@ export class ReferenceResolvingService {
       element: el,
     };
     const c = table.classifiers;
-    c.byIndex.set(posPath, sym);
-    c.byPath.set(namePath, sym);
-    if (id) c.byId.set(id, sym);
+    this.register(c.byIndex, posPath, sym, table, el);
+    this.register(c.byPath, namePath, sym, table, el);
+    if (id) this.register(c.byId, id, sym, table, el);
 
     if (kind !== 'EClass') return;
 
@@ -137,50 +144,106 @@ export class ReferenceResolvingService {
         id: fId,
         element: f,
       };
-      const fNamePath = `${namePath}/${fName}`;
-      table.features.byIndex.set(fPos, fSym);
-      table.features.byPath.set(fNamePath, fSym);
-      if (fId) table.features.byId.set(fId, fSym);
+      this.register(table.features.byIndex, fPos, fSym, table, f);
+      this.register(table.features.byPath, `${namePath}/${fName}`, fSym, table, f);
+      if (fId) this.register(table.features.byId, fId, fSym, table, f);
+    }
+  }
+
+  private register<T>(
+    index: RefIndex<T>,
+    key: string,
+    sym: T,
+    table: SymbolTable,
+    from: Element
+  ): void {
+    if (!index.set(key, sym)) {
+      this.addWarning(
+        table,
+        'duplicate-key',
+        `Duplicate reference key '${key}': the later definition replaces the earlier one`,
+        from
+      );
     }
   }
 
   // ---------------------------------------------------------------- phase 2
 
-  resolveClassifier(raw: string, table: SymbolTable): ClassifierRef {
+  resolveClassifier(raw: string, table: SymbolTable, from?: Element): ClassifierRef {
     const { uri, fragment } = this.splitRef(raw);
 
-    if (uri) {
-      const name = this.lastSegment(fragment);
-      return { name, pkgUri: uri, origin: 'external' };
+    if (uri && !table.nsUris.has(uri)) {
+      return { name: this.nameOf(fragment), pkgUri: uri, origin: 'external' };
     }
 
-    const c = table.classifiers;
-    const sym = c.byId.get(fragment) ?? c.byIndex.get(fragment) ?? c.byPath.get(fragment);
+    const sym = this.lookup(table.classifiers, fragment);
+    if (sym) {
+      return { name: sym.name, pkgPath: sym.pkgPath, origin: 'local' };
+    }
+
+    this.warnUnresolved(raw, table, from);
+    return { name: this.nameOf(fragment), origin: 'unresolved' };
+  }
+
+  resolveFeature(raw: string, table: SymbolTable, from?: Element): FeatureRef {
+    const { uri, fragment } = this.splitRef(raw);
+
+    if (uri && !table.nsUris.has(uri)) {
+      return { name: this.nameOf(fragment), pkgUri: uri, origin: 'external' };
+    }
+
+    const sym = this.lookup(table.features, fragment);
     if (sym) {
       return {
         name: sym.name,
-        pkgPath: sym.pkgPath,
+        ownerClassName: sym.ownerClassName,
+        ownerPkgPath: sym.ownerPkgPath,
+        containment: sym.containment,
         origin: 'local',
       };
     }
-    const name = this.lastSegment(fragment);
-    return { name, origin: 'unresolved' };
+
+    this.warnUnresolved(raw, table, from);
+    return { name: this.nameOf(fragment), origin: 'unresolved' };
   }
 
-  resolveFeature(raw: string, table: SymbolTable): FeatureSymbol | undefined {
-    const { uri, fragment } = this.splitRef(raw);
-    if (uri) return undefined;
-    const f = table.features;
-    return f.byId.get(fragment) ?? f.byIndex.get(fragment) ?? f.byPath.get(fragment);
-  }
-
-  /** Last name segment of any raw reference; fallback for unresolved ones. */
-  lastSegment(raw: string): string {
-    const idx = Math.max(raw.lastIndexOf('/'), raw.lastIndexOf(':'));
-    return idx >= 0 ? raw.substring(idx + 1) : raw;
+  addWarning(
+    table: SymbolTable,
+    code: ParseWarning['code'],
+    message: string,
+    from?: Element
+  ): void {
+    table.warnings.push({ code, message, location: from ? this.describe(from) : undefined })
   }
 
   // ---------------------------------------------------------------- helpers
+
+  private lookup<T>(index: IndexSet<T>, fragment: string): T | undefined {
+    return index.byId.get(fragment) ?? index.byIndex.get(fragment) ?? index.byPath.get(fragment);
+  }
+
+  private warnUnresolved(raw: string, table: SymbolTable, from?: Element): void {
+    if (!raw.trim()) {
+      this.addWarning(table, 'missing-reference', 'Reference is empty', from);
+    } else {
+      this.addWarning(table, 'unresolved-reference', `Could not resolve reference '${raw}'`, from)
+    }
+  }
+
+  private describe(el: Element): string {
+    const names: string[] = [];
+    for (let cur: Element | null = el; cur; cur = cur.parentElement) {
+      const n = cur.getAttribute('name');
+      if (n) names.unshift(n);
+    }
+    return names.join('.');
+  }
+
+  private nameOf(fragment: string): string {
+    const idx = Math.max(fragment.lastIndexOf('/'), fragment.lastIndexOf(':'));
+    const last = idx >= 0 ? fragment.substring(idx + 1) : fragment;
+    return last.startsWith('@') ? '' : last;
+  }
 
   /** "ecore:EDataType http://x#//EString" -> {uri:'http://x', fragment:'//EString'} */
   private splitRef(raw: string): { uri?: string; fragment: string } {

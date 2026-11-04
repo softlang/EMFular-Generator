@@ -1,4 +1,4 @@
-import { ClassifierRef } from './symbol-table';
+import { ClassifierRef, FeatureRef, ParseWarning } from './symbol-table';
 
 export interface EPackageJson {
   name: string;
@@ -63,6 +63,7 @@ export interface EReferenceJson {
   changeable?: boolean;
   opposite?: string; // name of opposite reference, if any
   resolvedOpposite?: string;
+  resolvedOppositeRef?: FeatureRef;
   isTreeParent?: boolean; //detects opposites of trees
 }
 
@@ -84,4 +85,9 @@ export interface EDataTypeJson extends EClassifierJson {
   _id?: string;
 
   instanceTypeName: string;
+}
+
+export interface ParseResult {
+  packages: EPackageJson[];
+  warnings: ParseWarning[];
 }

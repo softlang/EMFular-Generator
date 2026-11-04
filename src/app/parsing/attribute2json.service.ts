@@ -10,7 +10,7 @@ export class Attribute2JsonService {
   constructor(private referenceResolver: ReferenceResolvingService) {}
 
   parseEAttribute(el: Element, table: SymbolTable): EAttributeJson {
-    const typeRef = this.referenceResolver.resolveClassifier(el.getAttribute('eType') ?? '', table);
+    const typeRef = this.referenceResolver.resolveClassifier(el.getAttribute('eType') ?? '', table, el);
     const res: EAttributeJson = {
       kind: 'EAttribute',
       name: el.getAttribute('name') ?? '',
