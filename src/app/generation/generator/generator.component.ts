@@ -1,5 +1,4 @@
 import {ChangeDetectorRef, Component} from '@angular/core';
-import {NgIf} from '@angular/common';
 import {GenerationService} from '../generation.service';
 import {ZipService} from '../../utils/zip.service';
 import {FormsModule} from '@angular/forms';
@@ -10,8 +9,7 @@ import {FormsModule} from '@angular/forms';
   templateUrl: './generator.component.html',
   styleUrls: ['./generator.component.css'],
   imports: [
-    NgIf,
-    FormsModule
+    FormsModule,
   ]
 })
 export class GeneratorComponent {
