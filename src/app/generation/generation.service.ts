@@ -68,7 +68,6 @@ export class GenerationService {
       projectName : projectName ? projectName : model.name+"-graphical-editor",
       modelName : model.pascalizedName,
       modelFileName: model.name, //for folders
-      emfularVersion: '10.1.0',
     };
 
     // Generate the Angular project structure
