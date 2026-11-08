@@ -52,12 +52,6 @@ export class ModelServiceGenerationService {
       .join('\n');
   }
 
-  private initializeClasses(classes: string[]): string {
-    const comment = '  // explicitly use modeling classes to avoid tree-shaking them away:\n'
-    return comment+classes.map(cls => `againstExtinction${cls} = new ${cls}()`)
-      .join('\n');
-  }
-
   private addCreationMethods(classes: string[]): string {
     return "\t"+classes.map(cls => `create${cls} () {\n\t\treturn new ${cls}()\n\t}\n`)
       .join('\n\t');
