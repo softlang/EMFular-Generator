@@ -15,6 +15,22 @@
     <div class="generator-options">
       <h3>Generator Options</h3>
 
+      <label for="projectname">Project name:</label>
+      <input
+        id="projectname"
+        type="text"
+        [(ngModel)]="projectName"
+        placeholder="Define your projectName"
+      />
+
+      <label for="modelname">Model name:</label>
+      <input
+        id="modelname"
+        type="text"
+        [(ngModel)]="modelName"
+        placeholder="Define your modelName"
+      />
+
       <label for="packageOverride">Package selection:</label>
       <input
         id="packageOverride"

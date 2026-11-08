@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
-import {EClassJson, EPackageJson} from '../../parsing/ecore-json';
+import {EClassJson} from '../../parsing/ecore-json';
 import {TemplateLoadService} from '../../utils/template-load.service';
 import {PlaceholderReplacerService} from '../../utils/place-holder-replacer.service';
 import {ZipService} from '../../utils/zip.service';
+import {GenerationParams} from '../generation-params';
 
 @Injectable({
   providedIn: 'root',
@@ -17,43 +18,43 @@ export class EditorGenerationService {
     private zip: ZipService
   ) {}
 
-  async generateEditorFiles(model: EPackageJson, root: EClassJson, realClasses: string[]) {
-    const outputFolder = `src/app/${model.name}/editor/`
+  async generateEditorFiles(root: EClassJson, realClasses: EClassJson[], params: GenerationParams) {
+    const outputFolder = `src/app/${params.modelFileName}/editor/`
 
     //empty css
     this.zip.addFile(
-      outputFolder+`${model.pascalizedName}-editor.component.css`,
+      outputFolder+`${params.modelName}-editor.component.css`,
       ""//empty but existing styles
     )
 
     //unchanged html
     const htmlFile = await this.loader.loadTemplate(this.srcFolder+'editor.component.html');
     this.zip.addFile(
-      outputFolder+`${model.pascalizedName}-editor.component.html`,
+      outputFolder+`${params.modelName}-editor.component.html`,
       htmlFile
     )
 
     //real work: the component ts:
     const componentTsTemplate = await this.loader.loadTemplate(this.srcFolder+'editor.component.ts.template.ts');
     this.zip.addFile(
-      outputFolder+`${model.pascalizedName}-editor.component.ts`,
-      this.createComponent(componentTsTemplate, model, root, realClasses)
+      outputFolder+`${params.modelName}-editor.component.ts`,
+      this.createComponent(componentTsTemplate, root, realClasses, params)
     )
   }
 
-  private createComponent(componentTemplate: string, model: EPackageJson, root: EClassJson, realClasses: string[]): string {
+  private createComponent(componentTemplate: string, root: EClassJson, realClasses: EClassJson[], params: GenerationParams): string {
     return this.replacer.applyPlaceholders(
       componentTemplate,
       {
-        modelName: model.pascalizedName,
+        modelName: params.modelName,
         root: root.name,
         BUTTONS: this.createButtons(realClasses)
       }
     )
   }
 
-  createButtons(classes: string[]): string {
-    return classes.map(cls => this.createButton(cls))
+  createButtons(classes: EClassJson[]): string {
+    return classes.map(cls => this.createButton(cls.name))
       .join(',\n');
   }
 

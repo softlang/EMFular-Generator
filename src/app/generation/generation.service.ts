@@ -23,10 +23,44 @@ export class GenerationService {
     private dialog: MatDialog,
   ) {}
 
-  async processEcoreFile(file: File, projectName?: string, rootByUser?: string, packageByUser?: string): Promise<string> {
+  async processEcoreFile(file: File, projectName?: string, modelName?: string, rootByUser?: string, packageByUser?: string): Promise<string> {
     const xml = await this.readFile(file);
-    // multi package ecores
     const models: EPackageJson[] = this.ecore2jsonService.parse(xml)
+
+    const params: GenerationParams = this.createParams(projectName, modelName)
+    // Generate the Angular project structure
+    await this.projectGen.generateProjectFiles(params);
+    // generate the core model
+    await Promise.all(
+        models.map((model) =>
+            this.modelGenerationService.generateModelFiles(model)
+        )
+    );
+    //generate edit and editors (requires root choice)
+    const root = await this.chooseRoot(models, packageByUser, rootByUser);
+    await this.rootDependentGenerationService.generateRootDependentFiles(models,root, params);
+    return params.projectName
+  }
+
+  private createParams(projectName?: string,  modelName?: string) : GenerationParams {
+    //todo sanitize
+    const finalModelName = modelName ?? 'model'
+    const pascalizedModelName = finalModelName //todo pascalize
+    const trimmedName = projectName?.trim()
+    let finalProjectName;
+    if (trimmedName?.length && trimmedName.length >0) {
+      finalProjectName = trimmedName
+    } else{
+      finalProjectName = finalModelName+"-graphical-editor"
+    }
+    return {
+      projectName : finalProjectName,
+      modelName : pascalizedModelName,
+      modelFileName: finalModelName, //for folders
+    };
+  }
+
+  async choosePackage(models: EPackageJson[], packageByUser?: string): Promise<EPackageJson> {
     if(models.length == 0){
       throw new Error('No EPackages found.');
     }
@@ -37,25 +71,25 @@ export class GenerationService {
         model = match;
       } else {
         throw new Error(
-          `Given EPackage class ${packageByUser} not found.\n`
-          +`Packages are ${models.map(c => c.name).join(', ')}.`
+            `Given EPackage class ${packageByUser} not found.\n`
+            +`Packages are ${models.map(c => c.name).join(', ')}.`
         );
       }
     } else {
-      if(models.length ==1){
+      if (models.length == 1) {
         model = models[0]
       } else {  //no autodetection, just user choice
         const choice = await this.pickPackage(models);
-        if(choice){
+        if (choice) {
           model = choice;
         } else {
           throw new Error(
-            `Several packages found (${models.map(m => m.name)}) - please choose one explicitly.`
+              `Several packages found (${models.map(m => m.name)}) - please choose one explicitly.`
           );
         }
       }
     }
-    return await this.processEPackage(model, projectName, rootByUser);
+    return model
   }
 
   async pickPackage(candidates: EPackageJson[]): Promise<EPackageJson | null> {
@@ -65,32 +99,20 @@ export class GenerationService {
     return await firstValueFrom(dialogRef.afterClosed());
   }
 
-  private async processEPackage(model: EPackageJson, projectName?: string, rootByUser?: string): Promise<string> {
-    const params: GenerationParams = {
-      projectName : projectName ? projectName : model.name+"-graphical-editor",
-      modelName : model.pascalizedName,
-      modelFileName: model.name, //for folders
-    };
-
-    // Generate the Angular project structure
-    await this.projectGen.generateProjectFiles(params);
-    await this.modelGenerationService.generateModelFiles(model)
-
-    // choose root:
+  private async chooseRoot(models: EPackageJson[], packageByUser?:string, rootByUser?: string): Promise<EClassJson> {
+    const pkg: EPackageJson = await this.choosePackage(models, packageByUser)
     let root : EClassJson | null;
     if(rootByUser) {
-      root = this.rootFromUser(model, rootByUser)
+      root = this.rootFromUser(pkg, rootByUser)
     } else {
-      root = await this.determineRoot(model);
+      root = await this.determineRoot(pkg);
       if (root == null) {
         throw new Error(
-          'Auto-detection for Root failed: No root candidate found - please choose one explicitly.'
+            'Auto-detection for Root failed: No root candidate found - please choose one explicitly.'
         ); //todo we could generate all but services
       }
     }
-    await this.rootDependentGenerationService.generateRootDependentFiles(model,root);
-
-    return params.projectName
+    return root
   }
 
   private rootFromUser(model: EPackageJson, rootByUser: string): EClassJson {

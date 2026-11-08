@@ -3,6 +3,7 @@ import {TemplateLoadService} from '../../utils/template-load.service';
 import {PlaceholderReplacerService} from '../../utils/place-holder-replacer.service';
 import {ZipService} from '../../utils/zip.service';
 import {EClassJson, EPackageJson} from '../../parsing/ecore-json';
+import {GenerationParams} from '../generation-params';
 
 @Injectable({
   providedIn: 'root',
@@ -17,29 +18,29 @@ export class ModelServiceGenerationService {
     private zip: ZipService
   ) {}
 
-  async generateServices(model: EPackageJson, root: EClassJson, realClasses: string[]) {
-    const outputFolder = `src/app/${model.name}/edit/`
+  async generateServices(root: EClassJson, realClasses: EClassJson[], params: GenerationParams) {
+    const outputFolder = `src/app/${params.modelFileName}/edit/`
 
     const historyTemplate = await this.loader.loadTemplate(this.srcFolder+'model-history.service.ts.template.ts')
     this.zip.addFile(
-      outputFolder+`${model.pascalizedName}-history.service.ts`,
-      this.createHistoryService(historyTemplate, model, root)
+      outputFolder+`${params.modelName}-history.service.ts`,
+      this.createHistoryService(historyTemplate, root, params)
     )
 
     const modelServiceTemplate = await this.loader.loadTemplate(this.srcFolder+'model.service.ts.template.ts')
     this.zip.addFile(
-      outputFolder+`${model.pascalizedName}.service.ts`,
-      this.createModelService(modelServiceTemplate, model, root, realClasses)
+      outputFolder+`${params.modelName}.service.ts`,
+      this.createModelService(modelServiceTemplate, root, params, realClasses)
     )
   }
 
-  createModelService(modelServiceTemplate: string, model: EPackageJson, root: EClassJson, realClasses: string[]): string {
+  createModelService(modelServiceTemplate: string, root: EClassJson, params: GenerationParams, realClasses: EClassJson[]): string {
     const classesToInstantiate= realClasses
 
     return this.replacer.applyPlaceholders(
       modelServiceTemplate,
       {
-        modelName: model.pascalizedName,
+        modelName: params.modelName,
         root: root.name,
         ALL_REAL_CLASSES_IMPORTS: this.createImports(classesToInstantiate),
         MODEL_CREATION_METHODS: this.addCreationMethods(classesToInstantiate),
@@ -47,21 +48,21 @@ export class ModelServiceGenerationService {
     )
   }
 
-  private createImports(classes: string[]): string {
-    return classes.map(cls => `import { ${cls} } from "../core/${cls}";`)
+  private createImports(classes: EClassJson[]): string {
+    return classes.map(cls => `import { ${cls.name} } from "../core/${cls.name}";`) //todo add paths
       .join('\n');
   }
 
-  private addCreationMethods(classes: string[]): string {
-    return "\t"+classes.map(cls => `create${cls} () {\n\t\treturn new ${cls}()\n\t}\n`)
-      .join('\n\t');
+  private addCreationMethods(classes: EClassJson[]): string {
+    return "\t"+classes.map(cls => `create${cls.name} () {\n\t\treturn new ${cls.name}()\n\t}\n`)
+      .join('\n\t'); //todo will we need extra import as?
   }
 
-  createHistoryService(historyTemplate: string, model: EPackageJson, root: EClassJson): string {
+  createHistoryService(historyTemplate: string, root: EClassJson, params: GenerationParams): string {
     return this.replacer.applyPlaceholders(
       historyTemplate,
       {
-        modelName: model.pascalizedName,
+        modelName: params.modelName,
         root: root.name
       }
     )

@@ -16,6 +16,8 @@ export class GeneratorComponent {
   fileName: string | null = null;
   errorMessage: string | null = null;
 
+  projectName: string ="";
+  modelName: string = "";
   rootByUser: string ="";
   packageByUser: string="";
 
@@ -31,7 +33,7 @@ export class GeneratorComponent {
     const file = input.files?.[0];
     if (!file) return;
 
-    this.processFile(file).finally(() => {
+    this.processFile(file, this.projectName).finally(() => {
       input.value = ""; // reset AFTER async work
     });
 
@@ -42,7 +44,7 @@ export class GeneratorComponent {
     const file = event.dataTransfer?.files?.[0];
     if (!file) return;
 
-    this.processFile(file).finally(() => {
+    this.processFile(file, this.projectName).finally(() => {
       const input = event.target as HTMLInputElement;
       input.value = ""; // reset AFTER async work
     });
@@ -52,7 +54,7 @@ export class GeneratorComponent {
     event.preventDefault();
   }
 
-  private async processFile(file: File, projectName?: string) {
+  private async processFile(file: File, projectName?: string, modelName?: string) {
     this.errorMessage = null;
 
     try {
@@ -60,6 +62,7 @@ export class GeneratorComponent {
         await this.generationService.processEcoreFile(
           file,
           projectName,
+          modelName,
           this.sanitize(this.rootByUser),
           this.sanitize(this.packageByUser)
         );
