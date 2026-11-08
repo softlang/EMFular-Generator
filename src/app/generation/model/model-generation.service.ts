@@ -3,8 +3,8 @@ import {MetaGenerationService} from './meta-generation.service';
 import {InterfaceGenerationService} from './interface-generation.service';
 import {ClassGenerationService} from './class-generation.service';
 import {EClassJson, EPackageJson} from '../../parsing/ecore-json';
-import {ModelServiceGenerationService} from './model-service-generation.service';
-import {EditorGenerationService} from './editor-generation.service';
+import {ModelServiceGenerationService} from '../root-dependent/model-service-generation.service';
+import {EditorGenerationService} from '../root-dependent/editor-generation.service';
 
 @Injectable({
   providedIn: 'root',
