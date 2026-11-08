@@ -9,6 +9,7 @@ import {RootSelectionDialogComponent} from './root/root-selection-dialog/root-se
 import {MatDialog} from '@angular/material/dialog';
 import {firstValueFrom} from 'rxjs';
 import {PackageSelectionDialogComponent} from './package-selection-dialog/package-selection-dialog';
+import {RootDependentGenerationService} from "./root-dependent/root-dependent-generation.service";
 
 @Injectable({ providedIn: 'root' })
 export class GenerationService {
@@ -16,6 +17,7 @@ export class GenerationService {
   constructor(
     private projectGen: ProjectGenerationService,
     private modelGenerationService: ModelGenerationService,
+    private rootDependentGenerationService: RootDependentGenerationService,
     private ecore2jsonService: Ecore2JsonService,
     private rootFindingService: RootFindingService,
     private dialog: MatDialog,
@@ -72,6 +74,7 @@ export class GenerationService {
 
     // Generate the Angular project structure
     await this.projectGen.generateProjectFiles(params);
+    await this.modelGenerationService.generateModelFiles(model)
 
     // choose root:
     let root : EClassJson | null;
@@ -85,8 +88,8 @@ export class GenerationService {
         ); //todo we could generate all but services
       }
     }
+    await this.rootDependentGenerationService.generateRootDependentFiles(model,root);
 
-    await this.modelGenerationService.generateModelFiles(model, root)
     return params.projectName
   }
 
