@@ -4,7 +4,7 @@ import { ProjectGenerationService } from './project/project-generation.service';
 import {ModelGenerationService} from './model/model-generation.service';
 import {Ecore2JsonService} from '../parsing/ecore2json.service';
 import {EPackageJson} from '../parsing/ecore-json';
-import {RootChoosingService} from './root/root-choosing.service';
+import {RootChoosingService} from './root-choosing/root-choosing.service';
 import {RootDependentGenerationService} from "./root-dependent/root-dependent-generation.service";
 
 @Injectable({ providedIn: 'root' })
