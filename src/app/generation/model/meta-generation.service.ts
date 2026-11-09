@@ -10,6 +10,7 @@ import {ZipService} from '../../utils/zip.service';
 export class MetaGenerationService {
 
   private srcFolder = 'assets/templates/model/v10/meta/';
+  private targetFolder = 'src/app/core/'
 
   constructor(
     private loader: TemplateLoadService,
@@ -20,10 +21,7 @@ export class MetaGenerationService {
   async generateMeta(model: EPackageJson) {
     const refsBlocks =  this.buildAllClassRefs(model);
     const modelMeta = await this.buildModelMeta(model, refsBlocks);
-
-    const outputFolder = `src/app/${model.name}/core/`
-
-    this.zip.addFile(`${outputFolder}/_meta_.ts`, modelMeta);
+    this.zip.addFile(`${this.targetFolder}/${model.name}/_meta_.ts`, modelMeta);
   }
 
   private buildEnums(model: EPackageJson): string {

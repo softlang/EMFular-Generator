@@ -10,6 +10,7 @@ import { ZipService } from '../../utils/zip.service';
 export class InterfaceGenerationService {
 
   private srcFolder = 'assets/templates/model/v10/core/';
+  private targetFolder = 'src/app/core/'
 
   constructor(
     private loader: TemplateLoadService,
@@ -19,12 +20,11 @@ export class InterfaceGenerationService {
 
   async generateInterfaces(model: EPackageJson) {
     const interfaceTemplate = await this.loader.loadTemplate(this.srcFolder + 'interface.ts.template.ts');
-    const targetFolder = `src/app/${model.name}/core/`
 
     for (const cls of model.eClasses) {
       if (!cls.interfaceLike) continue;
       const fileContent = this.buildInterfaceFile(cls, interfaceTemplate);
-      this.zip.addFile(`${targetFolder}/${cls.name}.ts`, fileContent);
+      this.zip.addFile(`${this.targetFolder}/${model.name}/${cls.name}.ts`, fileContent);
     }
   }
 

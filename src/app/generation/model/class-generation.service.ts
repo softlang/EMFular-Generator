@@ -17,6 +17,7 @@ import { ZipService } from '../../utils/zip.service';
 export class ClassGenerationService {
 
   private srcFolder = 'assets/templates/model/v10/core/';
+  private targetFolder = 'src/app/core/'
 
   constructor(
     private loader: TemplateLoadService,
@@ -28,7 +29,6 @@ export class ClassGenerationService {
     const classTemplate = await this.loader.loadTemplate(
       this.srcFolder + 'class.ts.template.ts'
     );
-    const targetFolder = `src/app/${model.name}/core/`
 
     const classMap = new Map(model.eClasses.map(c => [c.name, c]));
 
@@ -36,7 +36,7 @@ export class ClassGenerationService {
       if (cls.interfaceLike) continue; // interfaces handled on interface service
 
       const fileContent = this.buildClassFile(cls, classMap, model, classTemplate);
-      this.zip.addFile(`${targetFolder}/${cls.name}.ts`, fileContent);
+      this.zip.addFile(`${this.targetFolder}/${model.name}/${cls.name}.ts`, fileContent);
     }
   }
 
