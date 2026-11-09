@@ -3,12 +3,12 @@ import {EClassJson, EPackageJson} from '../../parsing/ecore-json';
 import {MatDialog} from '@angular/material/dialog';
 import {RootSelectionDialogComponent} from './root-selection-dialog/root-selection-dialog.component';
 import {firstValueFrom} from 'rxjs';
-import {PackageSelectionDialogComponent} from '../package-selection-dialog/package-selection-dialog';
+import {PackageSelectionDialogComponent} from './package-selection-dialog/package-selection-dialog';
 
 @Injectable({
   providedIn: 'root',
 })
-export class RootFindingService {
+export class RootChoosingService {
 
   constructor(private dialog: MatDialog) {}
 

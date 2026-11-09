@@ -4,7 +4,7 @@ import { ProjectGenerationService } from './project/project-generation.service';
 import {ModelGenerationService} from './model/model-generation.service';
 import {Ecore2JsonService} from '../parsing/ecore2json.service';
 import {EPackageJson} from '../parsing/ecore-json';
-import {RootFindingService} from './root/root-finding.service';
+import {RootChoosingService} from './root/root-choosing.service';
 import {RootDependentGenerationService} from "./root-dependent/root-dependent-generation.service";
 
 @Injectable({ providedIn: 'root' })
@@ -15,7 +15,7 @@ export class GenerationService {
     private modelGenerationService: ModelGenerationService,
     private rootDependentGenerationService: RootDependentGenerationService,
     private ecore2jsonService: Ecore2JsonService,
-    private rootChoosingService: RootFindingService,
+    private rootChoosingService: RootChoosingService,
   ) {}
 
   async processEcoreFile(file: File, projectName?: string, modelName?: string, rootByUser?: string, packageByUser?: string): Promise<string> {
