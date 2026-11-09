@@ -1,6 +1,6 @@
 import {ChangeDetectorRef, Component} from '@angular/core';
 import {GenerationService} from '../generation.service';
-import {ZipService} from '../../utils/zip.service';
+import {ZipService} from '../utils/zip.service';
 import {FormsModule} from '@angular/forms';
 
 @Component({

@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import {EClassJson, EPackageJson, EReferenceJson} from '../../parsing/ecore-json';
-import {TemplateLoadService} from '../../utils/template-load.service';
-import {PlaceholderReplacerService} from '../../utils/place-holder-replacer.service';
-import {ZipService} from '../../utils/zip.service';
+import {TemplateLoadService} from '../utils/template-load.service';
+import {PlaceholderReplacerService} from '../utils/place-holder-replacer.service';
+import {ZipService} from '../utils/zip.service';
 import {GenerationPaths} from "../generation-paths";
 
 @Injectable({
