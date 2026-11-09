@@ -10,6 +10,7 @@ import {
 import { TemplateLoadService } from '../../utils/template-load.service';
 import { PlaceholderReplacerService } from '../../utils/place-holder-replacer.service';
 import { ZipService } from '../../utils/zip.service';
+import {GenerationPaths} from '../generation-paths';
 
 @Injectable({
   providedIn: 'root',
@@ -17,7 +18,6 @@ import { ZipService } from '../../utils/zip.service';
 export class ClassGenerationService {
 
   private srcFolder = 'assets/templates/model/v10/core/';
-  private targetFolder = 'src/app/core/'
 
   constructor(
     private loader: TemplateLoadService,
@@ -36,7 +36,7 @@ export class ClassGenerationService {
       if (cls.interfaceLike) continue; // interfaces handled on interface service
 
       const fileContent = this.buildClassFile(cls, classMap, model, classTemplate);
-      this.zip.addFile(`${this.targetFolder}/${model.name}/${cls.name}.ts`, fileContent);
+      this.zip.addFile(`${GenerationPaths.modelPath}/${model.name}/${cls.name}.ts`, fileContent);
     }
   }
 

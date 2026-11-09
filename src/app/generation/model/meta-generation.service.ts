@@ -3,6 +3,7 @@ import {EClassJson, EPackageJson, EReferenceJson} from '../../parsing/ecore-json
 import {TemplateLoadService} from '../../utils/template-load.service';
 import {PlaceholderReplacerService} from '../../utils/place-holder-replacer.service';
 import {ZipService} from '../../utils/zip.service';
+import {GenerationPaths} from "../generation-paths";
 
 @Injectable({
   providedIn: 'root',
@@ -10,7 +11,6 @@ import {ZipService} from '../../utils/zip.service';
 export class MetaGenerationService {
 
   private srcFolder = 'assets/templates/model/v10/meta/';
-  private targetFolder = 'src/app/core/'
 
   constructor(
     private loader: TemplateLoadService,
@@ -21,7 +21,7 @@ export class MetaGenerationService {
   async generateMeta(model: EPackageJson) {
     const refsBlocks =  this.buildAllClassRefs(model);
     const modelMeta = await this.buildModelMeta(model, refsBlocks);
-    this.zip.addFile(`${this.targetFolder}/${model.name}/_meta_.ts`, modelMeta);
+    this.zip.addFile(`${GenerationPaths.modelPath}/${model.name}/_meta_.ts`, modelMeta);
   }
 
   private buildEnums(model: EPackageJson): string {
@@ -59,7 +59,7 @@ export class MetaGenerationService {
     let REFS_list: string[] = []
     for (const refEntry of classDef.references) {
       REFS_list.push(
-        this.buildRefEntry(refEntry, classDef.name)
+        this.buildRefEntry(refEntry)
       )
     }
     let REFS = REFS_list.join(",\n")
@@ -75,7 +75,7 @@ export class MetaGenerationService {
       })
   }
 
-  private buildRefEntry(ref: EReferenceJson, className: string): string {
+  private buildRefEntry(ref: EReferenceJson): string {
     //needs inlining since empty last lines cause strange look
     return this.replacer.applyPlaceholders(
       '\t%%refName%%: {\n' +
@@ -83,12 +83,12 @@ export class MetaGenerationService {
       '\t} satisfies ReferenceMeta',
       {
         refName: ref.name,
-        CONTENT: this.buildCONTENT(ref, className)
+        CONTENT: this.buildCONTENT(ref)
       })
   }
 
   //indented
-  private buildCONTENT(ref: EReferenceJson, className: string): string {
+  private buildCONTENT(ref: EReferenceJson): string {
     const lines: string[] = [];
     lines.push(`\ttarget: "${ref.resolvedType.replace(/^ecore:/, "")}"`);
     lines.push(`max: ${ref.upperBound?ref.upperBound:1}`)

@@ -3,6 +3,7 @@ import { EClassJson, EPackageJson } from '../../parsing/ecore-json';
 import { TemplateLoadService } from '../../utils/template-load.service';
 import { PlaceholderReplacerService } from '../../utils/place-holder-replacer.service';
 import { ZipService } from '../../utils/zip.service';
+import {GenerationPaths} from '../generation-paths';
 
 @Injectable({
   providedIn: 'root',
@@ -10,7 +11,6 @@ import { ZipService } from '../../utils/zip.service';
 export class InterfaceGenerationService {
 
   private srcFolder = 'assets/templates/model/v10/core/';
-  private targetFolder = 'src/app/core/'
 
   constructor(
     private loader: TemplateLoadService,
@@ -24,7 +24,7 @@ export class InterfaceGenerationService {
     for (const cls of model.eClasses) {
       if (!cls.interfaceLike) continue;
       const fileContent = this.buildInterfaceFile(cls, interfaceTemplate);
-      this.zip.addFile(`${this.targetFolder}/${model.name}/${cls.name}.ts`, fileContent);
+      this.zip.addFile(`${GenerationPaths.modelPath}/${model.name}/${cls.name}.ts`, fileContent);
     }
   }
 
