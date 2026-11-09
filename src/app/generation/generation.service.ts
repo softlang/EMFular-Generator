@@ -3,11 +3,8 @@ import { GenerationParams } from './generation-params';
 import { ProjectGenerationService } from './project/project-generation.service';
 import {ModelGenerationService} from './model/model-generation.service';
 import {Ecore2JsonService} from '../parsing/ecore2json.service';
-import {EClassJson, EPackageJson} from '../parsing/ecore-json';
+import {EPackageJson} from '../parsing/ecore-json';
 import {RootFindingService} from './root/root-finding.service';
-import {MatDialog} from '@angular/material/dialog';
-import {firstValueFrom} from 'rxjs';
-import {PackageSelectionDialogComponent} from './package-selection-dialog/package-selection-dialog';
 import {RootDependentGenerationService} from "./root-dependent/root-dependent-generation.service";
 
 @Injectable({ providedIn: 'root' })
@@ -18,8 +15,7 @@ export class GenerationService {
     private modelGenerationService: ModelGenerationService,
     private rootDependentGenerationService: RootDependentGenerationService,
     private ecore2jsonService: Ecore2JsonService,
-    private rootFindingService: RootFindingService,
-    private dialog: MatDialog,
+    private rootChoosingService: RootFindingService,
   ) {}
 
   async processEcoreFile(file: File, projectName?: string, modelName?: string, rootByUser?: string, packageByUser?: string): Promise<string> {
@@ -36,7 +32,7 @@ export class GenerationService {
         )
     );
     //generate edit and editors (requires root choice)
-    const root = await this.chooseRoot(models, packageByUser, rootByUser);
+    const root = await this.rootChoosingService.chooseRoot(models, packageByUser, rootByUser);
     await this.rootDependentGenerationService.generateRootDependentFiles(models,root, params);
     return params.projectName
   }
@@ -57,70 +53,6 @@ export class GenerationService {
       modelName : pascalizedModelName,
       modelFileName: finalModelName, //for folders
     };
-  }
-
-  async choosePackage(models: EPackageJson[], packageByUser?: string): Promise<EPackageJson> {
-    if(models.length == 0){
-      throw new Error('No EPackages found.');
-    }
-    let model: EPackageJson;
-    if(packageByUser){
-      let match = models.find(p => p.name == packageByUser)
-      if(match){
-        model = match;
-      } else {
-        throw new Error(
-            `Given EPackage class ${packageByUser} not found.\n`
-            +`Packages are ${models.map(c => c.name).join(', ')}.`
-        );
-      }
-    } else {
-      if (models.length == 1) {
-        model = models[0]
-      } else {  //no autodetection, just user choice
-        const choice = await this.pickPackage(models);
-        if (choice) {
-          model = choice;
-        } else {
-          throw new Error(
-              `Several packages found (${models.map(m => m.name)}) - please choose one explicitly.`
-          );
-        }
-      }
-    }
-    return model
-  }
-
-  async pickPackage(candidates: EPackageJson[]): Promise<EPackageJson | null> {
-    const dialogRef = this.dialog.open(PackageSelectionDialogComponent, {
-      data: candidates,
-    });
-    return await firstValueFrom(dialogRef.afterClosed());
-  }
-
-  private async chooseRoot(models: EPackageJson[], packageByUser?:string, rootByUser?: string): Promise<EClassJson> {
-    const pkg: EPackageJson = await this.choosePackage(models, packageByUser)
-    let root : EClassJson | null;
-    if(rootByUser) {
-      root = this.rootFromUser(pkg, rootByUser)
-    } else {
-      root = await this.rootFindingService.determineRoot(pkg);
-      if (root == null) {
-        throw new Error(
-            'Auto-detection for Root failed: No root candidate found - please choose one explicitly.'
-        ); //todo we could generate all but services
-      }
-    }
-    return root
-  }
-
-  private rootFromUser(model: EPackageJson, rootByUser: string): EClassJson {
-    const root = model.eClasses.find(c => c.name === rootByUser)
-    if (!root) {
-      throw new Error(`Given Root class ${rootByUser} not found on Package ${model.name}.\n`
-      +`Classes are ${model.eClasses.map(c => c.name).join(', ')}.`);
-    }
-    return root;
   }
 
   private readFile(file: File): Promise<string> {
