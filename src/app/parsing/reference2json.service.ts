@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { ReferenceResolvingService } from './reference-resolving.service';
 import { EReferenceJson } from './ecore-json';
-import { SymbolTable } from './symbol-table';
+import {ClassifierRef, FeatureRef, SymbolTable} from './symbol-table';
 
 @Injectable({
   providedIn: 'root',
@@ -10,11 +10,11 @@ export class Reference2JsonService {
   constructor(private referenceResolver: ReferenceResolvingService) {}
 
   parseEReference(el: Element, table: SymbolTable): EReferenceJson {
-    const type = el.getAttribute('eType') ?? '';
-    const typeRef = this.referenceResolver.resolveClassifier(type, table);
+    const type: string = el.getAttribute('eType') ?? '';
+    const typeRef: ClassifierRef = this.referenceResolver.resolveClassifier(type, table);
 
     const opposite = el.getAttribute('eOpposite') || undefined;
-    const oppositeRef = opposite
+    const oppositeRef: FeatureRef | undefined = opposite
       ? this.referenceResolver.resolveFeature(opposite, table, el)
       : undefined;
 
@@ -22,7 +22,6 @@ export class Reference2JsonService {
       kind: 'EReference',
       name: el.getAttribute('name') ?? '',
       type,
-      resolvedType: typeRef.name,
       resolvedTypeRef: typeRef,
       lowerBound: Number(el.getAttribute('lowerBound') ?? '0'),
       upperBound: Number(el.getAttribute('upperBound') ?? '1'),

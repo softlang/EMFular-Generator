@@ -12,8 +12,8 @@ export class RootHeuricticService {
 
     for (const cls of model.eClasses) {
       for (const ref of cls.references ?? []) {
-        if (ref.containment && ref.resolvedType && ref.resolvedType !== cls.name) {
-          containedTargets.add(ref.resolvedType);
+        if (ref.containment && ref.resolvedTypeRef?.name && ref.resolvedTypeRef.name !== cls.name) {
+          containedTargets.add(ref.resolvedTypeRef.name);
         }
       }
     }

@@ -43,14 +43,14 @@ describe('Ecore2JsonService - Reference Resolution Suite', () => {
 
       // 2. Positional eType on EReference (#//@eClassifiers.2 -> Department)
       const deptRef = employee?.references.find((r) => r.name === 'department');
-      expect(deptRef?.resolvedType).toBe('Department');
+      expect(deptRef?.resolvedTypeRef?.name).toBe('Department');
 
       // 3. Positional eOpposite resolution (#//@eClassifiers.2/@eStructuralFeatures.0 -> employees)
       expect(deptRef?.resolvedOpposite).toBe('employees');
 
       // 4. Positional eType & eOpposite on Department.employees
       const empRef = department?.references.find((r) => r.name === 'employees');
-      expect(empRef?.resolvedType).toBe('Employee');
+      expect(empRef?.resolvedTypeRef?.name).toBe('Employee');
       expect(empRef?.resolvedOpposite).toBe('department');
 
       // 5. Tree Parent inference via containment + opposite
@@ -80,7 +80,7 @@ describe('Ecore2JsonService - Reference Resolution Suite', () => {
 
       // 3. Reference pointing up to root package (#//Store)
       const storeRef = orderClass?.references.find((r) => r.name === 'store');
-      expect(storeRef?.resolvedType).toBe('Store');
+      expect(storeRef?.resolvedTypeRef?.name).toBe('Store');
     });
   });
 
@@ -122,11 +122,11 @@ describe('Ecore2JsonService - Reference Resolution Suite', () => {
 
       // 1. #_id reference (Node.outgoing -> #_cls_edge)
       const outgoingRef = nodeClass?.references.find((r) => r.name === 'outgoing');
-      expect(outgoingRef?.resolvedType).toBe('Edge');
+      expect(outgoingRef?.resolvedTypeRef?.name).toBe('Edge');
 
       // 2. Bare _id reference (Edge.target -> _cls_node)
       const targetRef = edgeClass?.references.find((r) => r.name === 'target');
-      expect(targetRef?.resolvedType).toBe('Node');
+      expect(targetRef?.resolvedTypeRef?.name).toBe('Node');
     });
   });
 
@@ -152,10 +152,10 @@ describe('Ecore2JsonService - Reference Resolution Suite', () => {
       const booksRef = library?.references.find((r) => r.name === 'books');
       const libRef = book?.references.find((r) => r.name === 'library');
 
-      expect(booksRef?.resolvedType).toBe('Book');
+      expect(booksRef?.resolvedTypeRef?.name).toBe('Book');
       expect(booksRef?.resolvedOpposite).toBe('library');
 
-      expect(libRef?.resolvedType).toBe('Library');
+      expect(libRef?.resolvedTypeRef?.name).toBe('Library');
       expect(libRef?.resolvedOpposite).toBe('books');
 
       // 3. Tree Parent inference (Library contains books -> Library is tree parent of Book)
@@ -199,8 +199,8 @@ describe('Ecore2JsonService - Reference Resolution Suite', () => {
       expect(invoice).toBeDefined();
       const billingRef = invoice?.references.find((r) => r.name === 'billingAccount');
       const authRef = invoice?.references.find((r) => r.name === 'userAuthAccount');
-      expect(billingRef?.resolvedType).toBe('Account');
-      expect(authRef?.resolvedType).toBe('Account');
+      expect(billingRef?.resolvedTypeRef?.name).toBe('Account');
+      expect(authRef?.resolvedTypeRef?.name).toBe('Account');
 
       // 4. ... but resolvedTypeRef tells them apart
       expect(billingRef?.resolvedTypeRef?.origin).toBe('local');
@@ -249,7 +249,7 @@ describe('Ecore2JsonService - Reference Resolution Suite', () => {
       expect(person).toBeDefined();
       expect(person?.attributes.map((a) => a.name)).toEqual(['name']);
       expect(person?.references.map((r) => r.name)).toEqual(['friend']);
-      expect(person?.references[0].resolvedType).toBe('Person');
+      expect(person?.references[0].resolvedTypeRef?.name).toBe('Person');
       expect(warnings).toEqual([]);
     });
   });
@@ -268,7 +268,7 @@ describe('Ecore2JsonService - Reference Resolution Suite', () => {
       const { packages, warnings } = service.parseWithDiagnostics(EXTERNAL_REFERENCES_ECORE);
       const bar = packages[0].eClasses[0].references[0];
 
-      expect(bar.resolvedType).toBe('Bar');
+      expect(bar.resolvedTypeRef?.name).toBe('Bar');
       expect(bar.resolvedOpposite).toBe('foo');
       expect(bar.resolvedOppositeRef?.origin).toBe('external');
       expect(bar.resolvedOppositeRef?.pkgUri).toBe('http://other.org/model');

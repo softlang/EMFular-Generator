@@ -106,9 +106,9 @@ export class ClassGenerationService {
     );
     // referenced types (type-only), but skip real parent and self
     cls.references.forEach(ref => {
-      if (ref.resolvedType === realParent) return;
-      if (ref.resolvedType === cls.name) return;
-      imports.add(`import type { ${ref.resolvedType} } from './${ref.resolvedType}';`);
+      if (ref.resolvedTypeRef?.name === realParent) return;
+      if (ref.resolvedTypeRef?.name === cls.name) return;
+      imports.add(`import type { ${ref.resolvedTypeRef?.name} } from './${ref.resolvedTypeRef?.name}';`);
     });
     //modelList if needed (type-only)
     if (cls.references.some(r => r.upperBound !== 1)) {
@@ -138,16 +138,16 @@ export class ClassGenerationService {
 
   private buildNormalRef(ref: EReferenceJson, className: string) {
     const type = ref.upperBound === 1
-      ? ref.resolvedType
-      : `ModelList<${ref.resolvedType}>`;
+      ? ref.resolvedTypeRef?.name
+      : `ModelList<${ref.resolvedTypeRef?.name}>`;
     return `  @reference(${className}Refs.${ref.name})\n  declare ${ref.name}: ${type};`;
   }
 
   private buildDerivedRef(ref: EReferenceJson, className: string) {
     //right now just create a getter with right type:
     const type = ref.upperBound === 1
-      ? ref.resolvedType+(ref.lowerBound!==1?"|undefined":"")
-      : ref.resolvedType+"[]"
+      ? ref.resolvedTypeRef?.name+(ref.lowerBound!==1?"|undefined":"")
+      : ref.resolvedTypeRef?.name+"[]"
     const notImplemented = "throw new Error('Method not implemented.'); //TODO"
     return `  get ${ref.name}(): ${type} {\n\t\t${notImplemented}\n  }\n`;
   }
