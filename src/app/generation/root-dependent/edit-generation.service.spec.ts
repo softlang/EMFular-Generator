@@ -1,13 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 
-import { ModelServiceGenerationService } from './model-service-generation.service';
+import { EditGenerationService } from './edit-generation.service';
 
 describe('ModelServiceGenerationService', () => {
-  let service: ModelServiceGenerationService;
+  let service: EditGenerationService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(ModelServiceGenerationService);
+    service = TestBed.inject(EditGenerationService);
   });
 
   it('should be created', () => {

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import {ModelServiceGenerationService} from './model-service-generation.service';
+import {EditGenerationService} from './edit-generation.service';
 import {EditorGenerationService} from './editor-generation.service';
 import {EClassJson, EPackageJson} from '../../parsing/ecore-json';
 import {GenerationParams} from '../generation-params';
@@ -10,14 +10,14 @@ import {GenerationParams} from '../generation-params';
 export class RootDependentGenerationService {
 
   constructor(
-    private modelServiceGenerationService: ModelServiceGenerationService,
+    private editGenerationService: EditGenerationService,
     private editorGenerationService: EditorGenerationService
   ) {}
 
   async generateRootDependentFiles(models: EPackageJson[], root: EClassJson, params: GenerationParams) {
     const realClasses = this.filterRealClasses(models);
 
-    await this.modelServiceGenerationService.generateServices(root, realClasses, params)
+    await this.editGenerationService.generateServices(root, realClasses, params)
     await this.editorGenerationService.generateEditorFiles(root, realClasses, params)
   }
 

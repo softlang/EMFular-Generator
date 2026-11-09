@@ -4,6 +4,7 @@ import {TemplateLoadService} from '../../utils/template-load.service';
 import {PlaceholderReplacerService} from '../../utils/place-holder-replacer.service';
 import {ZipService} from '../../utils/zip.service';
 import {GenerationParams} from '../generation-params';
+import {GenerationPaths} from '../generation-paths';
 
 @Injectable({
   providedIn: 'root',
@@ -19,25 +20,25 @@ export class EditorGenerationService {
   ) {}
 
   async generateEditorFiles(root: EClassJson, realClasses: EClassJson[], params: GenerationParams) {
-    const outputFolder = `src/app/editor/`
+    const outputComponent = `${GenerationPaths.editorPath}/${params.modelName}-editor.component`
 
     //empty css
     this.zip.addFile(
-      outputFolder+`${params.modelName}-editor.component.css`,
+      outputComponent+`.css`,
       ""//empty but existing styles
     )
 
     //unchanged html
     const htmlFile = await this.loader.loadTemplate(this.srcFolder+'editor.component.html');
     this.zip.addFile(
-      outputFolder+`${params.modelName}-editor.component.html`,
+      outputComponent+`.html`,
       htmlFile
     )
 
     //real work: the component ts:
     const componentTsTemplate = await this.loader.loadTemplate(this.srcFolder+'editor.component.ts.template.ts');
     this.zip.addFile(
-      outputFolder+`${params.modelName}-editor.component.ts`,
+      outputComponent+`.ts`,
       this.createComponent(componentTsTemplate, root, realClasses, params)
     )
   }
