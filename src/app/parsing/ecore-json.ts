@@ -46,7 +46,6 @@ export interface EReferenceJson {
 
   // identity
   name: string;
-  type: string;
   resolvedTypeRef?: ClassifierRef;
 
   // cardinality

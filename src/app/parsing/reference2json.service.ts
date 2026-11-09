@@ -21,7 +21,6 @@ export class Reference2JsonService {
     return {
       kind: 'EReference',
       name: el.getAttribute('name') ?? '',
-      type,
       resolvedTypeRef: typeRef,
       lowerBound: Number(el.getAttribute('lowerBound') ?? '0'),
       upperBound: Number(el.getAttribute('upperBound') ?? '1'),

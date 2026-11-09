@@ -72,11 +72,11 @@ describe('Ecore2JsonService - Reference Resolution Suite', () => {
 
       // 1. Attribute referencing an EEnum in sibling subpackage (#//types/OrderStatus)
       const statusAttr = orderClass?.attributes.find((a) => a.name === 'status');
-      expect(statusAttr?.type).toBe('OrderStatus');
+      expect(statusAttr?.resolvedTypeRef?.name).toBe('OrderStatus');
 
       // 2. Attribute referencing an EDataType via positional path (#//@eSubpackages.0/@eClassifiers.1 -> Money)
       const totalAmountAttr = orderClass?.attributes.find((a) => a.name === 'totalAmount');
-      expect(totalAmountAttr?.type).toBe('Money');
+      expect(totalAmountAttr?.resolvedTypeRef?.name).toBe('Money');
 
       // 3. Reference pointing up to root package (#//Store)
       const storeRef = orderClass?.references.find((r) => r.name === 'store');
@@ -98,11 +98,11 @@ describe('Ecore2JsonService - Reference Resolution Suite', () => {
 
       // 1. Root index notation (/0/URL)
       const linkAttr = webPageClass?.attributes.find((a) => a.name === 'link');
-      expect(linkAttr?.type).toBe('URL');
+      expect(linkAttr?.resolvedTypeRef?.name).toBe('URL');
 
       // 2. Positional root index notation (#/0/@eClassifiers.1 -> UUID)
       const pageIdAttr = webPageClass?.attributes.find((a) => a.name === 'pageId');
-      expect(pageIdAttr?.type).toBe('UUID');
+      expect(pageIdAttr?.resolvedTypeRef?.name).toBe('UUID');
     });
   });
 
@@ -143,10 +143,10 @@ describe('Ecore2JsonService - Reference Resolution Suite', () => {
 
       // 1. Built-in Ecore datatypes
       const libNameAttr = library?.attributes.find((a) => a.name === 'name');
-      expect(libNameAttr?.type).toBe('EString');
+      expect(libNameAttr?.resolvedTypeRef?.name).toBe('EString');
 
       const bookPagesAttr = book?.attributes.find((a) => a.name === 'pages');
-      expect(bookPagesAttr?.type).toBe('EInt');
+      expect(bookPagesAttr?.resolvedTypeRef?.name).toBe('EInt');
 
       // 2. Name-based opposite resolution
       const booksRef = library?.references.find((r) => r.name === 'books');
@@ -190,8 +190,8 @@ describe('Ecore2JsonService - Reference Resolution Suite', () => {
       // 2. Built-in Ecore datatypes still resolve as external references
       const username = authAccount?.attributes[0];
       const balance = billingAccount?.attributes[0];
-      expect(username?.type).toBe('EString');
-      expect(balance?.type).toBe('EDouble');
+      expect(username?.resolvedTypeRef?.name).toBe('EString');
+      expect(balance?.resolvedTypeRef?.name).toBe('EDouble');
       expect(username?.resolvedTypeRef?.origin).toBe('external');
 
       // 3. Both Invoice references have the same simple type name ...
