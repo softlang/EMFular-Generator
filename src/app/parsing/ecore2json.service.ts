@@ -49,13 +49,13 @@ export class Ecore2JsonService {
         const type = this.referenceResolver.typeOf(child);
         switch (type) {
           case 'EClass':
-            pkg.eClasses.push(this.classifiers2Json.parseEClass(child, index, table));
+            pkg.eClasses.push(this.classifiers2Json.parseEClass(child, table));
             break;
           case 'EEnum':
-            pkg.eEnums.push(this.classifiers2Json.parseEEnum(child, index));
+            pkg.eEnums.push(this.classifiers2Json.parseEEnum(child));
             break;
           case 'EDataType':
-            pkg.eDataTypes.push(this.classifiers2Json.parseEDataType(child, index));
+            pkg.eDataTypes.push(this.classifiers2Json.parseEDataType(child));
             break;
           default:
             this.referenceResolver.addWarning(

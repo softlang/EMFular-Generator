@@ -13,17 +13,11 @@ export interface EPackageJson {
 
 export interface EClassifierJson {
   name: string;
-  _rawName: string;
-  _index: number;
-  _id?: string;
 }
 
 export interface EClassJson extends EClassifierJson {
   kind: 'EClass';
   name: string;
-  _rawName: string;
-  _index: number;
-  _id?: string;
 
   abstract: boolean;
   interfaceLike?: boolean;
@@ -70,20 +64,12 @@ export interface EReferenceJson {
 export interface EEnumJson extends EClassifierJson {
   kind: 'EEnum';
   name: string;
-  _rawName: string;
-  _index: number;
-  _id?: string;
-
   literals: string[];
 }
 
 export interface EDataTypeJson extends EClassifierJson {
   kind: 'EDataType';
   name: string;
-  _rawName: string;
-  _index: number;
-  _id?: string;
-
   instanceTypeName: string;
 }
 

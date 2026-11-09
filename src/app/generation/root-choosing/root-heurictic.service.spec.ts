@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 
-import { RootHeuricticService } from './root-heurictic-service';
+import { RootHeuricticService } from './root-heurictic.service';
 
 describe('RootHeuricticService', () => {
   let service: RootHeuricticService;

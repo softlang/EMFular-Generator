@@ -15,8 +15,8 @@ export class Classifier2JsonService {
     private referenceResolver: ReferenceResolvingService,
   ) {}
 
-  parseEClass(el: Element, index: number, table: SymbolTable): EClassJson {
-    const general = this.parseClassifier(el, index);
+  parseEClass(el: Element, table: SymbolTable): EClassJson {
+    const general = this.parseClassifier(el);
     const superTypes = this.referenceResolver.splitRefList(el.getAttribute('eSuperTypes') ?? '').map((s) => this.referenceResolver.resolveClassifier(s, table, el));
 
     const cls: EClassJson = {
@@ -51,8 +51,8 @@ export class Classifier2JsonService {
     return cls;
   }
 
-  parseEEnum(el: Element, index: number): EEnumJson {
-    const general = this.parseClassifier(el, index);
+  parseEEnum(el: Element): EEnumJson {
+    const general = this.parseClassifier(el);
     return {
       ...general,
       kind: 'EEnum',
@@ -62,8 +62,8 @@ export class Classifier2JsonService {
     };
   }
 
-  parseEDataType(el: Element, index: number): EDataTypeJson {
-    const general = this.parseClassifier(el, index);
+  parseEDataType(el: Element): EDataTypeJson {
+    const general = this.parseClassifier(el);
     return {
       ...general,
       kind: 'EDataType',
@@ -71,17 +71,11 @@ export class Classifier2JsonService {
     };
   }
 
-  private parseClassifier(el: Element, index: number): EClassifierJson {
+  private parseClassifier(el: Element): EClassifierJson {
     const name: string | null = el.getAttribute('name');
     const res: EClassifierJson = {
-      _index: index,
-      _rawName: name ?? '',
       name: name ?? '', //todo
     };
-    const id: string | null = el.getAttribute('xmi:id');
-    if (id) {
-      res._id = id;
-    }
     return res;
   }
 }
