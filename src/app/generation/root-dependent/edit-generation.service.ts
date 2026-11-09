@@ -4,6 +4,7 @@ import {PlaceholderReplacerService} from '../../utils/place-holder-replacer.serv
 import {ZipService} from '../../utils/zip.service';
 import {EClassJson} from '../../parsing/ecore-json';
 import {GenerationParams} from '../generation-params';
+import {GenerationPaths} from '../generation-paths';
 
 @Injectable({
   providedIn: 'root',
@@ -19,17 +20,17 @@ export class EditGenerationService {
   ) {}
 
   async generateServices(root: EClassJson, realClasses: EClassJson[], params: GenerationParams) {
-    const outputFolder = `src/app/edit/`
+    const outputFolder = `${GenerationPaths.editPath}/${params.modelName}-history.service`
 
     const historyTemplate = await this.loader.loadTemplate(this.srcFolder+'model-history.service.ts.template.ts')
     this.zip.addFile(
-      outputFolder+`${params.modelName}-history.service.ts`,
+      outputFolder+`.ts`,
       this.createHistoryService(historyTemplate, root, params)
     )
 
     const modelServiceTemplate = await this.loader.loadTemplate(this.srcFolder+'model.service.ts.template.ts')
     this.zip.addFile(
-      outputFolder+`${params.modelName}.service.ts`,
+      outputFolder+`.ts`,
       this.createModelService(modelServiceTemplate, root, params, realClasses)
     )
   }
