@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { EPackageJson, ParseResult } from './ecore-json';
+import {EPackageJson, EPackageRef, ParseResult} from './ecore-json';
 import { Classifier2JsonService } from './classifier2json.service';
 import { ReferenceResolvingService } from './reference-resolving.service';
 import { SymbolTable } from './symbol-table';
@@ -43,19 +43,22 @@ export class Ecore2JsonService {
       eDataTypes: [],
     };
 
-    let index = 0;
+    const pkgRef: EPackageRef = {
+      path: [pkg.name]
+    }
+
     for (const child of Array.from(root.children)) {
       if (child.tagName === 'eClassifiers') {
         const type = this.referenceResolver.typeOf(child);
         switch (type) {
           case 'EClass':
-            pkg.eClasses.push(this.classifiers2Json.parseEClass(child, table));
+            pkg.eClasses.push(this.classifiers2Json.parseEClass(child, pkgRef, table));
             break;
           case 'EEnum':
-            pkg.eEnums.push(this.classifiers2Json.parseEEnum(child));
+            pkg.eEnums.push(this.classifiers2Json.parseEEnum(child, pkgRef));
             break;
           case 'EDataType':
-            pkg.eDataTypes.push(this.classifiers2Json.parseEDataType(child));
+            pkg.eDataTypes.push(this.classifiers2Json.parseEDataType(child, pkgRef));
             break;
           default:
             this.referenceResolver.addWarning(
@@ -65,7 +68,6 @@ export class Ecore2JsonService {
               child
             );
         }
-        index++;
       } else if (child.tagName === 'eSubpackages') {
         (pkg.subPackages ??= []).push(this.parsePackage(child, table));
       }

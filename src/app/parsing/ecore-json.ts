@@ -11,8 +11,13 @@ export interface EPackageJson {
   subPackages?: EPackageJson[];
 }
 
+export interface EPackageRef {
+  path: string[]
+}
+
 export interface EClassifierJson {
   name: string;
+  pkgRef: EPackageRef
 }
 
 export interface EClassJson extends EClassifierJson {

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { EClassifierJson, EClassJson, EDataTypeJson, EEnumJson } from './ecore-json';
+import {EClassifierJson, EClassJson, EDataTypeJson, EEnumJson, EPackageRef} from './ecore-json';
 import { Attribute2JsonService } from './attribute2json.service';
 import { Reference2JsonService } from './reference2json.service';
 import { ReferenceResolvingService } from './reference-resolving.service';
@@ -15,8 +15,8 @@ export class Classifier2JsonService {
     private referenceResolver: ReferenceResolvingService,
   ) {}
 
-  parseEClass(el: Element, table: SymbolTable): EClassJson {
-    const general = this.parseClassifier(el);
+  parseEClass(el: Element, pkgRef: EPackageRef, table: SymbolTable): EClassJson {
+    const general = this.parseClassifier(el, pkgRef);
     const superTypes = this.referenceResolver.splitRefList(el.getAttribute('eSuperTypes') ?? '').map((s) => this.referenceResolver.resolveClassifier(s, table, el));
 
     const cls: EClassJson = {
@@ -51,8 +51,8 @@ export class Classifier2JsonService {
     return cls;
   }
 
-  parseEEnum(el: Element): EEnumJson {
-    const general = this.parseClassifier(el);
+  parseEEnum(el: Element, pkgRef: EPackageRef,): EEnumJson {
+    const general = this.parseClassifier(el, pkgRef);
     return {
       ...general,
       kind: 'EEnum',
@@ -62,8 +62,8 @@ export class Classifier2JsonService {
     };
   }
 
-  parseEDataType(el: Element): EDataTypeJson {
-    const general = this.parseClassifier(el);
+  parseEDataType(el: Element, pkgRef: EPackageRef,): EDataTypeJson {
+    const general = this.parseClassifier(el, pkgRef);
     return {
       ...general,
       kind: 'EDataType',
@@ -71,10 +71,11 @@ export class Classifier2JsonService {
     };
   }
 
-  private parseClassifier(el: Element): EClassifierJson {
+  private parseClassifier(el: Element, pkgRef: EPackageRef,): EClassifierJson {
     const name: string | null = el.getAttribute('name');
     const res: EClassifierJson = {
       name: name ?? '', //todo
+      pkgRef: pkgRef
     };
     return res;
   }
