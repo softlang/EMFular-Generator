@@ -5,7 +5,6 @@ import {ModelGenerationService} from './model/model-generation.service';
 import {Ecore2JsonService} from '../parsing/ecore2json.service';
 import {EClassJson, EPackageJson} from '../parsing/ecore-json';
 import {RootFindingService} from './root/root-finding.service';
-import {RootSelectionDialogComponent} from './root/root-selection-dialog/root-selection-dialog.component';
 import {MatDialog} from '@angular/material/dialog';
 import {firstValueFrom} from 'rxjs';
 import {PackageSelectionDialogComponent} from './package-selection-dialog/package-selection-dialog';
@@ -105,7 +104,7 @@ export class GenerationService {
     if(rootByUser) {
       root = this.rootFromUser(pkg, rootByUser)
     } else {
-      root = await this.determineRoot(pkg);
+      root = await this.rootFindingService.determineRoot(pkg);
       if (root == null) {
         throw new Error(
             'Auto-detection for Root failed: No root candidate found - please choose one explicitly.'
@@ -127,30 +126,10 @@ export class GenerationService {
   private readFile(file: File): Promise<string> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-
       reader.onload = () => resolve(reader.result as string);
       reader.onerror = () => reject(new Error('Failed to read file'));
-
       reader.readAsText(file);
     });
-  }
-
-  async determineRoot(model: EPackageJson): Promise<EClassJson | null> {
-    const candidates = this.rootFindingService.allPossibleRootClasses(model);
-    if (candidates.length === 1) {
-      return candidates[0];
-    }
-    if (candidates.length === 0) {
-      throw new Error("No non-abstract, not interface-like class found, hence no useful generation possible")
-    }
-    return await this.pickRoot(candidates);
-  }
-
-  async pickRoot(candidates: EClassJson[]): Promise<EClassJson | null> {
-    const dialogRef = this.dialog.open(RootSelectionDialogComponent, {
-      data: candidates,
-    });
-    return await firstValueFrom(dialogRef.afterClosed());
   }
 
 }
