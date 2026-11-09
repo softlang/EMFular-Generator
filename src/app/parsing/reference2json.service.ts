@@ -31,8 +31,6 @@ export class Reference2JsonService {
       volatile: el.getAttribute('volatile') === 'true' || undefined,
       changeable: el.getAttribute('changeable') === 'true' || undefined,
 
-      opposite,
-      resolvedOpposite: oppositeRef?.name || undefined,
       resolvedOppositeRef: oppositeRef,
       // a reference is a tree parent iff its opposite is the containment side
       isTreeParent: oppositeRef?.containment || undefined,

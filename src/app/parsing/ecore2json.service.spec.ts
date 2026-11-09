@@ -46,12 +46,12 @@ describe('Ecore2JsonService - Reference Resolution Suite', () => {
       expect(deptRef?.resolvedTypeRef?.name).toBe('Department');
 
       // 3. Positional eOpposite resolution (#//@eClassifiers.2/@eStructuralFeatures.0 -> employees)
-      expect(deptRef?.resolvedOpposite).toBe('employees');
+      expect(deptRef?.resolvedOppositeRef?.name).toBe('employees');
 
       // 4. Positional eType & eOpposite on Department.employees
       const empRef = department?.references.find((r) => r.name === 'employees');
       expect(empRef?.resolvedTypeRef?.name).toBe('Employee');
-      expect(empRef?.resolvedOpposite).toBe('department');
+      expect(empRef?.resolvedOppositeRef?.name).toBe('department');
 
       // 5. Tree Parent inference via containment + opposite
       expect(deptRef?.isTreeParent).toBeTruthy();
@@ -153,10 +153,10 @@ describe('Ecore2JsonService - Reference Resolution Suite', () => {
       const libRef = book?.references.find((r) => r.name === 'library');
 
       expect(booksRef?.resolvedTypeRef?.name).toBe('Book');
-      expect(booksRef?.resolvedOpposite).toBe('library');
+      expect(booksRef?.resolvedOppositeRef?.name).toBe('library');
 
       expect(libRef?.resolvedTypeRef?.name).toBe('Library');
-      expect(libRef?.resolvedOpposite).toBe('books');
+      expect(libRef?.resolvedOppositeRef?.name).toBe('books');
 
       // 3. Tree Parent inference (Library contains books -> Library is tree parent of Book)
       expect(libRef?.isTreeParent).toBeTruthy();
@@ -269,7 +269,7 @@ describe('Ecore2JsonService - Reference Resolution Suite', () => {
       const bar = packages[0].eClasses[0].references[0];
 
       expect(bar.resolvedTypeRef?.name).toBe('Bar');
-      expect(bar.resolvedOpposite).toBe('foo');
+      expect(bar.resolvedOppositeRef?.name).toBe('foo');
       expect(bar.resolvedOppositeRef?.origin).toBe('external');
       expect(bar.resolvedOppositeRef?.pkgUri).toBe('http://other.org/model');
       expect(warnings).toEqual([]);
