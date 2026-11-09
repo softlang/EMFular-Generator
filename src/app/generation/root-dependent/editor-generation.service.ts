@@ -19,7 +19,7 @@ export class EditorGenerationService {
   ) {}
 
   async generateEditorFiles(root: EClassJson, realClasses: EClassJson[], params: GenerationParams) {
-    const outputFolder = `src/app/${params.modelFileName}/editor/`
+    const outputFolder = `src/app/editor/`
 
     //empty css
     this.zip.addFile(

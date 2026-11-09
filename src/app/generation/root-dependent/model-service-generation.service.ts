@@ -19,7 +19,7 @@ export class ModelServiceGenerationService {
   ) {}
 
   async generateServices(root: EClassJson, realClasses: EClassJson[], params: GenerationParams) {
-    const outputFolder = `src/app/${params.modelFileName}/edit/`
+    const outputFolder = `src/app/edit/`
 
     const historyTemplate = await this.loader.loadTemplate(this.srcFolder+'model-history.service.ts.template.ts')
     this.zip.addFile(
