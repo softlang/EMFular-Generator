@@ -11,7 +11,7 @@ import {GenerationPaths} from '../generation-paths';
 })
 export class EditorGenerationService {
 
-  private srcFolder = 'assets/templates/model/editor/';
+  private srcFolder = 'assets/templates/editor/';
 
   constructor(
     private loader: TemplateLoadService,
