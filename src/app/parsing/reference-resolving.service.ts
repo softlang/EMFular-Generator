@@ -189,22 +189,38 @@ export class ReferenceResolvingService {
     const { uri, fragment } = this.splitRef(raw);
 
     if (uri && !table.nsUris.has(uri)) {
-      return { name: this.nameOf(fragment), pkgUri: uri, origin: 'external' };
+      return {
+        name: this.nameOf(fragment),
+        resolvedClass: {
+          name: '', //todo last but one fragment? maybe more for path?
+          pkgUri: uri,
+          origin: 'external'
+        }
+      };
     }
 
     const sym = this.lookup(table.features, fragment);
     if (sym) {
       return {
         name: sym.name,
-        ownerClassName: sym.ownerClassName,
-        ownerPkgPath: sym.ownerPkgPath,
+        resolvedClass: {
+          name: sym.ownerClassName,
+          pkgPath: sym.ownerPkgPath,
+          //todo pkgUri: sym.???
+          origin: 'local'
+        },
         containment: sym.containment,
-        origin: 'local',
       };
     }
 
     this.warnUnresolved(raw, table, from);
-    return { name: this.nameOf(fragment), origin: 'unresolved' };
+    return {
+      name: this.nameOf(fragment),
+      resolvedClass: {
+        name: '',
+        origin: 'unresolved'
+      }
+    };
   }
 
   addWarning(

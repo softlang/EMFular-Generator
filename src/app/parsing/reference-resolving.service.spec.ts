@@ -172,9 +172,9 @@ describe('ReferenceResolvingService - buildSymbolTable()', () => {
     it('should return an external FeatureRef instead of undefined for a URI', () => {
       const table = service.buildSymbolTable(parseXml(POSITIONAL_ECORE));
       const ref = service.resolveFeature('http://other.org/model#//Foo/bar', table);
-      expect(ref.origin).toBe('external');
+      expect(ref.resolvedClass.origin).toBe('external');
       expect(ref.name).toBe('bar');
-      expect(ref.pkgUri).toBe('http://other.org/model');
+      expect(ref.resolvedClass.pkgUri).toBe('http://other.org/model');
     });
 
     it('should treat a URI that is the nsURI of a local package as local', () => {
@@ -186,7 +186,7 @@ describe('ReferenceResolvingService - buildSymbolTable()', () => {
       expect(store.pkgPath).toEqual(['shop']);
 
       const orders = service.resolveFeature('http://example.org/shop#//Store/orders', table);
-      expect(orders.origin).toBe('local');
+      expect(orders.resolvedClass.origin).toBe('local');
       expect(orders.containment).toBe(true);
       expect(table.warnings).toEqual([]);
     });

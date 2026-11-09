@@ -39,6 +39,7 @@ export interface FeatureSymbol {
   kind: FeatureKind;
   ownerClassName: string;
   ownerPkgPath: string[];
+  //todo missing? ownerNsURI: string;
   containment: boolean;
   id?: string;
   element: Element;
@@ -91,11 +92,8 @@ export interface ClassifierRef {
 
 export interface FeatureRef {
   name: string;
-  ownerClassName?: string;
-  ownerPkgPath?: string[];
+  resolvedClass: ClassifierRef;
   containment?: boolean;
-  pkgUri?: string;
-  origin: RefOrigin;
 }
 
 export interface RootPackage {

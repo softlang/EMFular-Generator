@@ -270,8 +270,8 @@ describe('Ecore2JsonService - Reference Resolution Suite', () => {
 
       expect(bar.resolvedTypeRef?.name).toBe('Bar');
       expect(bar.resolvedOppositeRef?.name).toBe('foo');
-      expect(bar.resolvedOppositeRef?.origin).toBe('external');
-      expect(bar.resolvedOppositeRef?.pkgUri).toBe('http://other.org/model');
+      expect(bar.resolvedOppositeRef?.resolvedClass.origin).toBe('external');
+      expect(bar.resolvedOppositeRef?.resolvedClass.pkgUri).toBe('http://other.org/model');
       expect(warnings).toEqual([]);
     });
 
