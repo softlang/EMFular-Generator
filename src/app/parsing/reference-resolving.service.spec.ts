@@ -169,7 +169,7 @@ describe('ReferenceResolvingService - buildSymbolTable()', () => {
       expect(table.warnings).toEqual([]);
     });
 
-    it('should return an external FeatureRef instead of undefined for a URI', () => {
+    it('should return an external ReferenceRef instead of undefined for a URI', () => {
       const table = service.buildSymbolTable(parseXml(POSITIONAL_ECORE));
       const ref = service.resolveFeature('http://other.org/model#//Foo/bar', table);
       expect(ref.resolvedClass.origin).toBe('external');

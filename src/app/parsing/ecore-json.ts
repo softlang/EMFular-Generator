@@ -57,7 +57,7 @@ export interface EReferenceJson {
   transient?: boolean;
   volatile?: boolean;
   changeable?: boolean;
-  resolvedOppositeRef?: FeatureRef;
+  resolvedOppositeRef?: ReferenceRef;
   isTreeParent?: boolean; //detects opposites of trees
 }
 
@@ -88,7 +88,7 @@ export interface ClassifierRef {
   origin: 'local' | 'external' | 'unresolved';
 }
 
-export interface FeatureRef {
+export interface ReferenceRef {
   name: string;
   resolvedClass: ClassifierRef;
   containment?: boolean;

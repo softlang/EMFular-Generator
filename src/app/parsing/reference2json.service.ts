@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ReferenceResolvingService } from './reference-resolving.service';
-import { EReferenceJson, ClassifierRef, FeatureRef } from './ecore-json';
+import { EReferenceJson, ClassifierRef, ReferenceRef } from './ecore-json';
 import {SymbolTable} from './symbol-table';
 
 @Injectable({
@@ -14,7 +14,7 @@ export class Reference2JsonService {
     const typeRef: ClassifierRef = this.referenceResolver.resolveClassifier(type, table);
 
     const opposite = el.getAttribute('eOpposite') || undefined;
-    const oppositeRef: FeatureRef | undefined = opposite
+    const oppositeRef: ReferenceRef | undefined = opposite
       ? this.referenceResolver.resolveFeature(opposite, table, el)
       : undefined;
 

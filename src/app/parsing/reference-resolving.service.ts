@@ -11,7 +11,7 @@ import {
   RootPackage,
   SymbolTable,
 } from './symbol-table';
-import {ClassifierRef, FeatureRef} from './ecore-json';
+import {ClassifierRef, ReferenceRef} from './ecore-json';
 
 /**
  * The only place that knows about Ecore's referencing mechanisms:
@@ -184,7 +184,7 @@ export class ReferenceResolvingService {
     return { name: this.nameOf(fragment), origin: 'unresolved' };
   }
 
-  resolveFeature(raw: string, table: SymbolTable, from?: Element): FeatureRef {
+  resolveFeature(raw: string, table: SymbolTable, from?: Element): ReferenceRef {
     const { uri, fragment } = this.splitRef(raw);
 
     if (uri && !table.nsUris.has(uri)) {
