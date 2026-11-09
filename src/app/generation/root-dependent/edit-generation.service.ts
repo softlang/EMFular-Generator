@@ -20,17 +20,17 @@ export class EditGenerationService {
   ) {}
 
   async generateServices(root: EClassJson, realClasses: EClassJson[], params: GenerationParams) {
-    const outputFolder = `${GenerationPaths.editPath}/${params.modelName}-history.service`
+    const outputFolder = `${GenerationPaths.editPath}/${params.modelName}`
 
     const historyTemplate = await this.loader.loadTemplate(this.srcFolder+'model-history.service.ts.template.ts')
     this.zip.addFile(
-      outputFolder+`.ts`,
+      outputFolder+`-history.service.ts`,
       this.createHistoryService(historyTemplate, root, params)
     )
 
     const modelServiceTemplate = await this.loader.loadTemplate(this.srcFolder+'model.service.ts.template.ts')
     this.zip.addFile(
-      outputFolder+`.ts`,
+      outputFolder+`.service.ts`,
       this.createModelService(modelServiceTemplate, root, params, realClasses)
     )
   }

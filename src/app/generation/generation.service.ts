@@ -34,7 +34,7 @@ export class GenerationService {
 
   private createParams(projectName?: string,  modelName?: string) : GenerationParams {
     //todo sanitize
-    const finalModelName = modelName ?? 'model'
+    const finalModelName = modelName ?? 'MyModel'
     const pascalizedModelName = finalModelName //todo pascalize
     const trimmedName = projectName?.trim()
     let finalProjectName;
