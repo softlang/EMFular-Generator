@@ -1,4 +1,4 @@
-import { ClassifierRef, FeatureRef, ParseWarning } from './symbol-table';
+import { ParseWarning } from './symbol-table';
 
 export interface EPackageJson {
   name: string;
@@ -76,4 +76,20 @@ export interface EDataTypeJson extends EClassifierJson {
 export interface ParseResult {
   packages: EPackageJson[];
   warnings: ParseWarning[];
+}
+
+
+/** Result of resolving a raw eType / eSuperTypes entry. */
+export interface ClassifierRef {
+  name: string;
+  pkgPath?: string[];
+  /** set for classifiers living in another metamodel (e.g. Ecore's EString) */
+  pkgUri?: string;
+  origin: 'local' | 'external' | 'unresolved';
+}
+
+export interface FeatureRef {
+  name: string;
+  resolvedClass: ClassifierRef;
+  containment?: boolean;
 }

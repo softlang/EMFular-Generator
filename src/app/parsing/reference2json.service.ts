@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { ReferenceResolvingService } from './reference-resolving.service';
-import { EReferenceJson } from './ecore-json';
-import {ClassifierRef, FeatureRef, SymbolTable} from './symbol-table';
+import { EReferenceJson, ClassifierRef, FeatureRef } from './ecore-json';
+import {SymbolTable} from './symbol-table';
 
 @Injectable({
   providedIn: 'root',

@@ -81,21 +81,6 @@ export function createSymbolTable(): SymbolTable {
   return { classifiers: set(), features: set(), nsUris: new Set<string>(), warnings: [] };
 }
 
-/** Result of resolving a raw eType / eSuperTypes entry. */
-export interface ClassifierRef {
-  name: string;
-  pkgPath?: string[];
-  /** set for classifiers living in another metamodel (e.g. Ecore's EString) */
-  pkgUri?: string;
-  origin: 'local' | 'external' | 'unresolved';
-}
-
-export interface FeatureRef {
-  name: string;
-  resolvedClass: ClassifierRef;
-  containment?: boolean;
-}
-
 export interface RootPackage {
   element: Element;
   /** undefined if the EPackage is the document root; index inside <xmi:XMI> otherwise */
