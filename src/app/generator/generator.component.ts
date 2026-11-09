@@ -2,6 +2,8 @@ import {ChangeDetectorRef, Component} from '@angular/core';
 import {GenerationService} from '../generation/generation.service';
 import {ZipService} from '../generation/utils/zip.service';
 import {FormsModule} from '@angular/forms';
+import {EPackageJson} from '../parsing/ecore-json';
+import {Ecore2JsonService} from '../parsing/ecore2json.service';
 
 @Component({
   selector: 'emfular-generator',
@@ -22,6 +24,7 @@ export class GeneratorComponent {
   packageByUser: string="";
 
   constructor(
+    private ecore2jsonService: Ecore2JsonService,
     private generationService: GenerationService,
     private zipService: ZipService,
     private cdr: ChangeDetectorRef,
@@ -58,9 +61,12 @@ export class GeneratorComponent {
     this.errorMessage = null;
 
     try {
+      const xml = await this.readFile(file);
+      const models: EPackageJson[] = this.ecore2jsonService.parse(xml)
+
       const finalProjectName =
         await this.generationService.processEcoreFile(
-          file,
+          models,
           projectName,
           modelName,
           this.sanitize(this.rootByUser),
@@ -79,5 +85,14 @@ export class GeneratorComponent {
   private sanitize(str: string): string|undefined {
     const clean = str.trim()
     return clean.length<1? undefined: clean;
+  }
+
+  private readFile(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.readAsText(file);
+    });
   }
 }
