@@ -11,7 +11,7 @@ import {GenerationPaths} from '../generation-paths';
 })
 export class EditGenerationService {
 
-  private srcFolder = 'assets/templates/model/services/';
+  private srcFolder = 'assets/templates/edit/';
 
   constructor(
     private loader: TemplateLoadService,
