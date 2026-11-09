@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { %%modelName%%EditorComponent } from './%%modelFileName%%/editor/%%modelName%%-editor.component';
+import { %%modelName%%EditorComponent } from './editor/%%modelName%%-editor.component';
 
 @Component({
   selector: 'app-root',

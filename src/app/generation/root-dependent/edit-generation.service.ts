@@ -50,7 +50,7 @@ export class EditGenerationService {
   }
 
   private createImports(classes: EClassJson[]): string {
-    return classes.map(cls => `import { ${cls.name} } from "../core/${cls.name}";`) //todo add paths
+    return classes.map(cls => `import { ${cls.name} } from "../model/${cls.name}";`) //todo add paths
       .join('\n');
   }
 
