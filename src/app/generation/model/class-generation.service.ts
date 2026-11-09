@@ -17,7 +17,7 @@ import {GenerationPaths} from '../generation-paths';
 })
 export class ClassGenerationService {
 
-  private srcFolder = 'assets/templates/model/v10/core/';
+  private srcFolder = 'assets/templates/model/';
 
   constructor(
     private loader: TemplateLoadService,

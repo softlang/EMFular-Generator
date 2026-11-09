@@ -10,7 +10,7 @@ import {GenerationPaths} from "../generation-paths";
 })
 export class MetaGenerationService {
 
-  private srcFolder = 'assets/templates/model/v10/meta/';
+  private srcFolder = 'assets/templates/model/';
 
   constructor(
     private loader: TemplateLoadService,
