@@ -181,7 +181,7 @@ export class ClassGenerationService {
   }
 
   private mapEcoreTypeToTs(attr: EAttributeJson): string {
-    const t = attr.type;
+    const t = attr.resolvedTypeRef.name ?? '';
 
     if (t.length == 0) return "any"
 

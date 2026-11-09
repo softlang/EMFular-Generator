@@ -34,8 +34,7 @@ export interface EClassJson extends EClassifierJson {
 export interface EAttributeJson {
   kind: 'EAttribute';
   name: string;
-  type: string;
-  resolvedTypeRef?: ClassifierRef;
+  resolvedTypeRef: ClassifierRef;
   lowerBound: number;
   upperBound: number;
   defaultValueLiteral?: string;

@@ -14,7 +14,6 @@ export class Attribute2JsonService {
     const res: EAttributeJson = {
       kind: 'EAttribute',
       name: el.getAttribute('name') ?? '',
-      type: typeRef.name,
       resolvedTypeRef: typeRef,
       lowerBound: Number(el.getAttribute('lowerBound') ?? '0'),
       upperBound: Number(el.getAttribute('upperBound') ?? '1'),
