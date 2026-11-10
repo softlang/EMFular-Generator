@@ -60,7 +60,7 @@ export class ClassGenerationService {
 
     // real parent (extends)
     const realParent = realClasses[0] ?? null;
-    const EXTENDS = realParent.name ?? 'Referencable<any>';
+    const EXTENDS = realParent?.name ?? 'Referencable<any>';
     // implements:
     const IMPLEMENTS = interfaces.length > 0
       ? `implements ${interfaces.map(i => i.name).join(', ')}`
