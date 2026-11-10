@@ -3,7 +3,6 @@ import {
   ClassifierRef,
   EAttributeJson,
   EClassJson,
-  EDataTypeJson,
   EEnumJson,
   EPackageJson,
   EReferenceJson
@@ -31,12 +30,9 @@ export class ClassGenerationService {
     const classTemplate = await this.loader.loadTemplate(
       this.srcFolder + 'class.ts.template.ts'
     );
-
     const classMap = new Map(model.eClasses.map(c => [c.name, c]));
-
     for (const cls of model.eClasses) {
       if (cls.interfaceLike) continue; // interfaces handled on interface service
-
       const fileContent = this.buildClassFile(cls, classMap, model, classTemplate);
       this.zip.addFile(`${GenerationPaths.modelPath}/${model.name}/${cls.name}.ts`, fileContent);
     }
@@ -62,21 +58,20 @@ export class ClassGenerationService {
       [[], []] as [ClassifierRef[], ClassifierRef[]]
     );
 
+    // real parent (extends)
+    const realParent = realClasses[0] ?? null;
+    const EXTENDS = realParent.name ?? 'Referencable<any>';
     // implements:
     const IMPLEMENTS = interfaces.length > 0
       ? `implements ${interfaces.map(i => i.name).join(', ')}`
       : '';
-
-    // real parent (extends)
-    const realParent = realClasses[0] ?? null;
-    const EXTENDS = realParent.name ?? 'Referencable<any>';
     const IMPORTS = this.buildImports(cls, interfaces, realParent, model);
 
     return this.replacer.applyPlaceholders(template, {
       IMPORTS,
       modelMeta: `${model.name}Meta`,
       className: cls.name,
-      abstract: this.asAbstract(cls),
+      abstract: cls.abstract?" abstract ": " ",
       EXTENDS,
       IMPLEMENTS,
       ATTRIBUTES,
@@ -149,7 +144,7 @@ export class ClassGenerationService {
     return cls.references
       .map(ref => {
         if(ref.derived)
-          return this.buildDerivedRef(ref, cls.name)
+          return this.buildDerivedRef(ref)
         else
           return this.buildNormalRef(ref, cls.name)
       }).join('\n\n');
@@ -162,7 +157,7 @@ export class ClassGenerationService {
     return `  @reference(${className}Refs.${ref.name})\n  declare ${ref.name}: ${type};`;
   }
 
-  private buildDerivedRef(ref: EReferenceJson, className: string) {
+  private buildDerivedRef(ref: EReferenceJson) {
     //right now just create a getter with right type:
     const type = ref.upperBound === 1
       ? ref.resolvedTypeRef?.name+(ref.lowerBound!==1?"|undefined":"")
@@ -299,7 +294,4 @@ export class ClassGenerationService {
     return ` = ${e.name}.${value}`; //todo could sanitize/check
   }
 
-  asAbstract(meta:EClassJson): string {
-    return meta.abstract?" abstract ": " "
-  }
 }
