@@ -5,6 +5,7 @@ import {ZipService} from '../utils/zip.service';
 import {EClassJson} from '../../parsing/ecore-json';
 import {GenerationParams} from '../generation-params';
 import {GenerationPaths} from '../generation-paths';
+import {ImportPathCreator} from '../utils/import-path-creator';
 
 @Injectable({
   providedIn: 'root',
@@ -50,8 +51,11 @@ export class EditGenerationService {
   }
 
   private createImports(classes: EClassJson[]): string {
-    return classes.map(cls => `import { ${cls.name} } from "../model/${cls.name}";`) //todo add paths
-      .join('\n');
+    return classes.map(
+      cls => ImportPathCreator.createImport(
+        ImportPathCreator.cls2pkgRef(cls)
+      )
+    ).join('\n');
   }
 
   private addCreationMethods(classes: EClassJson[]): string {
