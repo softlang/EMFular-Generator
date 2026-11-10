@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
-import { EClassJson, EPackageJson } from '../../parsing/ecore-json';
+import {ClassifierRef, EClassJson, EPackageJson} from '../../parsing/ecore-json';
 import { TemplateLoadService } from '../utils/template-load.service';
 import { PlaceholderReplacerService } from '../utils/place-holder-replacer.service';
 import { ZipService } from '../utils/zip.service';
 import {GenerationPaths} from '../generation-paths';
+import {ImportPathCreator} from "../utils/import-path-creator";
 
 @Injectable({
   providedIn: 'root',
@@ -32,16 +33,18 @@ export class InterfaceGenerationService {
     cls: EClassJson,
     interfaceTemplate: string
   ): string {
-
-    const superInterfaces = cls.superTypes.map((r) => r.name);
-    const typeImports = superInterfaces.length > 0
-      ? superInterfaces
-        .map(name => `import type { ${name} } from './${name}';`)
+    const ownPackageRef: ClassifierRef = ImportPathCreator.cls2pkgRef(cls)
+    const typeImports = cls.superTypes.length > 0
+      ? cls.superTypes
+        .map(ref =>
+            ImportPathCreator.createImportBetweenClassifiers(ref, ownPackageRef)
+        )
         .join('\n')
       : '';
 
-    const extendsClause = superInterfaces.length > 0
-      ? `extends ${superInterfaces.join(', ')}`
+    const superInterfaceNames = cls.superTypes.map((r) => r.name);
+    const extendsClause = superInterfaceNames.length > 0
+      ? `extends ${superInterfaceNames.join(', ')}`
       : '';
 
     return this.replacer.applyPlaceholders(
