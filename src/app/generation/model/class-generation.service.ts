@@ -126,10 +126,32 @@ export class ClassGenerationService {
         ImportPathCreator.createImportBetweenClassifiers(ref.resolvedTypeRef, ownClsRef, true): undefined
       if(importStr) imports.add(importStr);
     });
-    // meta:
-    imports.add(`import { ${model.name}Meta${cls.references.length> 0?`, ${cls.name}Refs`:'' }${usedEnums.size>0?", "+Array.from(usedEnums).join(", "):''} } from './_meta_';`)
-
+    // own meta:
+    imports.add(
+      `import { ${model.name}Meta${cls.references.length>0 ? `, ${cls.name}Refs`:'' } } from './_meta_';`)
+    // all extra types from attributes:
+    // enums and type aliases (could be from every pkg):
+    const attrImports = this.buildImportsFromAttributes(
+      cls.attributes.map(attr =>attr.resolvedTypeRef)
+    )
+    attrImports.forEach(attr => {
+      imports.add(attr);
+    })
     return Array.from(imports).join('\n');
+  }
+
+  private buildImportsFromAttributes(attributes: ClassifierRef[]): string[] {
+    const grouped = new Map<string, Set<ClassifierRef>>();
+    for (const attribute of attributes) {
+      const key = attribute.pkgPath?.join('/') ?? '';
+      if (!grouped.has(key)) {
+        grouped.set(key, new Set<ClassifierRef>());
+      }
+      grouped.get(key)!.add(attribute);
+    }
+    return [...grouped].map(([path, refs]) =>
+      `import { ${[...refs].map(ref => ref.name).join(',')} } from 'src/app/model/${path}/_meta_';`
+    );
   }
 
   private buildReferences(cls: EClassJson): string {
@@ -171,6 +193,7 @@ export class ClassGenerationService {
       const tsType = this.mapEcoreTypeToTs(attr);
       const optional = attr.lowerBound === 0 ? "?" : "";
       const isList =  attr.upperBound === -1 || attr.upperBound > 1
+      const ref = attr.resolvedTypeRef
       const typeShortcut = eDataTypes.find(t => t.name == tsType)
       if (typeShortcut) {
         usedTypes.add(typeShortcut.name)
