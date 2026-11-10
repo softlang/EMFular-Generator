@@ -48,13 +48,8 @@ export class ClassGenerationService {
     model: EPackageJson,
     template: string
   ): string {
-
-    const usedEnums: Set<string> = new Set(); //filled by attributes
-    // fill both at once since same usage const usedTypes: Set<string> = new Set(); //filled by attributes
-
-    const ATTRIBUTES = this.buildAttributes(cls, model.eEnums, usedEnums, model.eDataTypes, usedEnums);
+    const ATTRIBUTES = this.buildAttributes(cls, model.eEnums);
     const REFERENCES = this.buildReferences(cls);
-
 
     //distinguish interfaces and real classes on super:
     const [interfaces, realClasses] = cls.superTypes.reduce(
@@ -67,7 +62,6 @@ export class ClassGenerationService {
       [[], []] as [ClassifierRef[], ClassifierRef[]]
     );
 
-
     // implements:
     const IMPLEMENTS = interfaces.length > 0
       ? `implements ${interfaces.map(i => i.name).join(', ')}`
@@ -76,9 +70,7 @@ export class ClassGenerationService {
     // real parent (extends)
     const realParent = realClasses[0] ?? null;
     const EXTENDS = realParent.name ?? 'Referencable<any>';
-
     const IMPORTS = this.buildImports(cls, interfaces, realParent, model);
-
 
     return this.replacer.applyPlaceholders(template, {
       IMPORTS,
@@ -179,28 +171,17 @@ export class ClassGenerationService {
     return `  get ${ref.name}(): ${type} {\n\t\t${notImplemented}\n  }\n`;
   }
 
-  //fills used enums
-  private buildAttributes(cls: EClassJson, enums: EEnumJson[], usedEnums: Set<string>, types: EDataTypeJson[], usedTypes: Set<string>): string {
-    console.error('Types: ## '+types.map(t => t.name))
-
+  private buildAttributes(cls: EClassJson, enums: EEnumJson[]): string {
     return cls.attributes
-      .map(a => this.buildAttribute(a, enums, usedEnums, types, usedTypes) )
+      .map(a => this.buildAttribute(a, enums))
       .join('\n\n');
   }
 
-  private buildAttribute(attr: EAttributeJson,  enums: EEnumJson[], usedEnums: Set<string>, eDataTypes: EDataTypeJson[], usedTypes: Set<string>): string {
+  private buildAttribute(attr: EAttributeJson, enums: EEnumJson[]): string {
       const tsType = this.mapEcoreTypeToTs(attr);
       const optional = attr.lowerBound === 0 ? "?" : "";
       const isList =  attr.upperBound === -1 || attr.upperBound > 1
-      const ref = attr.resolvedTypeRef
-      const typeShortcut = eDataTypes.find(t => t.name == tsType)
-      if (typeShortcut) {
-        usedTypes.add(typeShortcut.name)
-      }
       const enumInfo = this.findEnum(tsType, enums);
-      if (enumInfo) {
-        usedEnums.add(enumInfo.name)
-      }
       const initializer = enumInfo
       ? this.buildEnumInitializer(attr, enumInfo, isList)
       : this.buildPrimitiveInitializer(attr, tsType, isList);
@@ -244,7 +225,6 @@ export class ClassGenerationService {
   }
 
   // --- primitive types ----
-
   private buildPrimitiveInitializer(attr: EAttributeJson, tsType: string, isList: boolean): string {
     if (attr.defaultValueLiteral !== undefined) {
       return " = " + this.formatPrimitiveDefault(attr.defaultValueLiteral, tsType, isList);
