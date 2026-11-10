@@ -5,6 +5,7 @@ import {PlaceholderReplacerService} from '../utils/place-holder-replacer.service
 import {ZipService} from '../utils/zip.service';
 import {GenerationParams} from '../generation-params';
 import {GenerationPaths} from '../generation-paths';
+import {ImportPathCreator} from '../utils/import-path-creator';
 
 @Injectable({
   providedIn: 'root',
@@ -49,6 +50,7 @@ export class EditorGenerationService {
       {
         modelName: params.modelName,
         root: root.name,
+        ROOT_IMPORT: ImportPathCreator.createImport(ImportPathCreator.cls2pkgRef(root)),
         BUTTONS: this.createButtons(realClasses)
       }
     )

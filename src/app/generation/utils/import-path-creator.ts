@@ -10,6 +10,13 @@ export class ImportPathCreator {
     }
   }
 
+  static createImport(
+    targetRef: ClassifierRef,
+    onlyType : boolean = false
+  ): string {
+    return `import ${onlyType? "type ": ""} { ${targetRef.name} } from 'src/app/model/${targetRef.pkgPath?.join('/')}/${targetRef.name}'`;
+  }
+
   /**
    * produces imports like '{ ${targetRef.name} } from path/classname'
    * be careful: this only works for classes and interfaces that get own TS files but not for enums and type aliases that live in one own file

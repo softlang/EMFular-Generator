@@ -10,7 +10,7 @@ import { BoundingBox } from "ngx-emfular-diagram";
 import { Referencable} from "emfular-core";
 
 import { %%modelName%%Service } from "../edit/%%modelName%%.service";
-import { %%root%% } from "../model/%%root%%";
+%%ROOT_IMPORT%%
 
 @Component({
   selector: '%%modelName%%-editor',
