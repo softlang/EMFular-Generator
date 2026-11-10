@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import {
+  ClassifierRef,
   EAttributeJson,
   EClassJson,
   EDataTypeJson,
@@ -11,6 +12,7 @@ import { TemplateLoadService } from '../utils/template-load.service';
 import { PlaceholderReplacerService } from '../utils/place-holder-replacer.service';
 import { ZipService } from '../utils/zip.service';
 import {GenerationPaths} from '../generation-paths';
+import {ImportPathCreator} from '../utils/import-path-creator';
 
 @Injectable({
   providedIn: 'root',
@@ -55,25 +57,25 @@ export class ClassGenerationService {
 
 
     //distinguish interfaces and real classes on super:
-    const [interfaces, realClasses] = cls.superTypes.map((r) => r.name).reduce(
-      ([i, r], name) => {
-        const sup = classMap.get(name)!;
-        if (sup.interfaceLike) i.push(name);
-        else r.push(name);
+    const [interfaces, realClasses] = cls.superTypes.reduce(
+      ([i, r], ref) => {
+        const sup = classMap.get(ref.name)!;
+        if (sup.interfaceLike) i.push(ref);
+        else r.push(ref);
         return [i, r];
       },
-      [[], []] as [string[], string[]]
+      [[], []] as [ClassifierRef[], ClassifierRef[]]
     );
 
 
     // implements:
     const IMPLEMENTS = interfaces.length > 0
-      ? `implements ${interfaces.join(', ')}`
+      ? `implements ${interfaces.map(i => i.name).join(', ')}`
       : '';
 
     // real parent (extends)
     const realParent = realClasses[0] ?? null;
-    const EXTENDS = realParent ?? 'Referencable<any>';
+    const EXTENDS = realParent.name ?? 'Referencable<any>';
 
     const IMPORTS = this.buildImports(cls, interfaces, realParent, usedEnums, model);
 
@@ -92,36 +94,40 @@ export class ClassGenerationService {
 
   private buildImports(
     cls: EClassJson,
-    interfaces: string[],
-    realParent: string|null,
+    interfaces: ClassifierRef[],
+    realParent: ClassifierRef|null,
     usedEnums: Set<string>,
     model: EPackageJson): string {
-    const imports = new Set<string>();
-    //basic import: eClass and attribuets and reference decorators if needed from emfular:
-    imports.add(`import { eClass${cls.references.length>0? ', reference': ''}${cls.attributes.length>0? ', attribute': ''} } from 'emfular-core'`)
 
-    // interface supertypes (type-only)
-    interfaces.forEach(i =>
-      imports.add(`import type { ${i} } from './${i}';`)
-    );
-    // referenced types (type-only), but skip real parent and self
-    cls.references.forEach(ref => {
-      if (ref.resolvedTypeRef?.name === realParent) return;
-      if (ref.resolvedTypeRef?.name === cls.name) return;
-      imports.add(`import type { ${ref.resolvedTypeRef?.name} } from './${ref.resolvedTypeRef?.name}';`);
-    });
+    const ownClsRef = ImportPathCreator.cls2pkgRef(cls)
+    const imports = new Set<string>();
+    //basic import: eClass and attributes and reference decorators if needed from emfular:
+    imports.add(`import { eClass${cls.references.length>0? ', reference': ''}${cls.attributes.length>0? ', attribute': ''} } from 'emfular-core'`)
     //modelList if needed (type-only)
     if (cls.references.some(r => r.upperBound !== 1)) {
       imports.add(`import type { ModelList } from 'emfular-core';`);
     }
-    // meta:
-    imports.add(`import { ${model.name}Meta${cls.references.length> 0?`, ${cls.name}Refs`:'' }${usedEnums.size>0?", "+Array.from(usedEnums).join(", "):''} } from './_meta_';`)
-
+    //this needs real import, not type. Use parent if it exists, Referencable otherwise
     if (realParent) {
-      imports.add(`import { ${realParent} } from './${realParent}';`);
+      const parentImport = ImportPathCreator.createImportBetweenClassifiers(realParent, ownClsRef, false)
+      if(parentImport) imports.add(parentImport);
     } else {
       imports.add(`import { Referencable } from 'emfular-core';`);
     }
+    // interface supertypes (type-only)
+    interfaces.map(i =>
+      ImportPathCreator.createImportBetweenClassifiers(i, ownClsRef, true)
+    ).filter(i => i != undefined).map(i => imports.add(i));
+    // referenced types (type-only), but skip real parent and self
+    cls.references.forEach(ref => {
+      if (ref.resolvedTypeRef === realParent) return; //already covered, no double import
+      if (ref.resolvedTypeRef?.name === cls.name) return;
+      const importStr = ref.resolvedTypeRef?
+        ImportPathCreator.createImportBetweenClassifiers(ref.resolvedTypeRef, ownClsRef, true): undefined
+      if(importStr) imports.add(importStr);
+    });
+    // meta:
+    imports.add(`import { ${model.name}Meta${cls.references.length> 0?`, ${cls.name}Refs`:'' }${usedEnums.size>0?", "+Array.from(usedEnums).join(", "):''} } from './_meta_';`)
 
     return Array.from(imports).join('\n');
   }

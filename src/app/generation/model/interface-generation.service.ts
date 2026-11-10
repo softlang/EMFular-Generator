@@ -37,7 +37,7 @@ export class InterfaceGenerationService {
     const typeImports = cls.superTypes.length > 0
       ? cls.superTypes
         .map(ref =>
-            ImportPathCreator.createImportBetweenClassifiers(ref, ownPackageRef)
+            ImportPathCreator.createImportBetweenClassifiers(ref, ownPackageRef, true)
         )
         .join('\n')
       : '';
