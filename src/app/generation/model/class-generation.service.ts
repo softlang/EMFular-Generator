@@ -77,7 +77,7 @@ export class ClassGenerationService {
     const realParent = realClasses[0] ?? null;
     const EXTENDS = realParent.name ?? 'Referencable<any>';
 
-    const IMPORTS = this.buildImports(cls, interfaces, realParent, usedEnums, model);
+    const IMPORTS = this.buildImports(cls, interfaces, realParent, model);
 
 
     return this.replacer.applyPlaceholders(template, {
@@ -95,8 +95,7 @@ export class ClassGenerationService {
   private buildImports(
     cls: EClassJson,
     interfaces: ClassifierRef[],
-    realParent: ClassifierRef|null,
-    usedEnums: Set<string>,
+    realParent: ClassifierRef | null,
     model: EPackageJson): string {
 
     const ownClsRef = ImportPathCreator.cls2pkgRef(cls)
