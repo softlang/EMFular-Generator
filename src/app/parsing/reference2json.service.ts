@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import {ReferenceResolvingService} from './reference-resolving.service';
+import {DocumentReferenceResolver} from './reference-resolving.service';
 import {EReferenceJson} from './ecore-json';
 
 @Injectable({
@@ -7,18 +7,14 @@ import {EReferenceJson} from './ecore-json';
 })
 export class Reference2JsonService {
 
-  constructor(private referenceResolver: ReferenceResolvingService) {}
-
-  parseEReference(el: Element, idToName: Map<string, string>): EReferenceJson {
+  parseEReference(el: Element, resolver: DocumentReferenceResolver): EReferenceJson {
     const type = el.getAttribute('eType') ?? '';
-    const opposite = el.getAttribute('eOpposite') || undefined
+    const opposite = el.getAttribute('eOpposite') || undefined;
+    const oppositeEl = opposite ? resolver.resolveElement(opposite) : undefined;
     return {
       kind: 'EReference',
       name: el.getAttribute('name') ?? '',
-      type: type,
-      resolvedType: idToName.get(
-        this.referenceResolver.normalizeIdRef(type)
-      ) ?? this.referenceResolver.normalizeTypeName(type),
+      resolvedType: resolver.resolveName(type),
       lowerBound: Number(el.getAttribute('lowerBound') ?? '0'),
       upperBound: Number(el.getAttribute('upperBound') ?? '1'),
 
@@ -29,16 +25,9 @@ export class Reference2JsonService {
       volatile: el.getAttribute('volatile') === 'true' || undefined,
       changeable: el.getAttribute('changeable') === 'true' || undefined,
 
-      // opposite reference (if present)
-      opposite: opposite,
-      resolvedOpposite: this.normalizeOpposite(opposite),
+      resolvedOpposite: oppositeEl?.getAttribute('name') ?? undefined,
+      // A reference is a tree parent iff its opposite is a containment
+      isTreeParent: oppositeEl?.getAttribute('containment') === 'true' || undefined,
     };
   }
-
-  private normalizeOpposite(raw: string|undefined): string|undefined {
-    if (!raw ) return undefined;
-    const idx = raw.lastIndexOf("/");
-    return idx >= 0 ? raw.substring(idx + 1) : raw;
-  }
-
 }

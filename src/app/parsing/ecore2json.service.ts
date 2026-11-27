@@ -1,9 +1,7 @@
 import { Injectable } from '@angular/core';
-import {
-  EPackageJson,
-  EReferenceJson,
-} from './ecore-json';
+import {EPackageJson} from './ecore-json';
 import {Classifier2JsonService} from './classifier2json.service';
+import {DocumentReferenceResolver, ReferenceResolvingService} from './reference-resolving.service';
 
 @Injectable({
   providedIn: 'root',
@@ -12,44 +10,37 @@ export class Ecore2JsonService {
 
   constructor(
     private classifiers2Json: Classifier2JsonService,
+    private referenceResolving: ReferenceResolvingService,
   ) {}
 
   parse(xml: string): EPackageJson[] {
     const doc = this.parseXml(xml);
-    const docElem = doc.documentElement;
+    const resolver = this.referenceResolving.forDocument(doc);
+    return this.findTopLevelPackages(doc.documentElement, resolver);
+  }
 
-    const result: EPackageJson[] = [];
-
-    // TODO: When subpackage support is added, we must detect eSubpackages
-    // and attach them to their parent EPackage instead of treating them
-    // as independent top-level packages.
-
-
-    const stack: Element[] = [docElem];
-
-    while (stack.length > 0) {
-      const el = stack.pop()!;
-
-      if (this.isEPackage(el)) {
-        result.push(this.parsePackage(el));
-      } else {
-        // Not a package → continue scanning children
-        for (const child of Array.from(el.children)) {
-          stack.push(child);
-        }
-      }
+  /**
+   * Collects the outermost EPackages below (and including) `el` in document
+   * order. The descent stops at each package; its eSubpackages are handled
+   * by parsePackage.
+   */
+  private findTopLevelPackages(el: Element, resolver: DocumentReferenceResolver): EPackageJson[] {
+    if (this.isEPackage(el)) {
+      return [this.parsePackage(el, resolver)];
     }
-    return result;
+    return Array.from(el.children).flatMap(child => this.findTopLevelPackages(child, resolver));
   }
 
   private isEPackage(el: Element): boolean {
-    const tag = el.tagName;
-    const type = el.getAttribute('xmi:type') ?? '';
-    return tag.endsWith('EPackage') || type.endsWith('EPackage');
+    return el.tagName.endsWith('EPackage');
   }
 
-  parsePackage(root: Element): EPackageJson {
-    if (!root.tagName.endsWith('EPackage')) {
+  private isESubpackage(el: Element): boolean {
+    return el.tagName === 'eSubpackages';
+  }
+
+  parsePackage(root: Element, resolver: DocumentReferenceResolver): EPackageJson {
+    if (!this.isEPackage(root) && !this.isESubpackage(root)) {
       throw new Error('Not an EPackage');
     }
     const name = root.getAttribute('name') ?? ''
@@ -62,102 +53,28 @@ export class Ecore2JsonService {
       eClasses: [],
       eEnums: [],
       eDataTypes: [],
+      subPackages: [],
     };
 
-    const idToName = new Map<string, string>();
-    for (const child of Array.from(root.children)) {
-      if (child.tagName === 'eClassifiers') {
-        const id = child.getAttribute('xmi:id');
-        const name = child.getAttribute('name');
-        if (id && name) {
-          idToName.set(id, name);
-        }
-      }
-    }
-
-    console.error("Map:");
-    for (const [key, value] of idToName.entries()) {
-      console.error("  " + key + " → " + value);
-    }
-
-    let index = 0
     for (const child of Array.from(root.children)) {
       if (child.tagName === 'eClassifiers') {
         const type = child.getAttribute('xsi:type');
 
         if (type === 'ecore:EClass') {
-          const cls = this.classifiers2Json.parseEClass(child, index, idToName);
+          const cls = this.classifiers2Json.parseEClass(child, resolver);
           pkg.eClasses.push(cls);
         } else if (type === 'ecore:EEnum') {
-          const en = this.classifiers2Json.parseEEnum(child, index);
+          const en = this.classifiers2Json.parseEEnum(child);
           pkg.eEnums.push(en);
         } else if (type === 'ecore:EDataType') {
-          const dt = this.classifiers2Json.parseEDataType(child, index);
+          const dt = this.classifiers2Json.parseEDataType(child);
           pkg.eDataTypes.push(dt);
         }
-        index++
+      } else if (this.isESubpackage(child)) {
+        pkg.subPackages!.push(this.parsePackage(child, resolver));
       }
     }
-    this.inferTreeParents(pkg)
-    this.resolveSuperTypes(pkg)
     return pkg;
-  }
-
-  resolveSuperTypes(pkg: EPackageJson) {
-    for (const cls of pkg.eClasses) {
-      cls.resolvedSuperTypes = cls.superTypes
-        .map(uri => this.resolveSuperTypeUri(uri, pkg))
-        .filter((x): x is string => !!x);
-    }
-  }
-
-  private resolveSuperTypeUri(uri: string, pkg: EPackageJson): string | undefined {
-    // Case 1: XMI index "#/0/@eClassifiers.1"
-    const match = uri.match(/@eClassifiers\.(\d+)/);
-    if (match) {
-      const index = Number(match[1]);
-      const cls = pkg.eClasses.find(c => c._index === index);
-      return cls?.name;
-    }
-
-    // Case 2: "#//Person" plus now also /1/Person
-    if (uri.includes('/')) {
-      const name = uri.split('/').pop()!;
-      return pkg.eClasses.some(c => c.name === name) ? name : undefined;
-    }
-    //done also remove any /? since name is the last one behind it?
-
-    // Case 3: "ecore:Person"
-    if (uri.includes(':')) {
-      const name = uri.split(':').pop()!;
-      return pkg.eClasses.some(c => c.name === name) ? name : undefined;
-    }
-
-    return undefined;
-  }
-
-
-  inferTreeParents(pkg: EPackageJson) {
-    // Build a lookup table following the opposite naming schema
-    const refIndex = new Map<string, EReferenceJson>();
-    for (const cls of pkg.eClasses) {
-      for (const ref of cls.references) {
-        refIndex.set(`#//${cls.name}/${ref.name}`, ref);
-      }
-    }
-    // Now resolve opposites and infer tree-parent
-    for (const cls of pkg.eClasses) {
-      for (const ref of cls.references) {
-        if (!ref.opposite) {
-          continue;
-        }
-        const oppositeRef = refIndex.get(ref.opposite);
-        // A reference is a tree parent iff its opposite is containment
-        if (oppositeRef?.containment === true) {
-          ref.isTreeParent = true;
-        }
-      }
-    }
   }
 
   private pascalCase(str: string): string {

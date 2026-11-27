@@ -17,6 +17,58 @@ describe('Ecore2JsonService - Reference Resolution Suite', () => {
   });
 
   // =========================================================================
+  // 0. PACKAGE DISCOVERY (order, subpackages, root detection)
+  // =========================================================================
+  describe('Package discovery', () => {
+    it('should return top-level packages in document order', () => {
+      const packages = service.parse(MULTI_ROOT_ECORE);
+      expect(packages.map((p) => p.name)).toEqual(['primitives', 'content']);
+    });
+
+    it('should attach subpackages to their parent in document order', () => {
+      const packages = service.parse(SUBPACKAGES_ECORE);
+      expect(packages.map((p) => p.name)).toEqual(['shop']);
+
+      const shop = packages[0];
+      expect(shop.subPackages?.map((p) => p.name)).toEqual(['types', 'domain']);
+      expect(shop.eClasses.map((c) => c.name)).toEqual(['Store']);
+
+      const [types, domain] = shop.subPackages!;
+      expect(types.nsURI).toBe('http://example.org/shop/types');
+      expect(types.eEnums.map((e) => e.name)).toEqual(['OrderStatus']);
+      expect(types.eDataTypes.map((d) => d.name)).toEqual(['Money']);
+      expect(domain.eClasses.map((c) => c.name)).toEqual(['Order']);
+    });
+
+    it('should parse nested subpackages recursively', () => {
+      const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="a">
+  <eSubpackages name="b">
+    <eSubpackages name="c1"/>
+    <eSubpackages name="c2">
+      <eClassifiers xsi:type="ecore:EClass" name="Leaf"/>
+    </eSubpackages>
+  </eSubpackages>
+</ecore:EPackage>`;
+      const [a] = service.parse(xml);
+      const b = a.subPackages![0];
+      expect(b.name).toBe('b');
+      expect(b.subPackages?.map((p) => p.name)).toEqual(['c1', 'c2']);
+      expect(b.subPackages![1].eClasses.map((c) => c.name)).toEqual(['Leaf']);
+    });
+
+    it('should only recognise packages by tag name, not by xmi:type', () => {
+      const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<xmi:XMI xmlns:xmi="http://www.omg.org/XMI" xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore">
+  <contents xmi:type="ecore:EPackage" name="ignored"/>
+  <ecore:EPackage name="kept"/>
+</xmi:XMI>`;
+      expect(service.parse(xml).map((p) => p.name)).toEqual(['kept']);
+    });
+  });
+
+  // =========================================================================
   // 1. POSITIONAL REFERENCES TEST
   // =========================================================================
   describe('Positional XPath References (#//@eClassifiers.N)', () => {
@@ -59,8 +111,8 @@ describe('Ecore2JsonService - Reference Resolution Suite', () => {
     it('should resolve cross-subpackage attributes and references', () => {
       const packages = service.parse(SUBPACKAGES_ECORE);
 
-      // Locate domain package and types package
-      const domainPkg = packages.find((p) => p.name === 'domain') ?? packages[0];
+      // Locate domain subpackage of the root package
+      const domainPkg = packages[0].subPackages?.find((p) => p.name === 'domain');
       const orderClass = domainPkg?.eClasses.find((c) => c.name === 'Order');
       expect(orderClass).toBeDefined();
 
